@@ -41,8 +41,8 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
 - **Kategorien:** Vom Nutzer frei erstellbar (z.B. "Schnittmuster", "Stoffe", "Rezepte"); jeder Link kann **einer** Kategorie zugeordnet werden
 - **Tags:** Vom Nutzer frei erstellbar, **mehrere Tags pro Link** möglich (z.B. "Damen", "Pullover")
 - **Status:** 
-  - Default-Status beim Speichern: **"Gemerkt"**
-  - Nutzer kann eigene, zusätzliche Status-Werte frei definieren (z.B. "Gekauft", "Umgesetzt", eigene Begriffe)
+  - Default-Status beim Speichern: **"Gemerkt"** (englische Oberfläche: "Saved") – das ist der einzige eingebaute Status; gespeichert wird dafür der sprachunabhängige Schlüssel `"default"` (siehe Abschnitt 4)
+  - Nutzer kann eigene, zusätzliche Status-Werte frei definieren (z.B. "Gekauft", "Umgesetzt", eigene Begriffe); diese werden als eingegebener Text gespeichert und nicht übersetzt
   - Status ist pro Link änderbar
 - **Notizen:** Freies Textfeld pro Link (z.B. "passt gut zu Schnitt X", "Größe M kaufen")
 - **Löschen:** Links müssen jederzeit vollständig löschbar sein
@@ -76,7 +76,7 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
 - **Manueller Wechsel:** Der Nutzer kann die Sprache im Dashboard jederzeit umstellen; die Wahl wird lokal gespeichert und überschreibt ab dann die automatische Erkennung
 - Übersetzt werden **alle** vom Nutzer wahrnehmbaren Texte – auch solche, die nicht sichtbar sind: Alternativtexte von Bildern, ARIA-Labels, Fehler- und Bestätigungsmeldungen sowie Datums- und Zahlenformate
 - **Nicht** übersetzt werden vom Nutzer selbst eingegebene Inhalte (Kategorien, Tags, eigene Status-Werte, Notizen) und von Webseiten übernommene Daten (Titel, Preis) – diese bleiben in der Sprache, in der sie erfasst wurden
-- Der Default-Status "Gemerkt" ist ein Sonderfall: Er wird als übersetzter Text angezeigt, intern aber als sprachunabhängiger Schlüssel gespeichert, damit ein Sprachwechsel bestehende Einträge nicht unbrauchbar macht
+- Der Default-Status ist ein Sonderfall: Angezeigt wird er übersetzt ("Gemerkt" / "Saved"), gespeichert wird er als sprachunabhängiger Schlüssel `"default"`, damit ein Sprachwechsel bestehende Einträge nicht unbrauchbar macht (Details in Abschnitt 4)
 - Auch **Name und Beschreibung der Extension** (Manifest, und damit der Store-Eintrag) werden übersetzt
 
 ## 4. Datenmodell (Vorschlag)
@@ -91,20 +91,34 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
   "price": "string | null",
   "category": "string | null",
   "tags": ["string"],
-  "status": "string (default: 'Gemerkt')",
+  "status": "Status (siehe unten, Default: { \"kind\": \"builtin\", \"key\": \"default\" })",
   "note": "string",
   "createdAt": "ISO-Datum",
   "updatedAt": "ISO-Datum"
 }
 ```
 
+Der Status ist kein einfacher String, sondern unterscheidet zwei Fälle:
+
+```json
+{ "kind": "builtin", "key": "default" }
+```
+```json
+{ "kind": "custom", "label": "Gekauft" }
+```
+
 Zusätzlich getrennt gespeichert (damit sie z.B. im Dashboard als Auswahl vorgeschlagen werden können):
 - Liste bereits verwendeter Kategorien
 - Liste bereits verwendeter Tags
-- Liste bereits verwendeter Status-Werte
+- Liste bereits verwendeter, selbst angelegter Status-Werte (der eingebaute Default gehört nicht dazu, er ist immer verfügbar)
 - Einstellungen, u.a. die gewählte Oberflächensprache (`"de"`, `"en"` oder `"auto"` für "der Browsersprache folgen")
 
-**Hinweis zum Status und zur Mehrsprachigkeit:** Der Default-Status wird nicht als übersetzter Text (`"Gemerkt"` / `"Saved"`) gespeichert, sondern als sprachunabhängiger Schlüssel, der erst bei der Anzeige übersetzt wird. Sonst würde ein Sprachwechsel dazu führen, dass bestehende Einträge einen Status in der alten Sprache tragen und Filter nicht mehr greifen. Vom Nutzer selbst angelegte Status-Werte sind davon nicht betroffen – sie werden unverändert als eingegebener Text gespeichert und angezeigt.
+**Warum diese Unterscheidung:** Der eingebaute Default-Status ist übersetzbar, selbst angelegte Status-Werte sind es nicht. Ein einfacher String könnte beide Fälle nicht auseinanderhalten – und ein Nutzer, der zufällig einen eigenen Status "default" anlegt, würde mit dem eingebauten kollidieren. Über `kind` ist das technisch ausgeschlossen, und die Anzeige muss nicht raten, ob sie übersetzen soll.
+
+Im Einzelnen:
+- **`kind: "builtin"`** – gespeichert wird ausschließlich der sprachunabhängige Schlüssel `"default"`, niemals der übersetzte Text. Angezeigt wird er je nach Oberflächensprache als "Gemerkt" bzw. "Saved". Würde man den übersetzten Text speichern, trügen bestehende Einträge nach einem Sprachwechsel einen Status in der alten Sprache, und der Statusfilter zerfiele in zwei Gruppen
+- **`kind: "custom"`** – der vom Nutzer eingegebene Text wird unverändert gespeichert und unverändert angezeigt, in jeder Oberflächensprache. Er wird nie übersetzt
+- Der Schlüssel `"default"` benennt die Rolle, nicht die Bedeutung. Sollten später weitere eingebaute Status hinzukommen, bekommen diese sprechende Schlüssel (z.B. `"bought"`); `"default"` bleibt aus Kompatibilitätsgründen unverändert, da der Wert bereits in gespeicherten Daten und Export-Dateien steckt
 
 ## 5. Design & UX
 
