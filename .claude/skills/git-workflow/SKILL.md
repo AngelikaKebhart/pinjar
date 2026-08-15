@@ -47,7 +47,7 @@ The README.md must include, in English:
   - Loading an unpacked production build in Chrome/Edge (`chrome://extensions` / `edge://extensions`, enable developer mode, "Load unpacked", point at e.g. `.output/chrome-mv3`)
   - Loading a temporary add-on in Firefox (`about:debugging#/runtime/this-firefox`, "Load Temporary Add-on", point at the `manifest.json` in e.g. `.output/firefox-mv2`; note that it's removed on Firefox restart)
   - Per-browser build commands: `wxt build -b chrome`, `wxt build -b firefox`, `wxt build -b edge`
-  - Debugging tips: inspecting the popup, the background service worker (via `chrome://extensions`), and the content script (regular page DevTools console)
+  - Debugging tips: inspecting the popup, the background service worker (via `chrome://extensions`), and the script injected into the visited page (regular page DevTools console)
 - Notes on running lint/typecheck/tests
 
 ## CI (GitHub Actions)
