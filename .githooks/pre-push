@@ -1,0 +1,29 @@
+#!/bin/sh
+#
+# Blocks direct pushes to the protected branch.
+#
+# GitHub does not enforce branch protection on private repositories in the free
+# plan, so this hook enforces the trunk-based workflow locally instead: work
+# happens on feature branches and reaches main through a pull request.
+#
+# Enabled via `git config core.hooksPath .githooks` (done by the "prepare"
+# script in package.json). Bypass in an emergency with `git push --no-verify`.
+
+protected_branch='main'
+
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  if [ "$remote_ref" = "refs/heads/$protected_branch" ]; then
+    echo "" >&2
+    echo "  Direct push to '$protected_branch' is blocked." >&2
+    echo "" >&2
+    echo "  Create a feature branch and open a pull request instead:" >&2
+    echo "    git switch -c feature/my-change" >&2
+    echo "    git push -u origin feature/my-change" >&2
+    echo "" >&2
+    echo "  To bypass deliberately: git push --no-verify" >&2
+    echo "" >&2
+    exit 1
+  fi
+done
+
+exit 0

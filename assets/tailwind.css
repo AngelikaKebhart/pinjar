@@ -1,0 +1,15 @@
+@import 'tailwindcss';
+
+@layer base {
+  body {
+    @apply bg-white text-slate-900;
+  }
+
+  /*
+   * A visible focus indicator is a hard requirement (WCAG 2.2 AA, 2.4.7).
+   * Keyboard users must always be able to see where they are.
+   */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-blue-700;
+  }
+}
