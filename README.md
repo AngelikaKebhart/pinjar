@@ -11,9 +11,9 @@ no automatic sync. Data can be moved between browsers via manual JSON export/imp
 
 ## Project status
 
-Early setup. The repository currently contains the product concept and the project conventions; the
-WXT/React/TypeScript application code is being added next. The commands below describe the intended
-toolchain and will work once the WXT project is scaffolded.
+Early development. The toolchain is in place and builds for all three browsers, but the extension
+does not do anything useful yet: Popup and Dashboard are empty shells, and storage, saving, badge
+handling and export/import are still to be built.
 
 See [`docs/concept.md`](docs/concept.md) for the full product concept, feature list, and data model
 (written in German).
@@ -52,17 +52,16 @@ loaded, and hot-reloads on code changes. This is the fastest way to work on the 
 To develop against a specific browser:
 
 ```bash
-pnpm wxt -b firefox
-pnpm wxt -b edge
+pnpm dev:firefox
+pnpm dev:edge
 ```
 
 ## Building
 
 ```bash
-pnpm build                  # default target (Chrome)
-pnpm wxt build -b chrome
-pnpm wxt build -b firefox
-pnpm wxt build -b edge
+pnpm build           # Chrome (default target)
+pnpm build:firefox
+pnpm build:edge
 ```
 
 Build output is written to `.output/<browser>-<manifest-version>/`, for example `.output/chrome-mv3/`.
@@ -73,14 +72,14 @@ No store publication is needed to try out a build.
 
 **Chrome / Edge**
 
-1. Run `pnpm wxt build -b chrome` (or `-b edge`).
+1. Run `pnpm build` (or `pnpm build:edge`).
 2. Open `chrome://extensions` (or `edge://extensions`).
 3. Enable **Developer mode**.
 4. Click **Load unpacked** and select the build folder, e.g. `.output/chrome-mv3`.
 
 **Firefox**
 
-1. Run `pnpm wxt build -b firefox`.
+1. Run `pnpm build:firefox`.
 2. Open `about:debugging#/runtime/this-firefox`.
 3. Click **Load Temporary Add-on** and select the `manifest.json` inside the build folder,
    e.g. `.output/firefox-mv2/manifest.json`.
@@ -89,17 +88,21 @@ No store publication is needed to try out a build.
 
 ## Debugging
 
-- **Popup:** right-click inside the opened popup and choose *Inspect*.
-- **Background service worker:** open `chrome://extensions` and click the *Service Worker* link on the
+- **Popup:** right-click inside the opened popup and choose _Inspect_.
+- **Dashboard:** it is a normal browser tab — use the regular page DevTools.
+- **Background service worker:** open `chrome://extensions` and click the _Service Worker_ link on the
   extension's card.
-- **Content script:** use the regular page DevTools — content script output appears in the page console.
+- **Injected page scripts:** page metadata is read by a script injected on demand into the active tab;
+  its output appears in the DevTools console of that page, not in the extension's own console.
 
 ## Quality checks
 
 ```bash
-pnpm lint        # ESLint
-pnpm typecheck   # TypeScript
-pnpm test        # Vitest
+pnpm lint          # ESLint (incl. jsx-a11y accessibility rules)
+pnpm typecheck     # TypeScript
+pnpm test          # Vitest
+pnpm format        # Prettier, write
+pnpm format:check  # Prettier, verify only
 ```
 
 These checks also run in CI on every push and pull request, together with a build for each target
@@ -116,6 +119,8 @@ Exported files are plain, unencrypted JSON and may contain personal notes — ha
 ## Contributing
 
 - `main` is the stable branch; work happens on feature branches merged via pull request.
+  A `pre-push` hook in [`.githooks/`](.githooks/) rejects direct pushes to `main`. It is activated by
+  `pnpm install`; to enable it manually, run `git config core.hooksPath .githooks`.
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/), written in English.
 - All code, comments, and documentation are written in English.
 - The UI must meet WCAG 2.2 Level AA.
