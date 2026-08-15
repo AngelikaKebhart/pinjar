@@ -135,7 +135,7 @@ Im Einzelnen:
 - **Paketmanager: [pnpm](https://pnpm.io/)** – verbindlich für dieses Projekt (nicht npm oder yarn); schneller, platzsparender durch Content-addressable Store, striktere Dependency-Auflösung (verhindert versehentlichen Zugriff auf nicht deklarierte transitive Abhängigkeiten – passt gut zum Security-Anspruch aus Abschnitt 7.4)
 - **[WXT](https://wxt.dev/)** als Extension-Framework (Vite-basiert)
   - Erzeugt aus einer Codebasis passende Manifeste für Chrome, Firefox und Edge (MV3, bei Firefox intern MV2-Anpassungen)
-  - Klare, konventionsbasierte Projektstruktur über "Entrypoints" (Popup, Dashboard/Options, Background, Content-Script als getrennte Dateien/Ordner)
+  - Klare, konventionsbasierte Projektstruktur über "Entrypoints" (Popup, Dashboard/Options, Background als getrennte Dateien/Ordner)
   - Eingebaute, browserübergreifende Storage-Hilfsfunktionen (Wrapper um `storage.local`)
   - Hot Module Reload während der Entwicklung
   - Eingebaute Build-Pipeline zur Erstellung von Store-tauglichen Zip-Dateien pro Browser
@@ -147,7 +147,7 @@ Im Einzelnen:
   - Ergänzend `eslint-plugin-jsx-a11y`, um Barrierefreiheits-Verstöße in React-Komponenten bereits beim Schreiben zu erkennen
 
 ### 6.2 Architektur / Projektstruktur
-- Content Script zur Extraktion von Titel, `og:image`, ggf. Preis-Heuristiken beim Speichern
+- Extraktion von Titel, `og:image` und Preis-Heuristiken über ein Skript, das **beim Speichern gezielt in den aktiven Tab injiziert** wird (`scripting.executeScript`) – **kein dauerhaft registriertes Content-Script**, Begründung siehe 6.4
 - Background Service Worker zur Verwaltung des Badges (Anzahl Links pro aktueller Domain)
 - Lokale Speicherung via `storage.local` (über WXT-Storage-Abstraktion)
 - Popup als eigener Entrypoint (React-Komponente)
@@ -156,7 +156,7 @@ Im Einzelnen:
   - `entrypoints/popup/` – Popup-UI
   - `entrypoints/dashboard/` – Dashboard-UI
   - `entrypoints/background.ts` – Service Worker
-  - `entrypoints/content.ts` – Content-Script
+  - `src/lib/page-metadata.ts` – die im Zieltab auszuführende Extraktionsfunktion
   - `src/lib/` bzw. `utils/` – gemeinsame Logik (Storage-Zugriff, Datenmodell, Preis-/Titel-Extraktion, Filterfunktionen)
   - `src/components/` – wiederverwendbare React-Komponenten
   - `src/i18n/` – Nachrichtenkataloge (`de.json`, `en.json`) und Übersetzungs-Hook
@@ -178,6 +178,20 @@ Es werden **zwei getrennte Mechanismen** gebraucht, weil sie unterschiedliche An
 - Beide Kataloge müssen denselben Schlüsselsatz besitzen. Ein Unit-Test stellt sicher, dass keine Sprache Schlüssel vermisst oder überzählige enthält – das verhindert stillschweigend unübersetzte Stellen
 - Datums- und Zahlenformate (inkl. Preisanzeige) über die native `Intl`-API (`Intl.DateTimeFormat`, `Intl.NumberFormat`) mit der aktiven Sprache, nicht über hartkodierte Formate
 
+### 6.4 Warum kein Content-Script
+
+Ein deklarativ im Manifest registriertes Content-Script müsste – weil die Extension auf beliebigen Shops funktionieren soll – auf `<all_urls>` matchen. Das erzeugt eine Host-Permission, die dem Nutzer bei der Installation als *"Alle deine Daten auf allen Websites lesen und ändern"* angezeigt wird, und das Skript liefe anschließend dauerhaft auf jeder besuchten Seite mit. Das widerspricht dem Minimalprinzip aus 7.4 direkt.
+
+Stattdessen:
+- Die Extraktion wird beim Speichern per `scripting.executeScript()` in **genau den einen** Tab injiziert, den der Nutzer gerade gemerkt hat
+- Freigeschaltet wird das durch `activeTab`, das der Klick auf das Extension-Icon erteilt – also exakt die Geste, die laut 3.1 ohnehin das Speichern auslöst
+- Benötigte Permissions: `activeTab` und `scripting`, **keine** Host-Permission. Die Extension installiert sich damit ohne Zugriffswarnung
+- Beim Auslesen selbst geht nichts verloren: Das injizierte Skript läuft in derselben isolierten Welt mit demselben DOM-Zugriff wie ein Content-Script. Es ist derselbe Code, nur zu einem anderen Zeitpunkt geladen
+
+**Was damit bewusst nicht geht:** von selbst aktiv werden, ohne Klick des Nutzers – etwa ein Hinweis-Overlay direkt auf der Seite oder das automatische Erkennen von Produktseiten beim Betreten. Beides ist im ersten Wurf nicht vorgesehen. Der Badge braucht kein Content-Script, er wird vom Background-Worker gesetzt.
+
+**Falls so ein Feature später gewünscht ist:** über eine *optionale* Host-Permission, die der Nutzer bewusst freischaltet (`permissions.request()`), nicht über eine pauschale Berechtigung in der Grundinstallation.
+
 ## 7. Code-Qualität, Barrierefreiheit, Datenschutz & Security
 
 ### 7.1 Clean Code
@@ -188,13 +202,13 @@ Es werden **zwei getrennte Mechanismen** gebraucht, weil sie unterschiedliche An
 - Klare Trennung der Zuständigkeiten, z.B.:
   - Storage-Zugriff (Lesen/Schreiben der Daten) getrennt von
   - UI-Logik (Popup, Dashboard) getrennt von
-  - Content-Script-Logik (Datenextraktion von der Seite) getrennt von
+  - Extraktionslogik (Auslesen der Seitendaten im injizierten Skript) getrennt von
   - Background/Service-Worker-Logik (Badge-Verwaltung)
 - Konsistente Formatierung (z.B. Prettier) und Linting (z.B. ESLint)
 - Aussagekräftige Kommentare nur dort, wo der Code selbst nicht selbsterklärend ist
 - Vermeidung von Code-Duplikation (z.B. gemeinsame Helper-Funktionen für Storage-Zugriffe)
 - Sinnvolle Fehlerbehandlung (z.B. wenn Titel/Bild/Preis nicht extrahiert werden können, Speichern trotzdem ermöglichen)
-- Nachvollziehbare Projektstruktur (z.B. `/src/popup`, `/src/dashboard`, `/src/background`, `/src/content-script`, `/src/lib` oder `/src/utils`)
+- Nachvollziehbare Projektstruktur (siehe 6.2 für die tatsächlich verwendete Aufteilung)
 
 ### 7.2 Barrierefreiheit (WCAG 2.2 Level AA)
 Popup und Dashboard sollen den Anforderungen der WCAG 2.2 AA entsprechen, u.a.:
@@ -222,11 +236,11 @@ Auch wenn die Extension keine Server-Kommunikation hat, bestehen reale Angriffsf
 - **Schutz vor bösartigen Webseiten (XSS):** Von Webseiten extrahierte Daten (Titel, Bild-URL, Preis) sind nicht vertrauenswürdig und müssen beim Rendern in Popup/Dashboard sicher behandelt werden
   - `dangerouslySetInnerHTML` in React ist **grundsätzlich verboten**; alle Texte werden ausschließlich über normales JSX gerendert (automatisches Escaping)
   - Bild-URLs vor Verwendung validieren (z.B. nur `http(s)`-Schema zulassen)
-- **Minimalprinzip bei Berechtigungen:** `activeTab` statt breiter Host-Permissions wie `<all_urls>`; nur die tatsächlich benötigten Permissions im Manifest deklarieren
+- **Minimalprinzip bei Berechtigungen:** `activeTab` statt breiter Host-Permissions wie `<all_urls>`; nur die tatsächlich benötigten Permissions im Manifest deklarieren. Konkret sind das `storage`, `activeTab` und `scripting` – keine Host-Permission (siehe 6.4)
 - **Keine dynamisch nachgeladenen Skripte:** Der gesamte Code ist Teil des Extension-Bundles; es werden keine Remote-Skripte zur Laufzeit nachgeladen (entspricht auch den Vorgaben der Store-Richtlinien und der von Manifest V3 erzwungenen CSP)
 - **Robuste Domain-/URL-Verarbeitung:** Domain-Erkennung für den Badge-Indikator über die native `URL`-API, nicht über eigene Regex-Logik, um Fehlklassifizierungen zu vermeiden
 - **Supply-Chain-Sicherheit:** Bewusst wenige, aktiv gepflegte Abhängigkeiten; Lockfile wird versioniert; regelmäßig `pnpm audit` (oder Äquivalent) ausführen; Dependency-Updates bewusst und nicht blind automatisiert einspielen
-- **Sichere Datenextraktion im Content-Script:** Extraktion von `og:image`/Preis rein lesend, keine Ausführung von Code der Zielseite
+- **Sichere Datenextraktion:** Das injizierte Skript liest `og:image`/Titel/Preis rein lesend aus dem DOM und führt niemals Code der Zielseite aus
 - **Übersetzungen sind Teil des Bundles:** Die Sprachdateien werden mit ausgeliefert und niemals zur Laufzeit nachgeladen. Es wird kein Online-Übersetzungsdienst angefragt – das wäre gleichzeitig eine Datenweitergabe an Dritte (7.3) und ein Verstoß gegen die Regel "keine dynamisch nachgeladenen Skripte"
 - **Hinweis bei Export:** Nutzer wird darauf hingewiesen, dass die Export-Datei unverschlüsselt ist (enthält ggf. persönliche Notizen) und selbst verantwortungsvoll behandelt werden sollte
 
@@ -258,7 +272,7 @@ Diese Informationen sollen auch in der README.md dokumentiert werden, damit die 
 - **Debugging:**
   - Popup: Rechtsklick im geöffneten Popup → "Untersuchen"
   - Background Service Worker: in `chrome://extensions` bei der Extension auf "Service Worker" klicken
-  - Content-Script: reguläre Seiten-DevTools verwenden (Ausgaben erscheinen dort in der Konsole)
+  - Injiziertes Extraktionsskript: reguläre DevTools der jeweiligen Seite verwenden – die Ausgaben erscheinen in deren Konsole, nicht in der der Extension
 
 ## 10. Claude Skills für dieses Projekt
 

@@ -40,7 +40,7 @@ The extension ships a fully bilingual UI (see `docs/concept.md` §3.7 and §6.3)
 - **Separation of concerns** — keep these layers distinct and do not mix their responsibilities:
   - Storage access (reading/writing saved items) — pure data layer, no UI or DOM concerns
   - UI logic (Popup, Dashboard components) — no direct storage calls from deep inside components; go through the storage/data layer
-  - Content-script logic (metadata extraction from the visited page) — read-only, never executes page code
+  - Page extraction logic (metadata read from the visited page by the injected script) — read-only, never executes page code
   - Background/service-worker logic (badge count management, messaging between parts of the extension)
 - **No duplication**: shared logic (storage helpers, URL/domain parsing, filtering) belongs in `src/lib` or `src/utils`, not copy-pasted across entrypoints.
 - **Error handling**: failures in optional extraction (title, image, price) must never block saving a link — degrade gracefully (e.g., missing price stays `null`, user can fill it in manually).
@@ -56,15 +56,16 @@ entrypoints/
   popup/        UI entrypoint — quick view of links saved for the current domain
   dashboard/    UI entrypoint — full management view (all links, filters, search)
   background.ts Service worker — badge count logic, cross-part messaging
-  content.ts    Content script — page metadata extraction (title, og:image, price heuristics)
 src/
   lib/          Shared logic: storage access, data model, filtering/search, URL/domain parsing
+                incl. page-metadata.ts — the extraction function injected into the active tab
   components/   Reusable React components shared by popup and dashboard
   i18n/         Message catalogs (de.json, en.json), translation context and useTranslation hook
 public/
   _locales/     Native manifest translations (extension name and description) per locale
 ```
 
+- **There is deliberately no content script entrypoint.** Page metadata is read by a function injected into the active tab with `scripting.executeScript()` when the user saves, because a declarative content script would require `<all_urls>` host permissions. Do not add `entrypoints/content.ts` — see `docs/concept.md` §6.4 before proposing one.
 - Storage access always goes through a shared module in `src/lib` (e.g., `src/lib/storage.ts`) — never call `storage.local` directly from a React component.
 - New shared types (e.g., the saved-item data model) live in `src/lib` and are imported wherever needed, not redefined per file.
 
