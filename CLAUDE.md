@@ -6,6 +6,8 @@ This file provides project-level guidance to Claude Code when working in this re
 
 A cross-browser extension (Chrome, Firefox, Edge) that acts as a universal, shop-independent wishlist/bookmark manager. Users save links from any website with one click; the extension shows a badge indicator on domains where something was already saved, and lets users organize saved items with categories, tags, notes, and a customizable status.
 
+The user interface is offered in **German and English**. It starts in the browser's language and can be switched manually in the Dashboard. Note the split this creates: the code stays English-only, while every user-facing string lives in a translation catalog — see the `coding-conventions` skill.
+
 Full product concept, feature list, data model, and rationale:
 @docs/concept.md
 
@@ -18,13 +20,14 @@ Full product concept, feature list, data model, and rationale:
 - Vitest for unit tests
 - ESLint + Prettier for linting/formatting
 - Local-only storage (`storage.local`), no backend, no account — data portability via manual export/import
+- Bilingual UI (de/en) via own lightweight message catalogs in `src/i18n/`, plus native `_locales/` for the manifest and store listing — no external i18n library (see `docs/concept.md` §6.3 for why `browser.i18n` alone is not enough)
 
 ## Conventions
 
 Detailed conventions are encoded as project skills under `.claude/skills/` and are applied automatically by Claude Code when relevant — see there for the full rules. In short:
 
-- **`coding-conventions`** — all code (names, comments, commit messages, docs) is written in English, regardless of the language used in conversation; Clean Code principles; WXT project structure
-- **`accessibility-wcag`** — all UI must meet WCAG 2.2 Level AA
+- **`coding-conventions`** — all code (names, comments, commit messages, docs) is written in English, regardless of the language used in conversation; no user-facing string is ever hardcoded, it goes into the de/en catalogs; Clean Code principles; WXT project structure
+- **`accessibility-wcag`** — all UI must meet WCAG 2.2 Level AA, including a correct `<html lang>` for the active language and layouts that survive longer German text
 - **`privacy-and-security`** — GDPR/DSGVO-friendly data handling (local-only, minimal data, full user control) and security rules (untrusted webpage data, minimal permissions, no remote code, dependency hygiene)
 - **`git-workflow`** — Conventional Commits in English, trunk-based branching, GitHub Actions CI, Semantic Versioning
 

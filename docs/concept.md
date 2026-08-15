@@ -41,8 +41,8 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
 - **Kategorien:** Vom Nutzer frei erstellbar (z.B. "Schnittmuster", "Stoffe", "Rezepte"); jeder Link kann **einer** Kategorie zugeordnet werden
 - **Tags:** Vom Nutzer frei erstellbar, **mehrere Tags pro Link** möglich (z.B. "Damen", "Pullover")
 - **Status:** 
-  - Default-Status beim Speichern: **"Gemerkt"**
-  - Nutzer kann eigene, zusätzliche Status-Werte frei definieren (z.B. "Gekauft", "Umgesetzt", eigene Begriffe)
+  - Default-Status beim Speichern: **"Gemerkt"** (englische Oberfläche: "Saved") – das ist der einzige eingebaute Status; gespeichert wird dafür der sprachunabhängige Schlüssel `"default"` (siehe Abschnitt 4)
+  - Nutzer kann eigene, zusätzliche Status-Werte frei definieren (z.B. "Gekauft", "Umgesetzt", eigene Begriffe); diese werden als eingegebener Text gespeichert und nicht übersetzt
   - Status ist pro Link änderbar
 - **Notizen:** Freies Textfeld pro Link (z.B. "passt gut zu Schnitt X", "Größe M kaufen")
 - **Löschen:** Links müssen jederzeit vollständig löschbar sein
@@ -70,6 +70,15 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
 - Import einer solchen Datei in einer anderen Browser-Installation, um die Daten dorthin zu übertragen
 - Import sollte bestehende Daten sinnvoll ergänzen (nicht überschreiben), idealerweise mit Duplikat-Erkennung anhand der URL
 
+### 3.7 Mehrsprachigkeit (Deutsch & Englisch)
+- Die Oberfläche (Popup und Dashboard) wird **vollständig zweisprachig** angeboten: **Deutsch und Englisch**
+- **Startsprache:** automatisch anhand der Browsersprache – bei einer deutschen Browsersprache (`de`, `de-DE`, `de-AT`, …) startet die Extension auf Deutsch, in allen anderen Fällen auf Englisch
+- **Manueller Wechsel:** Der Nutzer kann die Sprache im Dashboard jederzeit umstellen; die Wahl wird lokal gespeichert und überschreibt ab dann die automatische Erkennung
+- Übersetzt werden **alle** vom Nutzer wahrnehmbaren Texte – auch solche, die nicht sichtbar sind: Alternativtexte von Bildern, ARIA-Labels, Fehler- und Bestätigungsmeldungen sowie Datums- und Zahlenformate
+- **Nicht** übersetzt werden vom Nutzer selbst eingegebene Inhalte (Kategorien, Tags, eigene Status-Werte, Notizen) und von Webseiten übernommene Daten (Titel, Preis) – diese bleiben in der Sprache, in der sie erfasst wurden
+- Der Default-Status ist ein Sonderfall: Angezeigt wird er übersetzt ("Gemerkt" / "Saved"), gespeichert wird er als sprachunabhängiger Schlüssel `"default"`, damit ein Sprachwechsel bestehende Einträge nicht unbrauchbar macht (Details in Abschnitt 4)
+- Auch **Name und Beschreibung der Extension** (Manifest, und damit der Store-Eintrag) werden übersetzt
+
 ## 4. Datenmodell (Vorschlag)
 
 ```json
@@ -82,17 +91,34 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
   "price": "string | null",
   "category": "string | null",
   "tags": ["string"],
-  "status": "string (default: 'Gemerkt')",
+  "status": "Status (siehe unten, Default: { \"kind\": \"builtin\", \"key\": \"default\" })",
   "note": "string",
   "createdAt": "ISO-Datum",
   "updatedAt": "ISO-Datum"
 }
 ```
 
+Der Status ist kein einfacher String, sondern unterscheidet zwei Fälle:
+
+```json
+{ "kind": "builtin", "key": "default" }
+```
+```json
+{ "kind": "custom", "label": "Gekauft" }
+```
+
 Zusätzlich getrennt gespeichert (damit sie z.B. im Dashboard als Auswahl vorgeschlagen werden können):
 - Liste bereits verwendeter Kategorien
 - Liste bereits verwendeter Tags
-- Liste bereits verwendeter Status-Werte
+- Liste bereits verwendeter, selbst angelegter Status-Werte (der eingebaute Default gehört nicht dazu, er ist immer verfügbar)
+- Einstellungen, u.a. die gewählte Oberflächensprache (`"de"`, `"en"` oder `"auto"` für "der Browsersprache folgen")
+
+**Warum diese Unterscheidung:** Der eingebaute Default-Status ist übersetzbar, selbst angelegte Status-Werte sind es nicht. Ein einfacher String könnte beide Fälle nicht auseinanderhalten – und ein Nutzer, der zufällig einen eigenen Status "default" anlegt, würde mit dem eingebauten kollidieren. Über `kind` ist das technisch ausgeschlossen, und die Anzeige muss nicht raten, ob sie übersetzen soll.
+
+Im Einzelnen:
+- **`kind: "builtin"`** – gespeichert wird ausschließlich der sprachunabhängige Schlüssel `"default"`, niemals der übersetzte Text. Angezeigt wird er je nach Oberflächensprache als "Gemerkt" bzw. "Saved". Würde man den übersetzten Text speichern, trügen bestehende Einträge nach einem Sprachwechsel einen Status in der alten Sprache, und der Statusfilter zerfiele in zwei Gruppen
+- **`kind: "custom"`** – der vom Nutzer eingegebene Text wird unverändert gespeichert und unverändert angezeigt, in jeder Oberflächensprache. Er wird nie übersetzt
+- Der Schlüssel `"default"` benennt die Rolle, nicht die Bedeutung. Sollten später weitere eingebaute Status hinzukommen, bekommen diese sprechende Schlüssel (z.B. `"bought"`); `"default"` bleibt aus Kompatibilitätsgründen unverändert, da der Wert bereits in gespeicherten Daten und Export-Dateien steckt
 
 ## 5. Design & UX
 
@@ -100,6 +126,8 @@ Zusätzlich getrennt gespeichert (damit sie z.B. im Dashboard als Auswahl vorges
 - **Kein** thematisches Design auf einen bestimmten Anwendungsfall (z.B. Nähen) zugeschnitten – die Extension soll universell für beliebige Shops, Blogs und Webseiten wirken
 - Klar erkennbarer Badge/Indikator auf dem Icon
 - Übersichtliche Karten-/Listenansicht im Dashboard mit Vorschaubildern
+- **Layout muss zweisprachig tragfähig sein:** Deutsche Texte sind gegenüber englischen typischerweise 20–35% länger (z.B. "Save" → "Speichern", "Settings" → "Einstellungen"). Beschriftungen, Buttons und Spaltenköpfe dürfen daher keine festen Breiten haben, die in einer der beiden Sprachen abgeschnitten werden oder umbrechen – besonders kritisch im schmalen Popup
+- Die Sprachumschaltung ist eine bewusste, auffindbare Einstellung im Dashboard, kein versteckter Schalter
 
 ## 6. Technische Hinweise & Tech-Stack
 
@@ -131,11 +159,30 @@ Zusätzlich getrennt gespeichert (damit sie z.B. im Dashboard als Auswahl vorges
   - `entrypoints/content.ts` – Content-Script
   - `src/lib/` bzw. `utils/` – gemeinsame Logik (Storage-Zugriff, Datenmodell, Preis-/Titel-Extraktion, Filterfunktionen)
   - `src/components/` – wiederverwendbare React-Komponenten
+  - `src/i18n/` – Nachrichtenkataloge (`de.json`, `en.json`) und Übersetzungs-Hook
+
+### 6.3 Mehrsprachigkeit (i18n) – technische Umsetzung
+
+Es werden **zwei getrennte Mechanismen** gebraucht, weil sie unterschiedliche Anforderungen erfüllen:
+
+**a) Manifest und Store-Eintrag – nativer `_locales`-Mechanismus**
+- Übersetzungen unter `public/_locales/de/messages.json` und `public/_locales/en/messages.json`
+- Im Manifest `default_locale: "en"`; Name und Beschreibung werden als `__MSG_extensionName__` bzw. `__MSG_extensionDescription__` referenziert
+- Dieser Mechanismus richtet sich zwangsläufig nach der Browsersprache. Für den Store-Eintrag ist genau das richtig – dort gibt es keine Laufzeit-Umschaltung
+
+**b) Oberfläche (Popup & Dashboard) – eigene, leichtgewichtige Lösung**
+- Der native `browser.i18n` lässt sich zur Laufzeit **nicht** umschalten. Die in 3.7 geforderte manuelle Sprachwahl ist damit nicht umsetzbar, deshalb wird die UI nicht über `browser.i18n` übersetzt
+- Stattdessen: typisierte Nachrichtenkataloge unter `src/i18n/`, bereitgestellt über einen React-Context und einen `useTranslation()`-Hook
+- Bewusst **ohne externe i18n-Bibliothek** (kein `i18next` o.ä.): Der Bedarf beschränkt sich auf Schlüssel-Lookup, Platzhalter-Ersetzung und Pluralformen. Das passt zum Grundsatz "bewusst wenige Abhängigkeiten" aus 7.4 und hält das Bundle klein
+- Die Sprachwahl wird in `storage.local` gespeichert (`"de"`, `"en"`, `"auto"`); bei `"auto"` wird aus `navigator.language` abgeleitet
+- Beide Kataloge müssen denselben Schlüsselsatz besitzen. Ein Unit-Test stellt sicher, dass keine Sprache Schlüssel vermisst oder überzählige enthält – das verhindert stillschweigend unübersetzte Stellen
+- Datums- und Zahlenformate (inkl. Preisanzeige) über die native `Intl`-API (`Intl.DateTimeFormat`, `Intl.NumberFormat`) mit der aktiven Sprache, nicht über hartkodierte Formate
 
 ## 7. Code-Qualität, Barrierefreiheit, Datenschutz & Security
 
 ### 7.1 Clean Code
 - **Sprache:** Der gesamte Code ist auf Englisch zu verfassen – Variablen-, Funktions-, Datei- und Ordnernamen, Kommentare, Commit-Nachrichten, README und sonstige Dokumentation im Repository. Dies gilt unabhängig davon, dass die Kommunikation/Konzeption mit dem Entwickler auf Deutsch stattfindet
+- **Abgrenzung zur Mehrsprachigkeit (3.7):** Die zweisprachige Oberfläche ändert daran nichts. Auch die Übersetzungsschlüssel sind englisch und sprechend benannt (`popup.saveButton`, nicht `btn1` und nicht `popup.speichernButton`); übersetzt werden ausschließlich die **Werte** in den Katalogdateien. Im Komponentencode steht nie ein sichtbarer Text, sondern immer ein Schlüssel
 - Sprechende, eindeutige Namen für Variablen, Funktionen und Dateien
 - Kleine, klar abgegrenzte Funktionen mit einer einzigen Verantwortlichkeit (Single Responsibility)
 - Klare Trennung der Zuständigkeiten, z.B.:
@@ -156,6 +203,8 @@ Popup und Dashboard sollen den Anforderungen der WCAG 2.2 AA entsprechen, u.a.:
 - **Verständlichkeit:** Klare Beschriftungen für alle Formularfelder (Labels für Kategorie, Tags, Status, Notiz); verständliche Fehlermeldungen (z.B. beim Import einer fehlerhaften Datei)
 - **Robustheit:** Semantisches HTML (z.B. `<button>` statt `<div>` mit Click-Handler); passende ARIA-Attribute, wo native HTML-Semantik nicht ausreicht (z.B. bei dynamischen Filterergebnissen im Dashboard, Live-Regionen für Statusänderungen)
 - Bilder (Vorschaubilder) benötigen sinnvolle Alt-Texte (z.B. Seitentitel als Alternativtext)
+- **Sprache der Seite (WCAG 3.1.1):** Das `lang`-Attribut am `<html>`-Element muss die aktuell aktive Oberflächensprache angeben und beim Sprachwechsel mitwandern. Screenreader wählen darüber die Aussprache – ein auf `en` stehendes Dokument mit deutschem Text wird unverständlich vorgelesen
+- **Sprachumschaltung:** ist ein reguläres, beschriftetes Formularelement; die Optionen werden jeweils in ihrer eigenen Sprache benannt ("Deutsch", "English"), damit sie auch dann verständlich sind, wenn die Oberfläche gerade in der Sprache läuft, die der Nutzer nicht versteht
 
 ### 7.3 DSGVO-Konformität
 Auch wenn aktuell keine Cloud-Speicherung stattfindet, sollte die Extension von Beginn an datenschutzfreundlich konzipiert werden ("Privacy by Design"), um eine spätere Veröffentlichung nicht zu erschweren:
@@ -178,6 +227,7 @@ Auch wenn die Extension keine Server-Kommunikation hat, bestehen reale Angriffsf
 - **Robuste Domain-/URL-Verarbeitung:** Domain-Erkennung für den Badge-Indikator über die native `URL`-API, nicht über eigene Regex-Logik, um Fehlklassifizierungen zu vermeiden
 - **Supply-Chain-Sicherheit:** Bewusst wenige, aktiv gepflegte Abhängigkeiten; Lockfile wird versioniert; regelmäßig `pnpm audit` (oder Äquivalent) ausführen; Dependency-Updates bewusst und nicht blind automatisiert einspielen
 - **Sichere Datenextraktion im Content-Script:** Extraktion von `og:image`/Preis rein lesend, keine Ausführung von Code der Zielseite
+- **Übersetzungen sind Teil des Bundles:** Die Sprachdateien werden mit ausgeliefert und niemals zur Laufzeit nachgeladen. Es wird kein Online-Übersetzungsdienst angefragt – das wäre gleichzeitig eine Datenweitergabe an Dritte (7.3) und ein Verstoß gegen die Regel "keine dynamisch nachgeladenen Skripte"
 - **Hinweis bei Export:** Nutzer wird darauf hingewiesen, dass die Export-Datei unverschlüsselt ist (enthält ggf. persönliche Notizen) und selbst verantwortungsvoll behandelt werden sollte
 
 ## 8. Versionskontrolle (GitHub)
@@ -227,3 +277,4 @@ Begleitend zu diesem Konzept-Dokument gibt es ein separates Bundle (`claude-skil
 - Preis-Beobachtung/Änderungserkennung
 - Cloud-Sync/Account (optional, später)
 - Mobile Companion App
+- Weitere Oberflächensprachen – die Struktur aus 6.3 ist darauf ausgelegt: pro Sprache genügen eine zusätzliche Katalogdatei unter `src/i18n/` und ein `_locales`-Ordner für den Store-Eintrag
