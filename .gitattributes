@@ -1,0 +1,14 @@
+# Normalize line endings to LF in the repository and in the working tree,
+# so builds and formatting stay identical across Windows, macOS and Linux.
+* text=auto eol=lf
+
+# Binary files must never be normalized.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.zip binary
+*.woff binary
+*.woff2 binary
