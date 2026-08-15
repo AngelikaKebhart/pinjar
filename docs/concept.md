@@ -104,6 +104,7 @@ Zusätzlich getrennt gespeichert (damit sie z.B. im Dashboard als Auswahl vorges
 ## 6. Technische Hinweise & Tech-Stack
 
 ### 6.1 Framework & Tooling
+- **Paketmanager: [pnpm](https://pnpm.io/)** – verbindlich für dieses Projekt (nicht npm oder yarn); schneller, platzsparender durch Content-addressable Store, striktere Dependency-Auflösung (verhindert versehentlichen Zugriff auf nicht deklarierte transitive Abhängigkeiten – passt gut zum Security-Anspruch aus Abschnitt 7.4)
 - **[WXT](https://wxt.dev/)** als Extension-Framework (Vite-basiert)
   - Erzeugt aus einer Codebasis passende Manifeste für Chrome, Firefox und Edge (MV3, bei Firefox intern MV2-Anpassungen)
   - Klare, konventionsbasierte Projektstruktur über "Entrypoints" (Popup, Dashboard/Options, Background, Content-Script als getrennte Dateien/Ordner)
@@ -175,7 +176,7 @@ Auch wenn die Extension keine Server-Kommunikation hat, bestehen reale Angriffsf
 - **Minimalprinzip bei Berechtigungen:** `activeTab` statt breiter Host-Permissions wie `<all_urls>`; nur die tatsächlich benötigten Permissions im Manifest deklarieren
 - **Keine dynamisch nachgeladenen Skripte:** Der gesamte Code ist Teil des Extension-Bundles; es werden keine Remote-Skripte zur Laufzeit nachgeladen (entspricht auch den Vorgaben der Store-Richtlinien und der von Manifest V3 erzwungenen CSP)
 - **Robuste Domain-/URL-Verarbeitung:** Domain-Erkennung für den Badge-Indikator über die native `URL`-API, nicht über eigene Regex-Logik, um Fehlklassifizierungen zu vermeiden
-- **Supply-Chain-Sicherheit:** Bewusst wenige, aktiv gepflegte Abhängigkeiten; Lockfile wird versioniert; regelmäßig `npm audit` (oder Äquivalent) ausführen; Dependency-Updates bewusst und nicht blind automatisiert einspielen
+- **Supply-Chain-Sicherheit:** Bewusst wenige, aktiv gepflegte Abhängigkeiten; Lockfile wird versioniert; regelmäßig `pnpm audit` (oder Äquivalent) ausführen; Dependency-Updates bewusst und nicht blind automatisiert einspielen
 - **Sichere Datenextraktion im Content-Script:** Extraktion von `og:image`/Preis rein lesend, keine Ausführung von Code der Zielseite
 - **Hinweis bei Export:** Nutzer wird darauf hingewiesen, dass die Export-Datei unverschlüsselt ist (enthält ggf. persönliche Notizen) und selbst verantwortungsvoll behandelt werden sollte
 
@@ -186,7 +187,7 @@ Auch wenn die Extension keine Server-Kommunikation hat, bestehen reale Angriffsf
   - `main` als stabiler, immer lauffähiger Branch
   - Feature-Branches für neue Funktionen (z.B. `feature/tagging`, `feature/dashboard-filter`), die per Pull Request in `main` gemergt werden
 - **Commit-Konventionen:** [Conventional Commits](https://www.conventionalcommits.org/), auf Englisch verfasst (z.B. `feat: add tag filter to dashboard`, `fix: correct price detection`, `chore: update dependencies`) – erleichtert später automatisierte Changelogs und macht die Historie nachvollziehbar
-- **`.gitignore`:** u.a. `node_modules/`, `.output/` bzw. Build-Ordner von WXT, `.env` (falls später vorhanden)
+- **`.gitignore`:** u.a. `node_modules/`, `.output/` bzw. Build-Ordner von WXT, `.env` (falls später vorhanden). **`pnpm-lock.yaml` wird explizit versioniert** (nicht ignoriert), damit alle Beteiligten und die CI dieselben Abhängigkeitsversionen verwenden
 - **README.md:** Kurzbeschreibung des Projekts, Setup-Anleitung (Installation, lokale Entwicklung mit WXT, Build-Befehle), Hinweise zu Tests und Linting
 - **GitHub Actions (CI):** Automatisierter Workflow, der bei jedem Push/Pull-Request läuft:
   - Linting (ESLint)
@@ -200,8 +201,8 @@ Auch wenn die Extension keine Server-Kommunikation hat, bestehen reale Angriffsf
 
 Diese Informationen sollen auch in der README.md dokumentiert werden, damit die Extension jederzeit unkompliziert lokal getestet werden kann:
 
-- **Entwicklungsmodus:** `npm run dev` startet über WXT automatisch einen Browser (standardmäßig Chrome) mit bereits geladener Extension inkl. Hot Reload bei Code-Änderungen – der schnellste Weg während der Entwicklung
-- **Produktions-Build lokal testen (Chrome/Edge):** `npm run build` ausführen, dann im Browser unter `chrome://extensions` bzw. `edge://extensions` den Entwicklermodus aktivieren und über "Entpackte Erweiterung laden" den jeweiligen Build-Ordner (z.B. `.output/chrome-mv3`) auswählen
+- **Entwicklungsmodus:** `pnpm dev` startet über WXT automatisch einen Browser (standardmäßig Chrome) mit bereits geladener Extension inkl. Hot Reload bei Code-Änderungen – der schnellste Weg während der Entwicklung
+- **Produktions-Build lokal testen (Chrome/Edge):** `pnpm build` ausführen, dann im Browser unter `chrome://extensions` bzw. `edge://extensions` den Entwicklermodus aktivieren und über "Entpackte Erweiterung laden" den jeweiligen Build-Ordner (z.B. `.output/chrome-mv3`) auswählen
 - **Produktions-Build lokal testen (Firefox):** In Firefox zu `about:debugging#/runtime/this-firefox` navigieren, "Temporäres Add-on laden" wählen und die `manifest.json` im Firefox-Build-Ordner (z.B. `.output/firefox-mv2`) auswählen (Hinweis: Temporäre Add-ons werden bei Firefox-Neustart entfernt und müssen erneut geladen werden)
 - **Browserspezifische Builds erzeugen:** `wxt build -b chrome`, `wxt build -b firefox`, `wxt build -b edge`, um für jeden Zielbrowser separat zu testen
 - **Debugging:**

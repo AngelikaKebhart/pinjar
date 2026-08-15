@@ -30,7 +30,7 @@ Even without server-side storage today, build with these principles so a future 
 - **No dynamically loaded or remote code**: the entire extension must ship as part of the built bundle. Never fetch and `eval`/inject remote JavaScript at runtime — this is both a security risk and disallowed by Manifest V3's CSP and store policies.
 - **Safe domain/URL parsing**: use the native `URL` API (e.g., `new URL(pageUrl).hostname`) for domain extraction used by the badge indicator — do not hand-roll this with regex, which is error-prone and can be bypassed.
 - **Content-script extraction stays read-only**: the content script may read the DOM/meta tags of the visited page but must never execute or evaluate code found on that page.
-- **Dependency hygiene**: keep dependencies few and well-maintained. Commit the lockfile. Run `npm audit` (or equivalent) regularly, and review dependency updates rather than blindly auto-merging them.
+- **Dependency hygiene**: keep dependencies few and well-maintained. Commit the lockfile. Run `pnpm audit` (or equivalent) regularly, and review dependency updates rather than blindly auto-merging them.
 
 ## When reviewing a PR or writing new code
 

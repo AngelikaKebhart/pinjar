@@ -7,6 +7,10 @@ description: Enforces this project's core coding conventions — English-only co
 
 This project is a cross-browser bookmarking/wishlist extension (WXT + React + TypeScript). These conventions apply to every file written or touched in this repository.
 
+## 0. Package manager: pnpm only
+
+This project uses **pnpm** exclusively. Never use `npm install`/`npm run` or `yarn` commands or instructions — always `pnpm install`, `pnpm dev`, `pnpm build`, `pnpm add <pkg>`, `pnpm audit`, etc. Never commit a `package-lock.json` or `yarn.lock`; only `pnpm-lock.yaml` is versioned. If you encounter a `package-lock.json`/`yarn.lock` in the repo, flag it — it indicates an accidental npm/yarn install and should be removed.
+
 ## 1. Language: English only
 
 - ALL code artifacts must be in English, regardless of the language used to discuss or plan the project: variable names, function names, class names, file names, folder names, code comments, JSDoc/TSDoc, commit messages, PR titles/descriptions, README and any other repository documentation.

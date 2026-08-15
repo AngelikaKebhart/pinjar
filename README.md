@@ -20,6 +20,7 @@ See [`docs/concept.md`](docs/concept.md) for the full product concept, feature l
 
 ## Tech stack
 
+- [pnpm](https://pnpm.io/) as the package manager (required — not npm, not yarn)
 - [WXT](https://wxt.dev/) (Vite-based) — cross-browser manifest generation for Chrome, Firefox and Edge
 - React + TypeScript for the Popup and Dashboard UI
 - Tailwind CSS for styling
@@ -28,16 +29,21 @@ See [`docs/concept.md`](docs/concept.md) for the full product concept, feature l
 
 ## Setup
 
-Requires [Node.js](https://nodejs.org/) 20 or newer.
+Requires [Node.js](https://nodejs.org/) 20 or newer and [pnpm](https://pnpm.io/).
+
+This project uses **pnpm exclusively** — do not use `npm` or `yarn`. Only `pnpm-lock.yaml` is
+versioned; a `package-lock.json` or `yarn.lock` appearing in the repository indicates an accidental
+install with the wrong package manager and should be removed.
 
 ```bash
-npm install
+corepack enable    # once, if pnpm is not installed yet
+pnpm install
 ```
 
 ## Local development
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 This starts WXT in development mode, automatically launches a browser with the extension already
@@ -46,17 +52,17 @@ loaded, and hot-reloads on code changes. This is the fastest way to work on the 
 To develop against a specific browser:
 
 ```bash
-npm run dev -- -b firefox
-npm run dev -- -b edge
+pnpm wxt -b firefox
+pnpm wxt -b edge
 ```
 
 ## Building
 
 ```bash
-npm run build            # default target (Chrome)
-npx wxt build -b chrome
-npx wxt build -b firefox
-npx wxt build -b edge
+pnpm build                  # default target (Chrome)
+pnpm wxt build -b chrome
+pnpm wxt build -b firefox
+pnpm wxt build -b edge
 ```
 
 Build output is written to `.output/<browser>-<manifest-version>/`, for example `.output/chrome-mv3/`.
@@ -67,14 +73,14 @@ No store publication is needed to try out a build.
 
 **Chrome / Edge**
 
-1. Run `npx wxt build -b chrome` (or `-b edge`).
+1. Run `pnpm wxt build -b chrome` (or `-b edge`).
 2. Open `chrome://extensions` (or `edge://extensions`).
 3. Enable **Developer mode**.
 4. Click **Load unpacked** and select the build folder, e.g. `.output/chrome-mv3`.
 
 **Firefox**
 
-1. Run `npx wxt build -b firefox`.
+1. Run `pnpm wxt build -b firefox`.
 2. Open `about:debugging#/runtime/this-firefox`.
 3. Click **Load Temporary Add-on** and select the `manifest.json` inside the build folder,
    e.g. `.output/firefox-mv2/manifest.json`.
@@ -91,9 +97,9 @@ No store publication is needed to try out a build.
 ## Quality checks
 
 ```bash
-npm run lint        # ESLint
-npm run typecheck   # TypeScript
-npm test            # Vitest
+pnpm lint        # ESLint
+pnpm typecheck   # TypeScript
+pnpm test        # Vitest
 ```
 
 These checks also run in CI on every push and pull request, together with a build for each target

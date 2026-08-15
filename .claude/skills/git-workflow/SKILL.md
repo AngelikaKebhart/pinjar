@@ -43,7 +43,7 @@ The README.md must include, in English:
 - Setup instructions (install dependencies, start local dev server via WXT)
 - Build instructions per target browser
 - **Local testing instructions** without store publication:
-  - `npm run dev` for the WXT dev mode (auto-launches a browser with the extension loaded, hot reload)
+  - `pnpm dev` for the WXT dev mode (auto-launches a browser with the extension loaded, hot reload)
   - Loading an unpacked production build in Chrome/Edge (`chrome://extensions` / `edge://extensions`, enable developer mode, "Load unpacked", point at e.g. `.output/chrome-mv3`)
   - Loading a temporary add-on in Firefox (`about:debugging#/runtime/this-firefox`, "Load Temporary Add-on", point at the `manifest.json` in e.g. `.output/firefox-mv2`; note that it's removed on Firefox restart)
   - Per-browser build commands: `wxt build -b chrome`, `wxt build -b firefox`, `wxt build -b edge`

@@ -11,6 +11,7 @@ Full product concept, feature list, data model, and rationale:
 
 ## Tech stack
 
+- **Package manager: [pnpm](https://pnpm.io/)** — required for this project (not npm, not yarn)
 - [WXT](https://wxt.dev/) (Vite-based) as the extension framework — cross-browser Manifest generation for Chrome/Firefox/Edge
 - React + TypeScript for the UI (Popup and Dashboard)
 - Tailwind CSS for styling
@@ -31,6 +32,7 @@ Do not duplicate these rules here — consult the skills, they stay up to date i
 
 ## Quick reference
 
-- Start local dev: `npm run dev` (auto-launches a browser with the extension loaded, hot reload)
-- Build per browser: `wxt build -b chrome` / `wxt build -b firefox` / `wxt build -b edge`
+- Install dependencies: `pnpm install`
+- Start local dev: `pnpm dev` (auto-launches a browser with the extension loaded, hot reload)
+- Build per browser: `pnpm build -b chrome` / `pnpm build -b firefox` / `pnpm build -b edge` (or `pnpm wxt build -b <browser>`, depending on how scripts are set up)
 - See `docs/concept.md` §9 for detailed local-testing/debugging steps, and the README once it exists
