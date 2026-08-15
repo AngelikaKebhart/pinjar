@@ -1,6 +1,6 @@
 ---
 name: accessibility-wcag
-description: Ensures all UI in this project (Popup and Dashboard, React components) meets WCAG 2.2 Level AA — color contrast, full keyboard operability, minimum target sizes, semantic HTML and ARIA, and image alt text. Apply this skill whenever creating or modifying ANY UI component, layout, form, button, list, filter control, or other visual/interactive element in this project, even if accessibility is not explicitly mentioned in the request. This is a mandatory, non-negotiable project requirement, not an optional nice-to-have.
+description: Ensures all UI in this project (Popup and Dashboard, React components) meets WCAG 2.2 Level AA — color contrast, full keyboard operability, minimum target sizes, semantic HTML and ARIA, image alt text, and correct page-language declaration for the bilingual German/English interface. Apply this skill whenever creating or modifying ANY UI component, layout, form, button, list, filter control, translated string, or other visual/interactive element in this project, even if accessibility is not explicitly mentioned in the request. This is a mandatory, non-negotiable project requirement, not an optional nice-to-have.
 ---
 
 # Accessibility (WCAG 2.2 Level AA)
@@ -12,6 +12,7 @@ This project must conform to WCAG 2.2 AA. Apply the following whenever touching 
 - **Contrast**: text must have a contrast ratio of at least 4.5:1 against its background (3:1 for large text ≥ 18pt/24px or bold ≥ 14pt/19px, and for UI component boundaries/icons). Check this whenever choosing or changing Tailwind color classes — don't rely on a color palette "looking fine".
 - **Don't rely on color alone**: status (e.g., "Gemerkt"/"Gekauft"/custom statuses) must be conveyed with text or an icon in addition to color, not color alone. Same applies to any success/error states.
 - **Images**: every preview image needs a meaningful `alt` attribute — use the page title as the alt text fallback when no better description exists. Purely decorative icons get `alt=""` or `aria-hidden="true"`.
+- **Text must not be clipped in either language**: German strings run roughly 20–35% longer than their English equivalents ("Save" → "Speichern"). Avoid fixed widths and `overflow: hidden` on labels, buttons and column headers; let them wrap. This matters most in the narrow Popup. Check a new component in both languages before calling it done — truncated text is unreadable content, not a layout nitpick.
 
 ## Operable
 
@@ -24,6 +25,9 @@ This project must conform to WCAG 2.2 AA. Apply the following whenever touching 
 
 - **Labels**: every form field (category select, tag input, notes textarea, status field) needs a proper associated `<label>` — not just a placeholder, since placeholders disappear on input and aren't a reliable substitute for a label.
 - **Error messages**: validation/error messages (e.g., invalid import file) must clearly state what went wrong and, where possible, how to fix it — not just "Error".
+- **Language of page (WCAG 3.1.1)**: the `<html lang>` attribute must state the currently active UI language (`de` or `en`) and must be updated when the user switches language. This is what screen readers use to pick pronunciation — German text announced by an English speech engine is unintelligible. Setting `lang` once at build time is not enough, because the language is switchable at runtime.
+- **Language switcher**: it is a real, labelled form control, and each option is named in its own language ("Deutsch", "English") so it stays usable when the UI is currently in the language the user does not read.
+- **Translated text must stay accessible**: everything the accessibility rules require — `alt` text, `aria-label`, error messages, button names — has to be translated as well. An `aria-label` left in English inside an otherwise German UI is an accessibility defect, not a cosmetic one.
 
 ## Robust
 
@@ -33,4 +37,4 @@ This project must conform to WCAG 2.2 AA. Apply the following whenever touching 
 
 ## When building a new component
 
-Before considering a component done, mentally (or literally) tab through it, check it renders sensibly with a screen reader's accessibility tree in mind, and verify text/background contrast for any custom colors introduced.
+Before considering a component done, mentally (or literally) tab through it, check it renders sensibly with a screen reader's accessibility tree in mind, verify text/background contrast for any custom colors introduced, and view it in **both** German and English to confirm nothing is clipped or overflows.

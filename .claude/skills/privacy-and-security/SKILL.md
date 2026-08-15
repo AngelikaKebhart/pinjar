@@ -11,7 +11,7 @@ This extension stores data **only locally** in the browser (no server, no accoun
 
 Even without server-side storage today, build with these principles so a future public release doesn't require rework:
 
-- **Data minimization**: only store what's needed for the feature (URL, domain, title, image URL, price, category, tags, status, note, timestamps). Do not add analytics, telemetry, or tracking fields "just in case".
+- **Data minimization**: only store what's needed for the feature (URL, domain, title, image URL, price, category, tags, status, note, timestamps) plus explicit user settings such as the chosen UI language. Do not add analytics, telemetry, or tracking fields "just in case". Store the language preference as the bare choice (`"de"`, `"en"`, `"auto"`) — do not record the detected browser locale, timezone, or anything else alongside it; that would be fingerprinting-adjacent data with no functional purpose.
 - **No third-party data transfer**: no data leaves the user's browser. Do not introduce any network call that sends stored data (or browsing data) to an external server. If a future feature (e.g., cloud sync) is proposed, it must be explicit opt-in and clearly communicated — never silently enabled.
 - **Transparency**: keep a clear, plain-language privacy note ready for store listings, describing exactly what is stored and that it stays local.
 - **Minimal permissions**: request only the browser permissions actually needed (see Security section below) — broad data-access permissions are also a privacy problem, not just a security one.
@@ -28,6 +28,7 @@ Even without server-side storage today, build with these principles so a future 
   - Validate image URLs before use (only accept `http:`/`https:` schemes).
 - **Minimal permissions principle**: prefer `activeTab` over broad host permissions like `<all_urls>`. Only add a permission when a concrete feature requires it, and note in the PR/commit why it's needed.
 - **No dynamically loaded or remote code**: the entire extension must ship as part of the built bundle. Never fetch and `eval`/inject remote JavaScript at runtime — this is both a security risk and disallowed by Manifest V3's CSP and store policies.
+- **Translations ship with the bundle**: the German and English message catalogs are static files built into the extension. Never load them from a remote source and never call an online translation service at runtime — that would be both a transfer of user data to a third party and a violation of the no-remote-code rule. Translating new strings is a build-time authoring task, not a runtime feature.
 - **Safe domain/URL parsing**: use the native `URL` API (e.g., `new URL(pageUrl).hostname`) for domain extraction used by the badge indicator — do not hand-roll this with regex, which is error-prone and can be bypassed.
 - **Content-script extraction stays read-only**: the content script may read the DOM/meta tags of the visited page but must never execute or evaluate code found on that page.
 - **Dependency hygiene**: keep dependencies few and well-maintained. Commit the lockfile. Run `pnpm audit` (or equivalent) regularly, and review dependency updates rather than blindly auto-merging them.
