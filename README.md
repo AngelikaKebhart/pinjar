@@ -9,11 +9,14 @@ Saved items can be organized with categories, tags, a customizable status, and f
 All data is stored **locally in your browser** (`storage.local`). There is no backend, no account, and
 no automatic sync. Data can be moved between browsers via manual JSON export/import.
 
+The interface is available in **German and English**. It follows the browser language by default and
+can be switched at any time in the Dashboard.
+
 ## Project status
 
 Early development. The toolchain is in place and builds for all three browsers, but the extension
 does not do anything useful yet: Popup and Dashboard are empty shells, and storage, saving, badge
-handling and export/import are still to be built.
+handling, translations and export/import are still to be built.
 
 See [`docs/concept.md`](docs/concept.md) for the full product concept, feature list, and data model
 (written in German).
@@ -26,6 +29,7 @@ See [`docs/concept.md`](docs/concept.md) for the full product concept, feature l
 - Tailwind CSS for styling
 - Vitest for unit tests
 - ESLint + Prettier for linting and formatting
+- Own lightweight message catalogs for the bilingual UI — no external i18n library
 
 ## Setup
 
@@ -108,11 +112,38 @@ pnpm format:check  # Prettier, verify only
 These checks also run in CI on every push and pull request, together with a build for each target
 browser.
 
+## Translations
+
+The UI ships in German and English. Two separate mechanisms are involved, because they answer
+different questions:
+
+| What                                   | Where                    | Language decided by                    |
+| -------------------------------------- | ------------------------ | -------------------------------------- |
+| Extension name and description (store) | `public/_locales/<lang>` | the browser, natively — not switchable |
+| Everything inside Popup and Dashboard  | `src/i18n/<lang>.json`   | the user's choice, stored locally      |
+
+The native `browser.i18n` API cannot be switched at runtime, which is why the UI does not use it and
+relies on own message catalogs instead. See [`docs/concept.md`](docs/concept.md) §6.3 for the
+reasoning.
+
+**When adding UI text:**
+
+- Never write a literal string into a component. Add a key and resolve it through `useTranslation()`.
+- This includes text that is never seen: `alt`, `aria-label`, `title`, placeholders, error messages.
+- Add the key to **both** `de.json` and `en.json` in the same change — a test fails if the two
+  catalogs do not hold exactly the same keys.
+- Keys are English and descriptive (`popup.saveButton`, not `btn1`). Only the values are translated.
+- Do not translate what the user typed (categories, tags, notes, custom status values) or what came
+  from a website (title, price).
+- Check new UI in both languages: German runs roughly 20–35% longer than English and will expose any
+  fixed width that clips.
+
 ## Privacy
 
 The extension stores all data locally and never transmits it to any server. Only the minimum data
-needed for the feature set is stored: page URL, title, preview image, detected price, and your own
-input (category, tags, status, note). No tracking, no analytics, no cookies.
+needed for the feature set is stored: page URL, title, preview image, detected price, your own input
+(category, tags, status, note), and your chosen interface language. No tracking, no analytics, no
+cookies. Translations are part of the installed bundle — no translation service is ever contacted.
 
 Exported files are plain, unencrypted JSON and may contain personal notes — handle them accordingly.
 
@@ -122,7 +153,8 @@ Exported files are plain, unencrypted JSON and may contain personal notes — ha
   A `pre-push` hook in [`.githooks/`](.githooks/) rejects direct pushes to `main`. It is activated by
   `pnpm install`; to enable it manually, run `git config core.hooksPath .githooks`.
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/), written in English.
-- All code, comments, and documentation are written in English.
+- All code, comments, and documentation are written in English — user-facing text is the one
+  exception and lives in the translation catalogs (see [Translations](#translations)).
 - The UI must meet WCAG 2.2 Level AA.
 
 Detailed project conventions live in [`.claude/skills/`](.claude/skills/).
