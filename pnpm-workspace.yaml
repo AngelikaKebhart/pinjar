@@ -1,0 +1,20 @@
+# pnpm settings. Since pnpm 10 these live here rather than in the "pnpm" field
+# of package.json.
+
+auditConfig:
+  # Advisories deliberately accepted for now, so that `pnpm audit` stays useful
+  # and a genuinely new finding is not lost in known noise.
+  #
+  # Both are denial-of-service issues in image-size, reached only through
+  # web-ext > addons-linter > image-size. Accepted because:
+  #   - web-ext is a devDependency and is never part of the built extension,
+  #   - addons-linter only ever parses our own icon files, not foreign input,
+  #   - addons-linter pins image-size to exactly 2.0.2, and the first patched
+  #     release named by the advisories (2.0.3) is not published yet, so there
+  #     is currently no version to upgrade to.
+  #
+  # REMOVE both entries as soon as image-size >= 2.0.3 is released and
+  # addons-linter picks it up — then `pnpm audit` must pass without exceptions.
+  ignoreGhsas:
+    - GHSA-w3rx-r6r6-pgpr # ICNS parser, infinite loop
+    - GHSA-5p2g-fcmc-qvqq # JXL and HEIF parsers, infinite loops

@@ -107,10 +107,26 @@ pnpm typecheck     # TypeScript
 pnpm test          # Vitest
 pnpm format        # Prettier, write
 pnpm format:check  # Prettier, verify only
+pnpm audit         # Known vulnerabilities in dependencies
 ```
 
 These checks also run in CI on every push and pull request, together with a build for each target
 browser.
+
+### Accepted audit findings
+
+`pnpm audit` currently reports two denial-of-service advisories in `image-size`, reached only through
+`web-ext > addons-linter`. They are listed under `auditConfig.ignoreGhsas` in
+[`pnpm-workspace.yaml`](pnpm-workspace.yaml), so the command exits successfully while still printing
+them as ignored.
+
+They are accepted rather than fixed because `addons-linter` pins `image-size` to exactly `2.0.2` and
+the first patched release (`2.0.3`) is not published yet — there is no version to upgrade to.
+`web-ext` is a devDependency, never ships in the built extension, and only parses our own icon files.
+
+**Remove both entries once `image-size >= 2.0.3` is released and `addons-linter` picks it up.** Never
+silence a finding without a written reason and a condition for removing it again — an exception list
+that nobody prunes turns the audit into noise.
 
 ## Translations
 
