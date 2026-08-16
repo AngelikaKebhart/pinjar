@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# The default token may do more than this workflow ever needs.
+permissions:
+  contents: read
+
+# A newer push to the same branch makes the running check obsolete.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Node is only a build tool here — the extension itself runs in the browser.
+  # Matching the version used for development is worth more than covering a
+  # range of versions that nothing ships on.
+  NODE_VERSION: '24'
+
+jobs:
+  quality:
+    name: Quality checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # Must run before setup-node: otherwise `cache: pnpm` finds no pnpm.
+      # The version comes from the "packageManager" field in package.json.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      # Fails if the lockfile no longer matches package.json, instead of
+      # quietly resolving different versions than the ones developed against.
+      # The postinstall hook runs "wxt prepare", which generates the types the
+      # typecheck needs.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Every check runs even after an earlier one failed, so a single run
+      # reports every problem instead of one per push.
+      - name: Lint
+        if: ${{ !cancelled() }}
+        run: pnpm lint
+
+      - name: Typecheck
+        if: ${{ !cancelled() }}
+        run: pnpm typecheck
+
+      - name: Test
+        if: ${{ !cancelled() }}
+        run: pnpm test
+
+      - name: Check formatting
+        if: ${{ !cancelled() }}
+        run: pnpm format:check
+
+      # Accepted advisories are listed in pnpm-workspace.yaml with a reason and
+      # a condition for removing them again.
+      - name: Audit dependencies
+        if: ${{ !cancelled() }}
+        run: pnpm audit
+
+  build:
+    name: Build (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    strategy:
+      # Report all three browsers, don't stop at the first failure — the
+      # Firefox build genuinely differs (MV2 plus Gecko-specific manifest keys).
+      fail-fast: false
+      matrix:
+        browser: [chrome, firefox, edge]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build for ${{ matrix.browser }}
+        run: pnpm wxt build -b ${{ matrix.browser }}
