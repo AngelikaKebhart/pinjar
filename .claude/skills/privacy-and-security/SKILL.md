@@ -32,7 +32,8 @@ Even without server-side storage today, build with these principles so a future 
 - **Translations ship with the bundle**: the German and English message catalogs are static files built into the extension. Never load them from a remote source and never call an online translation service at runtime — that would be both a transfer of user data to a third party and a violation of the no-remote-code rule. Translating new strings is a build-time authoring task, not a runtime feature.
 - **Safe domain/URL parsing**: use the native `URL` API (e.g., `new URL(pageUrl).hostname`) for domain extraction used by the badge indicator — do not hand-roll this with regex, which is error-prone and can be bypassed.
 - **Page extraction stays read-only**: the injected script may read the DOM/meta tags of the visited page but must never execute or evaluate code found on that page.
-- **Dependency hygiene**: keep dependencies few and well-maintained. Commit the lockfile. Run `pnpm audit` (or equivalent) regularly, and review dependency updates rather than blindly auto-merging them.
+- **Dependency hygiene**: keep dependencies few and well-maintained. Commit the lockfile. Run `pnpm audit` regularly, and review dependency updates rather than blindly auto-merging them.
+- **Audit exceptions are documented and temporary**: when an advisory genuinely cannot be fixed (no patched version exists, or the fix sits behind an upstream pin), suppress that specific advisory in `auditConfig.ignoreGhsas` in `pnpm-workspace.yaml` — never disable the audit as a whole, and never suppress by severity. Every entry needs a written reason and the condition under which it must be removed again. Re-check the list whenever dependencies are updated.
 
 ## When reviewing a PR or writing new code
 
