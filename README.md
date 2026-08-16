@@ -1,5 +1,7 @@
 # Universal Wishlist
 
+[![CI](https://github.com/AngelikaKebhart/universal-wishlist/actions/workflows/ci.yml/badge.svg)](https://github.com/AngelikaKebhart/universal-wishlist/actions/workflows/ci.yml)
+
 A cross-browser extension (Chrome, Firefox, Edge) that acts as a universal, shop-independent wishlist.
 
 Save any page with a single click — no account, no sign-up. When you return to a domain where you
@@ -110,8 +112,12 @@ pnpm format:check  # Prettier, verify only
 pnpm audit         # Known vulnerabilities in dependencies
 ```
 
-These checks also run in CI on every push and pull request, together with a build for each target
-browser.
+All of these also run in CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) on every push to
+`main` and on every pull request, alongside a separate build job for Chrome, Firefox and Edge. The
+checks continue after a failure, so one run reports every problem rather than one per push.
+
+Note that GitHub does not enforce these checks as a merge requirement on private repositories in the
+free plan — a red run is visible, but it does not block the merge.
 
 ### Accepted audit findings
 
