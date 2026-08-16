@@ -1,0 +1,17 @@
+{
+  "popup.title": "Universal Wishlist",
+  "popup.notImplemented": "Saving pages is not implemented yet. This popup will show the links saved for the current domain.",
+  "popup.openDashboard": "Open dashboard",
+
+  "dashboard.documentTitle": "Universal Wishlist — Dashboard",
+  "dashboard.title": "Universal Wishlist",
+  "dashboard.subtitle": "All your saved links, independent of the shop or website they came from.",
+  "dashboard.savedLinks.heading": "Saved links",
+  "dashboard.savedLinks.count_one": "{count} saved link",
+  "dashboard.savedLinks.count_other": "{count} saved links",
+  "dashboard.savedLinks.notImplemented": "Storage, search and filters are still to be built.",
+
+  "settings.heading": "Settings",
+  "settings.language.label": "Interface language",
+  "settings.language.auto": "Automatic (browser language)"
+}
