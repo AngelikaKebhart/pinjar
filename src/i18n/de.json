@@ -1,0 +1,17 @@
+{
+  "popup.title": "Universal Wishlist",
+  "popup.notImplemented": "Das Speichern von Seiten ist noch nicht umgesetzt. Dieses Popup zeigt später die für die aktuelle Domain gemerkten Links.",
+  "popup.openDashboard": "Dashboard öffnen",
+
+  "dashboard.documentTitle": "Universal Wishlist — Dashboard",
+  "dashboard.title": "Universal Wishlist",
+  "dashboard.subtitle": "Alle gemerkten Links, unabhängig vom Shop oder der Webseite, von der sie stammen.",
+  "dashboard.savedLinks.heading": "Gemerkte Links",
+  "dashboard.savedLinks.count_one": "{count} gemerkter Link",
+  "dashboard.savedLinks.count_other": "{count} gemerkte Links",
+  "dashboard.savedLinks.notImplemented": "Speicherung, Suche und Filter fehlen noch.",
+
+  "settings.heading": "Einstellungen",
+  "settings.language.label": "Sprache der Oberfläche",
+  "settings.language.auto": "Automatisch (Browsersprache)"
+}

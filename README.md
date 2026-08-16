@@ -16,9 +16,9 @@ can be switched at any time in the Dashboard.
 
 ## Project status
 
-Early development. The toolchain is in place and builds for all three browsers, but the extension
-does not do anything useful yet: Popup and Dashboard are empty shells, and storage, saving, badge
-handling, translations and export/import are still to be built.
+Early development. The toolchain and the bilingual UI are in place and builds work for all three
+browsers, but the extension does not do anything useful yet: Popup and Dashboard are shells, and
+storage, saving, badge handling and export/import are still to be built.
 
 See [`docs/concept.md`](docs/concept.md) for the full product concept, feature list, and data model
 (written in German).
@@ -155,6 +155,11 @@ reasoning.
 - Add the key to **both** `de.json` and `en.json` in the same change — a test fails if the two
   catalogs do not hold exactly the same keys.
 - Keys are English and descriptive (`popup.saveButton`, not `btn1`). Only the values are translated.
+- Plural forms are two keys sharing a base, suffixed `_one` and `_other`, resolved through
+  `Intl.PluralRules`: `plural('dashboard.savedLinks.count', n)`. Underscores are reserved for this;
+  regular key segments are separated by dots.
+- Dates and numbers go through `formatDate()` / `formatNumber()` from the same hook, never through
+  hand-built strings.
 - Do not translate what the user typed (categories, tags, notes, custom status values) or what came
   from a website (title, price).
 - Check new UI in both languages: German runs roughly 20–35% longer than English and will expose any

@@ -2,6 +2,9 @@
   "extends": "./.wxt/tsconfig.json",
   "compilerOptions": {
     "allowImportingTsExtensions": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    // The message catalogs are plain JSON so they stay easy to hand to a
+    // translator; importing them is what makes the keys type-checked.
+    "resolveJsonModule": true
   }
 }

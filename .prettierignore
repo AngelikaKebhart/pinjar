@@ -2,7 +2,6 @@ node_modules
 .output
 .wxt
 coverage
-public
 pnpm-lock.yaml
 
 # Authored documents — Prettier must not reformat these.

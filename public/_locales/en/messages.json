@@ -1,0 +1,10 @@
+{
+  "extensionName": {
+    "message": "Universal Wishlist",
+    "description": "Name of the extension, shown in the browser and in the store listing."
+  },
+  "extensionDescription": {
+    "message": "Save any page with one click and organize saved links with categories, tags, status and notes.",
+    "description": "Short description of the extension, shown in the store listing."
+  }
+}
