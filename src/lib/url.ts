@@ -15,7 +15,22 @@ const ALLOWED_SCHEMES = ['http:', 'https:'];
  */
 export function extractDomain(url: string): string | null {
   const parsed = parseAllowedUrl(url);
-  return parsed ? parsed.hostname : null;
+  return parsed ? normalizeHostname(parsed.hostname) : null;
+}
+
+/**
+ * Strips the trailing dot of a fully qualified hostname.
+ *
+ * `example.com.` and `example.com` address the same host, but the `URL` API
+ * keeps the dot. Left in place it would split one shop into two domains, so the
+ * badge would undercount and the popup would look empty on a page whose links
+ * are filed under the other spelling.
+ *
+ * A hostname that is nothing but the root label is no host at all.
+ */
+function normalizeHostname(hostname: string): string | null {
+  const withoutRootLabel = hostname.endsWith('.') ? hostname.slice(0, -1) : hostname;
+  return withoutRootLabel === '' ? null : withoutRootLabel;
 }
 
 /**
