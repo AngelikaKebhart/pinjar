@@ -11,7 +11,7 @@ This extension stores data **only locally** in the browser (no server, no accoun
 
 Even without server-side storage today, build with these principles so a future public release doesn't require rework:
 
-- **Data minimization**: only store what's needed for the feature (URL, domain, title, image URL, price, category, tags, status, note, timestamps) plus explicit user settings such as the chosen UI language. Do not add analytics, telemetry, or tracking fields "just in case". Store the language preference as the bare choice (`"de"`, `"en"`, `"auto"`) — do not record the detected browser locale, timezone, or anything else alongside it; that would be fingerprinting-adjacent data with no functional purpose.
+- **Data minimization**: only store what's needed for the feature (URL, domain, title, image URL, category, tags, status, note, timestamps) plus explicit user settings such as the chosen UI language. Do not add analytics, telemetry, or tracking fields "just in case". Store the language preference as the bare choice (`"de"`, `"en"`, `"auto"`) — do not record the detected browser locale, timezone, or anything else alongside it; that would be fingerprinting-adjacent data with no functional purpose.
 - **No third-party data transfer**: no data leaves the user's browser. Do not introduce any network call that sends stored data (or browsing data) to an external server. If a future feature (e.g., cloud sync) is proposed, it must be explicit opt-in and clearly communicated — never silently enabled.
 - **Transparency**: keep a clear, plain-language privacy note ready for store listings, describing exactly what is stored and that it stays local.
 - **Minimal permissions**: request only the browser permissions actually needed (see Security section below) — broad data-access permissions are also a privacy problem, not just a security one.
@@ -23,7 +23,7 @@ Even without server-side storage today, build with these principles so a future 
 
 ## Security
 
-- **Treat extracted webpage data as untrusted**: title, `og:image` URL, and any auto-detected price come from arbitrary (potentially malicious) websites.
+- **Treat extracted webpage data as untrusted**: the title and the `og:image` URL come from arbitrary (potentially malicious) websites.
   - Never use `dangerouslySetInnerHTML` in React for this data — render it through normal JSX so React's automatic escaping applies. This is a hard rule, not a style preference.
   - Validate image URLs before use (only accept `http:`/`https:` schemes).
 - **Minimal permissions principle**: prefer `activeTab` over broad host permissions like `<all_urls>`. Only add a permission when a concrete feature requires it, and note in the PR/commit why it's needed. The extension currently declares exactly `storage`, `activeTab` and `scripting` — **no host permission at all**, which is why it installs without an access warning. Treat adding one as a decision that needs explicit sign-off, not a convenience.
