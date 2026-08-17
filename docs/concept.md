@@ -24,8 +24,9 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
   - Seiten-URL
   - Seitentitel
   - Vorschaubild/Screenshot (falls von der Seite extrahierbar, z.B. Open-Graph-Bild `og:image`; alternativ Screenshot der sichtbaren Seite)
-  - Preis (falls automatisch erkennbar, z.B. über gängige Preis-Meta-Tags/Heuristiken – **kein Anspruch auf 100% Erkennung**, da wenig verlässlich)
-- Alle automatisch erfassten Felder müssen **manuell nachträglich editierbar** sein (Titel, Bild ggf. austauschen, Preis)
+- Alle automatisch erfassten Felder müssen **manuell nachträglich editierbar** sein (Titel, Bild ggf. austauschen)
+
+**Bewusst kein Preis:** Ein Preisfeld würde die Extension gedanklich auf Shops verengen – sie soll aber für beliebige Seiten taugen (Blogs, Rezepte, Artikel, Tutorials), auf denen ein Preis schlicht keine Bedeutung hat. Dazu kommt, dass automatische Preiserkennung über Meta-Tags/Heuristiken wenig verlässlich ist und ein halb funktionierendes Feld mehr stört als nützt. Wer trotzdem einen Preis festhalten will, kann ihn in die Notiz schreiben. Ein späteres, rein manuell gepflegtes Preisfeld bleibt möglich (siehe Abschnitt 11).
 - Beim Speichern kann der Nutzer direkt vergeben:
   - Kategorie (siehe 3.3)
   - Tags (siehe 3.3)
@@ -56,14 +57,14 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
 ### 3.5 Dashboard (Verwaltung)
 - Eigene große Ansicht (z.B. eigener Browser-Tab, `extension-page.html`)
 - Zeigt **alle** gespeicherten Links, unabhängig von der Domain
-- Anzeige inkl. Vorschaubild, Titel, Preis, Kategorie, Tags, Status, Notiz
+- Anzeige inkl. Vorschaubild, Titel, Kategorie, Tags, Status, Notiz
 - **Filter- und Suchfunktionen:**
   - Filter nach Kategorie
   - Filter nach Tag(s)
   - Filter nach Status
   - Volltextsuche (durchsucht Titel und Notiz)
   - Filter kombinierbar
-- Möglichkeit, Links direkt im Dashboard zu bearbeiten (Kategorie, Tags, Status, Notiz, Titel, Preis) und zu löschen
+- Möglichkeit, Links direkt im Dashboard zu bearbeiten (Kategorie, Tags, Status, Notiz, Titel) und zu löschen
 
 ### 3.6 Export / Import
 - Export aller gespeicherten Daten als Datei (z.B. JSON)
@@ -75,7 +76,7 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
 - **Startsprache:** automatisch anhand der Browsersprache – bei einer deutschen Browsersprache (`de`, `de-DE`, `de-AT`, …) startet die Extension auf Deutsch, in allen anderen Fällen auf Englisch
 - **Manueller Wechsel:** Der Nutzer kann die Sprache im Dashboard jederzeit umstellen; die Wahl wird lokal gespeichert und überschreibt ab dann die automatische Erkennung
 - Übersetzt werden **alle** vom Nutzer wahrnehmbaren Texte – auch solche, die nicht sichtbar sind: Alternativtexte von Bildern, ARIA-Labels, Fehler- und Bestätigungsmeldungen sowie Datums- und Zahlenformate
-- **Nicht** übersetzt werden vom Nutzer selbst eingegebene Inhalte (Kategorien, Tags, eigene Status-Werte, Notizen) und von Webseiten übernommene Daten (Titel, Preis) – diese bleiben in der Sprache, in der sie erfasst wurden
+- **Nicht** übersetzt werden vom Nutzer selbst eingegebene Inhalte (Kategorien, Tags, eigene Status-Werte, Notizen) und von Webseiten übernommene Daten (Titel) – diese bleiben in der Sprache, in der sie erfasst wurden
 - Der Default-Status ist ein Sonderfall: Angezeigt wird er übersetzt ("Gemerkt" / "Saved"), gespeichert wird er als sprachunabhängiger Schlüssel `"default"`, damit ein Sprachwechsel bestehende Einträge nicht unbrauchbar macht (Details in Abschnitt 4)
 - Auch **Name und Beschreibung der Extension** (Manifest, und damit der Store-Eintrag) werden übersetzt
 
@@ -88,7 +89,6 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
   "domain": "string",
   "title": "string",
   "imageUrl": "string | null",
-  "price": "string | null",
   "category": "string | null",
   "tags": ["string"],
   "status": "Status (siehe unten, Default: { \"kind\": \"builtin\", \"key\": \"default\" })",
@@ -147,7 +147,7 @@ Im Einzelnen:
   - Ergänzend `eslint-plugin-jsx-a11y`, um Barrierefreiheits-Verstöße in React-Komponenten bereits beim Schreiben zu erkennen
 
 ### 6.2 Architektur / Projektstruktur
-- Extraktion von Titel, `og:image` und Preis-Heuristiken über ein Skript, das **beim Speichern gezielt in den aktiven Tab injiziert** wird (`scripting.executeScript`) – **kein dauerhaft registriertes Content-Script**, Begründung siehe 6.4
+- Extraktion von Titel und `og:image` über ein Skript, das **beim Speichern gezielt in den aktiven Tab injiziert** wird (`scripting.executeScript`) – **kein dauerhaft registriertes Content-Script**, Begründung siehe 6.4
 - Background Service Worker zur Verwaltung des Badges (Anzahl Links pro aktueller Domain)
 - Lokale Speicherung via `storage.local` (über WXT-Storage-Abstraktion)
 - Popup als eigener Entrypoint (React-Komponente)
@@ -157,7 +157,7 @@ Im Einzelnen:
   - `entrypoints/dashboard/` – Dashboard-UI
   - `entrypoints/background.ts` – Service Worker
   - `src/lib/page-metadata.ts` – die im Zieltab auszuführende Extraktionsfunktion
-  - `src/lib/` bzw. `utils/` – gemeinsame Logik (Storage-Zugriff, Datenmodell, Preis-/Titel-Extraktion, Filterfunktionen)
+  - `src/lib/` bzw. `utils/` – gemeinsame Logik (Storage-Zugriff, Datenmodell, Titel-/Bild-Extraktion, Filterfunktionen)
   - `src/components/` – wiederverwendbare React-Komponenten
   - `src/i18n/` – Nachrichtenkataloge (`de.json`, `en.json`) und Übersetzungs-Hook
 
@@ -176,7 +176,7 @@ Es werden **zwei getrennte Mechanismen** gebraucht, weil sie unterschiedliche An
 - Bewusst **ohne externe i18n-Bibliothek** (kein `i18next` o.ä.): Der Bedarf beschränkt sich auf Schlüssel-Lookup, Platzhalter-Ersetzung und Pluralformen. Das passt zum Grundsatz "bewusst wenige Abhängigkeiten" aus 7.4 und hält das Bundle klein
 - Die Sprachwahl wird in `storage.local` gespeichert (`"de"`, `"en"`, `"auto"`); bei `"auto"` wird aus `navigator.language` abgeleitet
 - Beide Kataloge müssen denselben Schlüsselsatz besitzen. Ein Unit-Test stellt sicher, dass keine Sprache Schlüssel vermisst oder überzählige enthält – das verhindert stillschweigend unübersetzte Stellen
-- Datums- und Zahlenformate (inkl. Preisanzeige) über die native `Intl`-API (`Intl.DateTimeFormat`, `Intl.NumberFormat`) mit der aktiven Sprache, nicht über hartkodierte Formate
+- Datums- und Zahlenformate über die native `Intl`-API (`Intl.DateTimeFormat`, `Intl.NumberFormat`) mit der aktiven Sprache, nicht über hartkodierte Formate
 
 ### 6.4 Warum kein Content-Script
 
@@ -207,7 +207,7 @@ Stattdessen:
 - Konsistente Formatierung (z.B. Prettier) und Linting (z.B. ESLint)
 - Aussagekräftige Kommentare nur dort, wo der Code selbst nicht selbsterklärend ist
 - Vermeidung von Code-Duplikation (z.B. gemeinsame Helper-Funktionen für Storage-Zugriffe)
-- Sinnvolle Fehlerbehandlung (z.B. wenn Titel/Bild/Preis nicht extrahiert werden können, Speichern trotzdem ermöglichen)
+- Sinnvolle Fehlerbehandlung (z.B. wenn Titel/Bild nicht extrahiert werden können, Speichern trotzdem ermöglichen)
 - Nachvollziehbare Projektstruktur (siehe 6.2 für die tatsächlich verwendete Aufteilung)
 
 ### 7.2 Barrierefreiheit (WCAG 2.2 Level AA)
@@ -222,7 +222,7 @@ Popup und Dashboard sollen den Anforderungen der WCAG 2.2 AA entsprechen, u.a.:
 
 ### 7.3 DSGVO-Konformität
 Auch wenn aktuell keine Cloud-Speicherung stattfindet, sollte die Extension von Beginn an datenschutzfreundlich konzipiert werden ("Privacy by Design"), um eine spätere Veröffentlichung nicht zu erschweren:
-- **Datenminimierung:** Es werden nur die Daten gespeichert, die für die Funktion notwendig sind (URL, Titel, Bild, Preis, Nutzereingaben) – keine Tracking- oder Analyse-Daten
+- **Datenminimierung:** Es werden nur die Daten gespeichert, die für die Funktion notwendig sind (URL, Titel, Bild, Nutzereingaben) – keine Tracking- oder Analyse-Daten
 - **Keine Weitergabe an Dritte:** Da alle Daten rein lokal gespeichert werden, findet keine Übertragung an externe Server statt; das sollte auch so bleiben bzw. bei etwaigen späteren Erweiterungen (z.B. Cloud-Sync) explizit opt-in und transparent gemacht werden
 - **Transparenz:** Eine verständliche Datenschutzerklärung sollte bei Veröffentlichung bereitgestellt werden (z.B. im Chrome Web Store/Firefox Add-ons verlangt), die klar beschreibt, welche Daten wo (nur lokal) gespeichert werden
 - **Berechtigungen (Permissions):** Nur die tatsächlich benötigten Browser-Berechtigungen anfordern (z.B. `activeTab`, `storage`), keine unnötig weitreichenden Rechte wie Zugriff auf alle Webseiten, falls nicht zwingend erforderlich
@@ -233,14 +233,14 @@ Auch wenn aktuell keine Cloud-Speicherung stattfindet, sollte die Extension von 
 
 Auch wenn die Extension keine Server-Kommunikation hat, bestehen reale Angriffsflächen, die von Anfang an mitgedacht werden sollten:
 
-- **Schutz vor bösartigen Webseiten (XSS):** Von Webseiten extrahierte Daten (Titel, Bild-URL, Preis) sind nicht vertrauenswürdig und müssen beim Rendern in Popup/Dashboard sicher behandelt werden
+- **Schutz vor bösartigen Webseiten (XSS):** Von Webseiten extrahierte Daten (Titel, Bild-URL) sind nicht vertrauenswürdig und müssen beim Rendern in Popup/Dashboard sicher behandelt werden
   - `dangerouslySetInnerHTML` in React ist **grundsätzlich verboten**; alle Texte werden ausschließlich über normales JSX gerendert (automatisches Escaping)
   - Bild-URLs vor Verwendung validieren (z.B. nur `http(s)`-Schema zulassen)
 - **Minimalprinzip bei Berechtigungen:** `activeTab` statt breiter Host-Permissions wie `<all_urls>`; nur die tatsächlich benötigten Permissions im Manifest deklarieren. Konkret sind das `storage`, `activeTab` und `scripting` – keine Host-Permission (siehe 6.4)
 - **Keine dynamisch nachgeladenen Skripte:** Der gesamte Code ist Teil des Extension-Bundles; es werden keine Remote-Skripte zur Laufzeit nachgeladen (entspricht auch den Vorgaben der Store-Richtlinien und der von Manifest V3 erzwungenen CSP)
 - **Robuste Domain-/URL-Verarbeitung:** Domain-Erkennung für den Badge-Indikator über die native `URL`-API, nicht über eigene Regex-Logik, um Fehlklassifizierungen zu vermeiden
 - **Supply-Chain-Sicherheit:** Bewusst wenige, aktiv gepflegte Abhängigkeiten; Lockfile wird versioniert; regelmäßig `pnpm audit` (oder Äquivalent) ausführen; Dependency-Updates bewusst und nicht blind automatisiert einspielen
-- **Sichere Datenextraktion:** Das injizierte Skript liest `og:image`/Titel/Preis rein lesend aus dem DOM und führt niemals Code der Zielseite aus
+- **Sichere Datenextraktion:** Das injizierte Skript liest `og:image`/Titel rein lesend aus dem DOM und führt niemals Code der Zielseite aus
 - **Übersetzungen sind Teil des Bundles:** Die Sprachdateien werden mit ausgeliefert und niemals zur Laufzeit nachgeladen. Es wird kein Online-Übersetzungsdienst angefragt – das wäre gleichzeitig eine Datenweitergabe an Dritte (7.3) und ein Verstoß gegen die Regel "keine dynamisch nachgeladenen Skripte"
 - **Hinweis bei Export:** Nutzer wird darauf hingewiesen, dass die Export-Datei unverschlüsselt ist (enthält ggf. persönliche Notizen) und selbst verantwortungsvoll behandelt werden sollte
 
@@ -250,7 +250,7 @@ Auch wenn die Extension keine Server-Kommunikation hat, bestehen reale Angriffsf
 - **Branching-Strategie:** Einfacher Trunk-based-Ansatz für den Start
   - `main` als stabiler, immer lauffähiger Branch
   - Feature-Branches für neue Funktionen (z.B. `feature/tagging`, `feature/dashboard-filter`), die per Pull Request in `main` gemergt werden
-- **Commit-Konventionen:** [Conventional Commits](https://www.conventionalcommits.org/), auf Englisch verfasst (z.B. `feat: add tag filter to dashboard`, `fix: correct price detection`, `chore: update dependencies`) – erleichtert später automatisierte Changelogs und macht die Historie nachvollziehbar
+- **Commit-Konventionen:** [Conventional Commits](https://www.conventionalcommits.org/), auf Englisch verfasst (z.B. `feat: add tag filter to dashboard`, `fix: correct domain detection`, `chore: update dependencies`) – erleichtert später automatisierte Changelogs und macht die Historie nachvollziehbar
 - **`.gitignore`:** u.a. `node_modules/`, `.output/` bzw. Build-Ordner von WXT, `.env` (falls später vorhanden). **`pnpm-lock.yaml` wird explizit versioniert** (nicht ignoriert), damit alle Beteiligten und die CI dieselben Abhängigkeitsversionen verwenden
 - **README.md:** Kurzbeschreibung des Projekts, Setup-Anleitung (Installation, lokale Entwicklung mit WXT, Build-Befehle), Hinweise zu Tests und Linting
 - **GitHub Actions (CI):** Automatisierter Workflow, der bei jedem Push/Pull-Request läuft:
@@ -287,8 +287,8 @@ Begleitend zu diesem Konzept-Dokument gibt es ein separates Bundle (`claude-skil
 
 ## 11. Mögliche spätere Erweiterungen (nicht Teil des ersten Wurfs)
 
-- Sortierung nach Datum/Preis
-- Preis-Beobachtung/Änderungserkennung
+- Sortierung nach Datum
+- Optionales, rein manuell gepflegtes Preisfeld – bewusst ohne automatische Erkennung und nur, falls sich im Gebrauch zeigt, dass es fehlt (Begründung für die Streichung siehe 3.1); erst darauf aufbauend wäre eine Preis-Beobachtung/Änderungserkennung denkbar
 - Cloud-Sync/Account (optional, später)
 - Mobile Companion App
 - Weitere Oberflächensprachen – die Struktur aus 6.3 ist darauf ausgelegt: pro Sprache genügen eine zusätzliche Katalogdatei unter `src/i18n/` und ein `_locales`-Ordner für den Store-Eintrag

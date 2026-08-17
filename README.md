@@ -161,14 +161,14 @@ reasoning.
 - Dates and numbers go through `formatDate()` / `formatNumber()` from the same hook, never through
   hand-built strings.
 - Do not translate what the user typed (categories, tags, notes, custom status values) or what came
-  from a website (title, price).
+  from a website (title).
 - Check new UI in both languages: German runs roughly 20–35% longer than English and will expose any
   fixed width that clips.
 
 ## Privacy
 
 The extension stores all data locally and never transmits it to any server. Only the minimum data
-needed for the feature set is stored: page URL, title, preview image, detected price, your own input
+needed for the feature set is stored: page URL, title, preview image, your own input
 (category, tags, status, note), and your chosen interface language. No tracking, no analytics, no
 cookies. Translations are part of the installed bundle — no translation service is ever contacted.
 

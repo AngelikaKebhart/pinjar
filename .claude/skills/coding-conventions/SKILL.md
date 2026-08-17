@@ -29,7 +29,7 @@ The extension ships a fully bilingual UI (see `docs/concept.md` §3.7 and §6.3)
 - This includes text that is not visible on screen: `alt` attributes, `aria-label`/`aria-describedby`, `title` attributes, `<option>` labels, placeholder text, error and confirmation messages, and document titles.
 - **Translation keys are English and descriptive**, following the UI area they belong to: `popup.saveButton`, `dashboard.filter.byCategory`, `errors.importInvalidFile`. Never `btn1`, never a German key like `popup.speichernButton`. Only the *values* in the catalogs are translated.
 - **Add every new key to both `src/i18n/de.json` and `src/i18n/en.json` in the same change.** A key present in only one language is an incomplete change — a unit test enforces that both catalogs hold exactly the same key set.
-- **Do not translate user-entered or page-sourced data**: categories, tags, custom status values, notes, and the title/price extracted from a website stay exactly as they were entered or captured.
+- **Do not translate user-entered or page-sourced data**: categories, tags, custom status values, notes, and the title extracted from a website stay exactly as they were entered or captured.
 - **Locale-aware formatting** goes through the native `Intl` API (`Intl.DateTimeFormat`, `Intl.NumberFormat`) with the active language — never hand-built date or number strings.
 - The extension name and description are translated separately through the native `_locales` mechanism under `public/_locales/`, because that is what the browser and the store listing read.
 
@@ -43,8 +43,9 @@ The extension ships a fully bilingual UI (see `docs/concept.md` §3.7 and §6.3)
   - Page extraction logic (metadata read from the visited page by the injected script) — read-only, never executes page code
   - Background/service-worker logic (badge count management, messaging between parts of the extension)
 - **No duplication**: shared logic (storage helpers, URL/domain parsing, filtering) belongs in `src/lib` or `src/utils`, not copy-pasted across entrypoints.
-- **Error handling**: failures in optional extraction (title, image, price) must never block saving a link — degrade gracefully (e.g., missing price stays `null`, user can fill it in manually).
-- **Comments**: only where the code itself isn't self-explanatory (e.g., a non-obvious heuristic for price detection). Don't restate what the code already says.
+- **Error handling**: failures in optional extraction (title, image) must never block saving a link — degrade gracefully (e.g., a missing image stays `null`, the user can fill it in manually).
+- **Comments**: only where the code itself isn't self-explanatory (e.g., a non-obvious extraction heuristic). Don't restate what the code already says.
+- **No price field**: the data model deliberately has no price, and nothing extracts one — a price would narrow the extension to shops, and automatic detection is unreliable. Do not reintroduce one without an explicit decision (see `docs/concept.md` §3.1).
 - Use ESLint + Prettier; do not hand-format code that a formatter would reformat differently.
 
 ## 3. Project structure (WXT convention)

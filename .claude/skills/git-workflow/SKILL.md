@@ -8,7 +8,7 @@ description: Defines this project's Git and GitHub conventions — Conventional 
 ## Branching
 
 - `main` is the stable, always-working branch.
-- New work happens on feature branches, named descriptively, e.g. `feature/tagging`, `feature/dashboard-filter`, `fix/price-detection`.
+- New work happens on feature branches, named descriptively, e.g. `feature/tagging`, `feature/dashboard-filter`, `fix/domain-detection`.
 - Feature branches are merged into `main` via Pull Request, not pushed directly to `main`.
 
 ## Commit messages: Conventional Commits, in English
@@ -25,7 +25,7 @@ Common types: `feat` (new feature), `fix` (bug fix), `chore` (tooling/deps), `re
 
 Examples:
 - `feat: add tag filter to dashboard`
-- `fix: correct price detection heuristic`
+- `fix: correct domain detection for trailing dots`
 - `chore: update dependencies`
 - `docs: add local testing instructions to README`
 
