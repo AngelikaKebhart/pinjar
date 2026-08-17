@@ -37,7 +37,9 @@ export function translate(catalog: MessageCatalog, key: string, params?: Message
  * Picks the plural form matching `count` in the given language and fills it in.
  *
  * `count` is always available as a placeholder without passing it explicitly,
- * since a plural message practically always shows the number it counts.
+ * since a plural message practically always shows the number it counts. It is
+ * applied last on purpose: a `count` in `params` that disagreed with the value
+ * the plural form was chosen from could only ever produce a mismatched message.
  */
 export function translatePlural(
   catalog: MessageCatalog,
@@ -55,7 +57,7 @@ export function translatePlural(
     return key;
   }
 
-  return interpolate(template, { count, ...params });
+  return interpolate(template, { ...params, count });
 }
 
 export function formatNumber(

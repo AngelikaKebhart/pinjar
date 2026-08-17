@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { formatDate, formatNumber, interpolate, translate, translatePlural } from './format';
+import { CATALOGS } from './messages';
 import type { MessageCatalog } from './messages';
 
 const catalog: MessageCatalog = {
@@ -25,6 +26,14 @@ describe('interpolate', () => {
 
   it('returns the template unchanged when no params are given', () => {
     expect(interpolate('Hello {name}')).toBe('Hello {name}');
+  });
+
+  // Only `undefined` means "not provided". Narrowing that to a falsy check
+  // would drop exactly the empty note and the count of zero the Dashboard
+  // shows before the first link is saved.
+  it('inserts values that are falsy', () => {
+    expect(interpolate('{count} items', { count: 0 })).toBe('0 items');
+    expect(interpolate('[{note}]', { note: '' })).toBe('[]');
   });
 });
 
@@ -62,6 +71,24 @@ describe('translatePlural', () => {
 
   it('falls back to the key when the message is missing entirely', () => {
     expect(translatePlural(catalog, 'en', 'nope', 1)).toBe('nope');
+  });
+
+  it('keeps the counted value authoritative over an explicit param', () => {
+    expect(translatePlural(catalog, 'en', 'items', 2, { count: 99 })).toBe('2 items');
+  });
+});
+
+describe('translatePlural with the shipped catalogs', () => {
+  const key = 'dashboard.savedLinks.count';
+
+  // Zero is the state the Dashboard is in before the first link is saved, and
+  // German and English both use the plural form for it — a detail easy to get
+  // wrong by hand, which is why the actual strings are pinned here.
+  it('produces the right form for none and for one', () => {
+    expect(translatePlural(CATALOGS.en, 'en', key, 0)).toBe('0 saved links');
+    expect(translatePlural(CATALOGS.en, 'en', key, 1)).toBe('1 saved link');
+    expect(translatePlural(CATALOGS.de, 'de', key, 0)).toBe('0 gemerkte Links');
+    expect(translatePlural(CATALOGS.de, 'de', key, 1)).toBe('1 gemerkter Link');
   });
 });
 

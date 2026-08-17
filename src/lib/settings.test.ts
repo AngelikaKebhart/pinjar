@@ -24,6 +24,24 @@ describe('languagePreference', () => {
     await expect(languagePreference.getValue()).resolves.toBe('auto');
   });
 
+  // Renaming the key would silently discard the choice of every existing user,
+  // and later break import files written by an older version.
+  it('stores the choice under a stable key', async () => {
+    await languagePreference.setValue('de');
+
+    await expect(fakeBrowser.storage.local.get('languagePreference')).resolves.toEqual({
+      languagePreference: 'de',
+    });
+  });
+
+  // Validation lives in resolveLanguage, which is what makes a value like this
+  // harmless; see the matching case in src/i18n/language.test.ts.
+  it('hands back an unsupported stored value unchanged instead of validating it', async () => {
+    await fakeBrowser.storage.local.set({ languagePreference: 'fr' });
+
+    await expect(languagePreference.getValue()).resolves.toBe('fr');
+  });
+
   it('notifies watchers about a change', async () => {
     const seen: string[] = [];
     const unwatch = languagePreference.watch((value) => seen.push(value));
