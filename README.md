@@ -16,9 +16,9 @@ can be switched at any time in the Dashboard.
 
 ## Project status
 
-Early development. The toolchain and the bilingual UI are in place and builds work for all three
-browsers, but the extension does not do anything useful yet: Popup and Dashboard are shells, and
-storage, saving, badge handling and export/import are still to be built.
+Early development. The toolchain, the bilingual UI and the local storage layer are in place and
+builds work for all three browsers, but the extension does not do anything useful yet: Popup and
+Dashboard are still shells, and saving, badge handling and export/import are yet to be built.
 
 See [`docs/concept.md`](docs/concept.md) for the full product concept, feature list, and data model
 (written in German).
