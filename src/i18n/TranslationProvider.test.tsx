@@ -1,28 +1,53 @@
 // @vitest-environment jsdom
-import { act } from 'react';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+// act() comes from Testing Library, not from React: only its wrapper marks the
+// surrounding code as an act environment, which React otherwise warns about.
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
 import { languagePreference } from '@/src/lib/settings';
 import { useTranslation } from './context';
 import { CATALOGS } from './messages';
-import type { LanguagePreference } from './messages';
+import type { Language, LanguagePreference } from './messages';
 import { TranslationProvider } from './TranslationProvider';
+
+const SAMPLE_COUNT = 1;
+const SAMPLE_NUMBER = 1234.5;
+const SAMPLE_DATE = '2026-03-07T12:00:00.000Z';
 
 /** Renders everything a consumer receives, so assertions can read it off the DOM. */
 function TranslationProbe() {
-  const { language, preference, setPreference, t } = useTranslation();
+  const { language, preference, setPreference, t, plural, formatNumber, formatDate } =
+    useTranslation();
 
   return (
     <div>
       <p data-testid="language">{language}</p>
       <p data-testid="preference">{preference}</p>
       <p data-testid="message">{t('settings.language.label')}</p>
+      <p data-testid="plural">{plural('dashboard.savedLinks.count', SAMPLE_COUNT)}</p>
+      <p data-testid="number">{formatNumber(SAMPLE_NUMBER)}</p>
+      <p data-testid="date">{formatDate(SAMPLE_DATE)}</p>
       <button type="button" onClick={() => setPreference('de')}>
         switch
       </button>
     </div>
   );
+}
+
+/**
+ * What the catalog and the native `Intl` APIs produce for a language, so the
+ * assertions describe the expected language rather than repeating the
+ * formatting implementation.
+ */
+function expectedFor(language: Language) {
+  return {
+    plural: CATALOGS[language]['dashboard.savedLinks.count_one']?.replace(
+      '{count}',
+      String(SAMPLE_COUNT),
+    ),
+    number: new Intl.NumberFormat(language).format(SAMPLE_NUMBER),
+    date: new Intl.DateTimeFormat(language, { dateStyle: 'medium' }).format(new Date(SAMPLE_DATE)),
+  };
 }
 
 function setBrowserLanguage(tag: string) {
@@ -88,6 +113,33 @@ describe('TranslationProvider', () => {
 
     expect(textOf('language')).toBe('en');
     expect(textOf('preference')).toBe('en');
+  });
+
+  // The formatting helpers take the language as an argument, so the provider is
+  // the only place that binds them to the one currently active.
+  it('hands out plural, number and date formatting bound to the active language', async () => {
+    setBrowserLanguage('de-DE');
+
+    await renderProvider();
+
+    const expected = expectedFor('de');
+    expect(textOf('plural')).toBe(expected.plural);
+    expect(textOf('number')).toBe(expected.number);
+    expect(textOf('date')).toBe(expected.date);
+  });
+
+  it('rebinds the formatting to the new language after a switch', async () => {
+    await renderProvider();
+    expect(textOf('number')).toBe(expectedFor('en').number);
+
+    await act(async () => {
+      await languagePreference.setValue('de');
+    });
+
+    const expected = expectedFor('de');
+    expect(textOf('plural')).toBe(expected.plural);
+    expect(textOf('number')).toBe(expected.number);
+    expect(textOf('date')).toBe(expected.date);
   });
 
   // WCAG 3.1.1: a screen reader picks its pronunciation from this attribute, so
