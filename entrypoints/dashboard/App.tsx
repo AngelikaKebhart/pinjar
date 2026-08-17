@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { LanguageSwitcher } from '@/src/components/LanguageSwitcher';
 import { useTranslation } from '@/src/i18n/context';
 
@@ -11,6 +11,7 @@ import { useTranslation } from '@/src/i18n/context';
  */
 function App() {
   const { t, plural } = useTranslation();
+  const settingsHeadingId = useId();
 
   // Until the storage layer lands there is nothing to count.
   const savedLinkCount = 0;
@@ -34,8 +35,15 @@ function App() {
         <p className="mt-1 text-sm text-slate-600">{t('dashboard.savedLinks.notImplemented')}</p>
       </main>
 
-      <section className="mt-10">
-        <h2 className="text-lg font-medium">{t('settings.heading')}</h2>
+      {/*
+        Without an accessible name a <section> is not exposed as a landmark, so
+        it would be missing from the region list a screen reader navigates by.
+        Pointing at the heading names it in whichever language is active.
+      */}
+      <section className="mt-10" aria-labelledby={settingsHeadingId}>
+        <h2 id={settingsHeadingId} className="text-lg font-medium">
+          {t('settings.heading')}
+        </h2>
         <div className="mt-3">
           <LanguageSwitcher />
         </div>

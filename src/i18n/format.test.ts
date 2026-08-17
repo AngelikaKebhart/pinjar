@@ -86,4 +86,10 @@ describe('formatDate', () => {
   it('accepts an ISO string as well as a Date', () => {
     expect(formatDate('en', '2026-03-07T12:00:00Z')).toBe(formatDate('en', date));
   });
+
+  it('returns an empty string for an unparsable value instead of throwing', () => {
+    expect(formatDate('en', 'not a date')).toBe('');
+    expect(formatDate('en', '')).toBe('');
+    expect(formatDate('en', new Date(Number.NaN))).toBe('');
+  });
 });

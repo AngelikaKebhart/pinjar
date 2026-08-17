@@ -66,11 +66,25 @@ export function formatNumber(
   return new Intl.NumberFormat(language, options).format(value);
 }
 
+/**
+ * Formats a date in the active language.
+ *
+ * An unparsable value yields an empty string rather than the `RangeError` that
+ * `Intl` would throw: timestamps can come from an imported file, and one broken
+ * field must not take down the view listing it. Callers that need a visible
+ * placeholder add a translated one — this layer must not invent user-facing
+ * text of its own.
+ */
 export function formatDate(
   language: Language,
   value: Date | string,
   options: Intl.DateTimeFormatOptions = { dateStyle: 'medium' },
 ): string {
   const date = typeof value === 'string' ? new Date(value) : value;
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
   return new Intl.DateTimeFormat(language, options).format(date);
 }
