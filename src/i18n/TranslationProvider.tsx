@@ -22,11 +22,18 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
-    void languagePreference.getValue().then((stored) => {
-      if (isMounted) {
-        setPreference(stored);
-      }
-    });
+    // A failed read must still resolve to something: the provider renders
+    // nothing while the preference is unknown, so an unhandled rejection would
+    // leave a permanently blank popup with no hint of what went wrong. Falling
+    // back to "auto" costs the user their stored choice, not the whole UI.
+    void languagePreference
+      .getValue()
+      .catch(() => 'auto' as const)
+      .then((stored) => {
+        if (isMounted) {
+          setPreference(stored);
+        }
+      });
 
     const unwatch = languagePreference.watch((stored) => setPreference(stored));
 

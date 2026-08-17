@@ -15,24 +15,32 @@ export const LANGUAGE_NAMES: Record<Language, string> = {
   en: 'English',
 };
 
+/** Narrows a raw value — e.g. from a `<select>` — to a valid preference. */
+export function isLanguagePreference(value: string): value is LanguagePreference {
+  return value === 'auto' || LANGUAGES.some((language) => language === value);
+}
+
 /**
  * Determines the language to display in.
  *
  * A stored preference always wins; only "auto" consults the browser. Anything
  * that is not German falls back to English, matching the default locale of the
  * manifest.
+ *
+ * The preference is matched against the shipped languages instead of being
+ * returned as given: its type says it is valid, but it originates from storage,
+ * which an import file or an older version could have left holding a language
+ * this build does not ship. Passing such a value on would select a catalog that
+ * does not exist and take the whole UI down.
  */
-/** Narrows a raw value — e.g. from a `<select>` — to a valid preference. */
-export function isLanguagePreference(value: string): value is LanguagePreference {
-  return value === 'auto' || LANGUAGES.some((language) => language === value);
-}
-
 export function resolveLanguage(
   preference: LanguagePreference,
   browserLanguage: string | undefined,
 ): Language {
-  if (preference !== 'auto') {
-    return preference;
+  const chosenLanguage = LANGUAGES.find((language) => language === preference);
+
+  if (chosenLanguage !== undefined) {
+    return chosenLanguage;
   }
 
   // Matches "de", "de-DE", "de-AT", … but not "der" or unrelated tags.

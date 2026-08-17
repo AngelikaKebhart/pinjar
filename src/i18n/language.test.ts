@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { isLanguagePreference, LANGUAGE_NAMES, resolveLanguage } from './language';
 import { LANGUAGES } from './messages';
+import type { LanguagePreference } from './messages';
 
 describe('resolveLanguage', () => {
   it('honours an explicit choice regardless of the browser language', () => {
@@ -27,6 +28,15 @@ describe('resolveLanguage', () => {
   it('survives a missing or empty browser language', () => {
     expect(resolveLanguage('auto', undefined)).toBe('en');
     expect(resolveLanguage('auto', '')).toBe('en');
+  });
+
+  it('treats a stored language this build does not ship like auto', () => {
+    // The cast reproduces what storage can hand over at runtime despite the
+    // type: a value written by an import file or an older version.
+    const unsupported = 'fr' as LanguagePreference;
+
+    expect(resolveLanguage(unsupported, 'de-DE')).toBe('de');
+    expect(resolveLanguage(unsupported, 'fr-FR')).toBe('en');
   });
 });
 
