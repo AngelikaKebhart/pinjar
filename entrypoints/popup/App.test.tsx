@@ -128,7 +128,9 @@ describe('the links of this site', () => {
     await givenTabOn('https://shop.example/second');
     await renderPopup();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Remove “Jersey fabric”' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete “Jersey fabric”' }));
+    // Deleting asks once before it happens.
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, delete “Jersey fabric”' }));
 
     expect(await screen.findByText(en['popup.status.removed'] ?? '')).toBeTruthy();
     expect(screen.queryByRole('link', { name: 'Jersey fabric' })).toBeNull();
@@ -148,14 +150,26 @@ describe('accessibility', () => {
     expect(status.getAttribute('aria-live')).toBe('polite');
   });
 
-  // Every delete button would otherwise be announced as just "✕".
-  it('names which link a remove button belongs to', async () => {
+  // With several links listed, "Delete" alone would not say which one.
+  it('names which link a delete button belongs to', async () => {
     await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
     await givenTabOn('https://shop.example/second');
 
     await renderPopup();
 
-    expect(screen.getByRole('button', { name: 'Remove “Jersey fabric”' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Delete “Jersey fabric”' })).toBeTruthy();
+  });
+
+  // A stray click must not cost a saved link (WCAG 3.3.4).
+  it('keeps the link when the delete question is dismissed', async () => {
+    await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await givenTabOn('https://shop.example/second');
+    await renderPopup();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete “Jersey fabric”' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Keep “Jersey fabric”' }));
+
+    expect(screen.getByRole('link', { name: 'Jersey fabric' })).toBeTruthy();
   });
 
   it('keeps working in German', async () => {

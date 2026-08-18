@@ -16,9 +16,9 @@ can be switched at any time in the Dashboard.
 
 ## Project status
 
-Early development, but usable for the first time: you can save a page from the toolbar icon, see
-what you saved on the site you are on, and the badge counts it. Still missing are the Dashboard list
-with search and filters, assigning categories, tags and notes, and export/import.
+Early development. You can save a page from the toolbar icon, see what you saved on the site you are
+on, and browse everything in the Dashboard. Still missing are search and filters, assigning
+categories, tags and notes, and export/import.
 
 See [`docs/concept.md`](docs/concept.md) for the full product concept, feature list, and data model
 (written in German).
@@ -173,6 +173,12 @@ needed for the feature set is stored: page URL, title, preview image, your own i
 cookies. Translations are part of the installed bundle — no translation service is ever contacted.
 
 Exported files are plain, unencrypted JSON and may contain personal notes — handle them accordingly.
+
+**One exception worth knowing about:** preview images are stored as URLs, not as image data, so the
+Dashboard loads them from the sites they came from when you open it. Those sites therefore learn
+your IP address and the time you looked at your list. No stored data is sent, requests only ever go
+to sites you deliberately saved, and they are made without a referrer and only for images actually
+scrolled into view. It is the only point at which this extension talks to the network at all.
 
 ### Permissions
 

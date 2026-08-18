@@ -13,7 +13,6 @@
 
   "popup.savedLinks.heading": "Gemerkt auf {domain}",
   "popup.savedLinks.empty": "Auf dieser Seite hast du noch nichts gemerkt.",
-  "popup.savedLinks.remove": "„{title}“ entfernen",
 
   "badge.tooltip.none": "Universal Wishlist — auf dieser Seite ist nichts gemerkt",
   "badge.tooltip.count_one": "Universal Wishlist — {count} gemerkter Link auf dieser Seite",
@@ -25,7 +24,23 @@
   "dashboard.savedLinks.heading": "Gemerkte Links",
   "dashboard.savedLinks.count_one": "{count} gemerkter Link",
   "dashboard.savedLinks.count_other": "{count} gemerkte Links",
-  "dashboard.savedLinks.notImplemented": "Seiten merkst du über das Symbol in der Symbolleiste. Die Liste, Suche und Filter fehlen noch.",
+  "dashboard.savedLinks.empty": "Du hast noch nichts gemerkt. Öffne eine Seite, die dir gefällt, und klicke auf das Symbol der Erweiterung in der Symbolleiste.",
+  "dashboard.savedLinks.searchNotImplemented": "Suche und Filter fehlen noch.",
+
+  "dashboard.link.status": "Status",
+  "dashboard.link.category": "Kategorie",
+  "dashboard.link.tags": "Schlagwörter",
+  "dashboard.link.note": "Notiz",
+
+  "status.default": "Gemerkt",
+
+  "deleteLink.action": "Löschen",
+  "deleteLink.actionLabel": "„{title}“ löschen",
+  "deleteLink.question": "Löschen?",
+  "deleteLink.confirm": "Ja, löschen",
+  "deleteLink.confirmLabel": "„{title}“ wirklich löschen",
+  "deleteLink.cancel": "Abbrechen",
+  "deleteLink.cancelLabel": "„{title}“ behalten",
 
   "settings.heading": "Einstellungen",
   "settings.language.label": "Sprache der Oberfläche",

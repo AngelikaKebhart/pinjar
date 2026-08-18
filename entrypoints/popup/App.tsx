@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useState } from 'react';
+import { DeleteLinkButton } from '@/src/components/DeleteLinkButton';
 import { useTranslation } from '@/src/i18n/context';
 import type { MessageKey } from '@/src/i18n/messages';
 import { getCurrentPage, saveCurrentPage, type CurrentPage } from '@/src/lib/current-page';
@@ -96,7 +97,7 @@ function App() {
         ) : (
           <ul className="flex flex-col gap-1">
             {links.map((link) => (
-              <li key={link.id} className="flex items-center gap-2">
+              <li key={link.id} className="flex flex-wrap items-center gap-2">
                 {/*
                   A real link, so it keeps its semantics and middle-click. The
                   popup would otherwise navigate itself; target opens a tab.
@@ -111,15 +112,7 @@ function App() {
                   {link.title}
                 </a>
 
-                <button
-                  type="button"
-                  onClick={() => void handleRemove(link)}
-                  aria-label={t('popup.savedLinks.remove', { title: link.title })}
-                  className="flex size-8 shrink-0 items-center justify-center rounded-md text-slate-700 hover:bg-slate-200 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
-                >
-                  {/* Decorative: the accessible name is on the button. */}
-                  <span aria-hidden="true">✕</span>
-                </button>
+                <DeleteLinkButton title={link.title} onDelete={() => handleRemove(link)} />
               </li>
             ))}
           </ul>
