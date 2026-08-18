@@ -289,13 +289,19 @@ describe('editing a link', () => {
     await screen.findByLabelText(en['dashboard.link.title'] ?? '');
   }
 
+  /** Picks "add a new category" and types one, the way a first one is made. */
+  function addCategory(name: string): void {
+    fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'new' } });
+    fireEvent.change(screen.getByLabelText('New category'), { target: { value: name } });
+  }
+
   it('stores what was changed', async () => {
     const link = await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
     await renderDashboard();
 
     await startEditing('Jersey fabric');
-    fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'Fabrics' } });
-    fireEvent.change(screen.getByLabelText('Tags'), { target: { value: 'jersey, blue' } });
+    addCategory('Fabrics');
+    fireEvent.change(screen.getByLabelText('New tags'), { target: { value: 'jersey, blue' } });
     fireEvent.change(screen.getByLabelText('Note'), { target: { value: 'Two metres' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
@@ -311,7 +317,7 @@ describe('editing a link', () => {
     await renderDashboard();
 
     await startEditing('Jersey fabric');
-    fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'Fabrics' } });
+    addCategory('Fabrics');
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(await screen.findByText('Fabrics')).toBeTruthy();
@@ -357,13 +363,72 @@ describe('editing a link', () => {
     await renderDashboard();
 
     await startEditing('Jersey fabric');
-    fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'Fabrics' } });
+    addCategory('Fabrics');
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(async () => {
       await expect(fakeBrowser.storage.local.get('categories')).resolves.toEqual({
         categories: ['Fabrics'],
       });
+    });
+  });
+});
+
+// What the separately stored lists in docs/concept.md §4 are for: something
+// typed once on one link is offered on the next one, so it cannot end up as
+// two near-identical categories that differ by a typo.
+describe('reusing what was entered before', () => {
+  async function startEditing(title: string): Promise<void> {
+    fireEvent.click(within(cardOf(title)).getByRole('button', { name: `Edit “${title}”` }));
+    await screen.findByLabelText(en['dashboard.link.title'] ?? '');
+  }
+
+  it('offers a category on the next link once it exists', async () => {
+    await save({ url: 'https://shop.example/first', title: 'First find' });
+    await save({ url: 'https://shop.example/second', title: 'Second find' });
+    await renderDashboard();
+
+    await startEditing('First find');
+    fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'new' } });
+    fireEvent.change(screen.getByLabelText('New category'), { target: { value: 'Fabrics' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(screen.queryByRole('form')).toBeNull());
+    await startEditing('Second find');
+    fireEvent.change(await screen.findByLabelText('Category'), {
+      target: { value: 'known:Fabrics' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(async () => {
+      await expect(getSavedLinks()).resolves.toMatchObject([
+        { title: 'Second find', category: 'Fabrics' },
+        { title: 'First find', category: 'Fabrics' },
+      ]);
+    });
+  });
+
+  it('offers a tag on the next link once it exists', async () => {
+    await save({ url: 'https://shop.example/first', title: 'First find' });
+    await save({ url: 'https://shop.example/second', title: 'Second find' });
+    await renderDashboard();
+
+    await startEditing('First find');
+    fireEvent.change(screen.getByLabelText('New tags'), { target: { value: 'jersey' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(screen.queryByRole('form')).toBeNull());
+    await startEditing('Second find');
+
+    // Now a tick box rather than something to type again.
+    fireEvent.click(await screen.findByLabelText('jersey'));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(async () => {
+      await expect(getSavedLinks()).resolves.toMatchObject([
+        { title: 'Second find', tags: ['jersey'] },
+        { title: 'First find', tags: ['jersey'] },
+      ]);
     });
   });
 });
