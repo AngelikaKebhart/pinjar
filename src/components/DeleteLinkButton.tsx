@@ -54,7 +54,7 @@ export function DeleteLinkButton({
         type="button"
         onClick={() => void onDelete()}
         aria-label={t('deleteLink.confirmLabel', { title })}
-        className="rounded-md bg-red-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-800"
+        className="rounded-md bg-danger px-3 py-1.5 text-sm font-medium text-on-danger hover:bg-danger-strong"
       >
         {t('deleteLink.confirm')}
       </button>
@@ -73,4 +73,4 @@ export function DeleteLinkButton({
 
 /** Bordered rather than filled, so the destructive answer stands out alone. */
 const ACTION_CLASSES =
-  'rounded-md border border-slate-500 px-3 py-1.5 text-sm font-medium text-slate-900 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700';
+  'rounded-md border border-line-strong px-3 py-1.5 text-sm font-medium text-ink hover:bg-surface-hover';

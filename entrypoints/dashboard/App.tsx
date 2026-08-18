@@ -40,7 +40,7 @@ function App() {
     <div className="mx-auto max-w-5xl p-6">
       <header>
         <h1 className="text-2xl font-semibold">{t('dashboard.title')}</h1>
-        <p className="mt-1 text-sm text-slate-700">{t('dashboard.subtitle')}</p>
+        <p className="mt-1 text-sm text-ink-muted">{t('dashboard.subtitle')}</p>
       </header>
 
       <main className="mt-8" aria-labelledby={savedLinksHeadingId}>
@@ -56,7 +56,7 @@ function App() {
           {links === null ? '' : plural('dashboard.savedLinks.count', links.length)}
         </p>
 
-        <p className="mt-1 text-sm text-slate-700">
+        <p className="mt-1 text-sm text-ink-muted">
           {t('dashboard.savedLinks.searchNotImplemented')}
         </p>
 

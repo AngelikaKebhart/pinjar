@@ -15,8 +15,6 @@ export function StatusLabel({ status }: { status: LinkStatus }) {
 
   return (
     // The status is carried by its text, never by color alone (WCAG 1.4.1).
-    <span className="inline-block rounded-full bg-slate-200 px-2 py-0.5 text-slate-900">
-      {label}
-    </span>
+    <span className="inline-block rounded-full bg-chip-strong px-2 py-0.5 text-ink">{label}</span>
   );
 }
