@@ -39,7 +39,7 @@ function normalizeHostname(hostname: string): string | null {
  * Image URLs are extracted from untrusted pages, so anything that is not plain
  * `http(s)` is rejected — most importantly `javascript:` and `data:` URLs.
  */
-export function isSafeImageUrl(url: string | null | undefined): boolean {
+export function isSafeImageUrl(url: string | null | undefined): url is string {
   return url != null && parseAllowedUrl(url) !== null;
 }
 
