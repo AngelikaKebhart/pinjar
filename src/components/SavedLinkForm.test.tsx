@@ -54,8 +54,19 @@ function choose(label: string, value: string): void {
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
 }
 
-/** The one option value the form uses to mean "something that does not exist yet". */
-const NEW = 'new';
+function pressEnter(label: string): void {
+  fireEvent.keyDown(screen.getByLabelText(label), { key: 'Enter' });
+}
+
+/**
+ * Adds a value through the in-place field: pick "add a new one", type, Enter.
+ * The field carries the same label as the dropdown it replaced.
+ */
+function addNew(label: string, value: string): void {
+  choose(label, 'new');
+  type(label, value);
+  pressEnter(label);
+}
 
 beforeEach(() => {
   fakeBrowser.reset();
@@ -103,6 +114,110 @@ describe('the plain fields', () => {
   });
 });
 
+describe('adding something new in place', () => {
+  it('turns the dropdown into a field instead of opening one below it', async () => {
+    await renderForm();
+
+    choose('Category', 'new');
+
+    const field = screen.getByLabelText('Category');
+    expect(field.tagName).toBe('INPUT');
+    // Exactly one control carries the label, so nothing appeared underneath.
+    expect(screen.getAllByLabelText('Category')).toHaveLength(1);
+  });
+
+  it('puts the caret straight into it', async () => {
+    await renderForm();
+
+    choose('Category', 'new');
+
+    expect(document.activeElement).toBe(screen.getByLabelText('Category'));
+  });
+
+  it('takes the entry on Enter and goes back to the dropdown', async () => {
+    await renderForm();
+
+    addNew('Category', 'Patterns');
+
+    const field = screen.getByLabelText('Category');
+    expect(field.tagName).toBe('SELECT');
+    expect(field).toHaveProperty('value', 'known:Patterns');
+  });
+
+  // Enter is the confirmation for this one entry, never for the whole form.
+  it('does not save the form on Enter', async () => {
+    const { onSave } = await renderForm();
+
+    addNew('Category', 'Patterns');
+
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it('abandons the entry on Escape', async () => {
+    const { onSave } = await renderForm(aLink({ category: 'Fabrics' }));
+
+    choose('Category', 'new');
+    type('Category', 'Patterns');
+    fireEvent.keyDown(screen.getByLabelText('Category'), { key: 'Escape' });
+    submit();
+
+    expect(screen.getByLabelText('Category').tagName).toBe('SELECT');
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ category: 'Fabrics' }));
+  });
+
+  // Typing a name and clicking elsewhere must not silently discard it.
+  it('takes the entry when the field is left', async () => {
+    const { onSave } = await renderForm();
+
+    choose('Category', 'new');
+    type('Category', 'Patterns');
+    fireEvent.blur(screen.getByLabelText('Category'));
+    submit();
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ category: 'Patterns' }));
+  });
+
+  it('keeps the previous choice when nothing was typed', async () => {
+    const { onSave } = await renderForm(aLink({ category: 'Fabrics' }));
+
+    choose('Category', 'new');
+    fireEvent.blur(screen.getByLabelText('Category'));
+    submit();
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ category: 'Fabrics' }));
+  });
+
+  it('hands focus back to the dropdown afterwards', async () => {
+    await renderForm();
+
+    addNew('Category', 'Patterns');
+
+    expect(document.activeElement).toBe(screen.getByLabelText('Category'));
+  });
+
+  it('explains the two keys rather than leaving them to be guessed', async () => {
+    await renderForm();
+
+    choose('Category', 'new');
+
+    const hintId = screen.getByLabelText('Category').getAttribute('aria-describedby');
+    expect(document.getElementById(hintId ?? '')?.textContent).toBe(
+      'Press Enter to confirm, Escape to cancel.',
+    );
+  });
+
+  it('works the same way for the status', async () => {
+    const { onSave } = await renderForm();
+
+    addNew('Status', 'Ordered');
+    submit();
+
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({ status: { kind: 'custom', label: 'Ordered' } }),
+    );
+  });
+});
+
 describe('the category', () => {
   it('offers the categories used before', async () => {
     await addSavedLink({ url: 'https://shop.example/a', category: 'Fabrics' });
@@ -132,16 +247,6 @@ describe('the category', () => {
     submit();
 
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ category: 'Fabrics' }));
-  });
-
-  it('lets a new one be added', async () => {
-    const { onSave } = await renderForm();
-
-    choose('Category', NEW);
-    type('New category', 'Patterns');
-    submit();
-
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ category: 'Patterns' }));
   });
 
   it('can be cleared again', async () => {
@@ -222,30 +327,46 @@ describe('the tags', () => {
     );
   });
 
-  // The form hands over exactly what was entered and lets the model clean it
-  // up, so an untouched field for new tags contributes one empty entry rather
-  // than the form second-guessing it.
-  it('leaves normalizing the empty field to the model', async () => {
-    const { onSave } = await renderForm(aLink({ tags: ['jersey'] }));
+  // Same key, same meaning as in the category field.
+  it('turns what was typed into ticked boxes on Enter', async () => {
+    await renderForm();
 
-    submit();
+    type('New tags', 'wool, striped');
+    pressEnter('New tags');
 
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ tags: ['jersey', ''] }));
+    expect(screen.getByLabelText('wool')).toHaveProperty('checked', true);
+    expect(screen.getByLabelText('striped')).toHaveProperty('checked', true);
+    // Emptied, ready for the next one.
+    expect(screen.getByLabelText('New tags')).toHaveProperty('value', '');
   });
 
-  it('adds new ones alongside the ticked ones', async () => {
-    await addSavedLink({ url: 'https://shop.example/a', tags: ['jersey'] });
+  it('does not save the form on Enter', async () => {
+    const { onSave } = await renderForm();
+
+    type('New tags', 'wool');
+    pressEnter('New tags');
+
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  // Typing a tag and pressing Save straight away must not lose it.
+  it('takes along what is still sitting in the field', async () => {
     const { onSave } = await renderForm(aLink({ tags: ['jersey'] }));
-    await screen.findByLabelText('jersey');
 
     type('New tags', 'wool, striped');
     submit();
 
-    // Trimming and de-duplicating is the model's job, so the raw split is
-    // what this layer is expected to produce.
     expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({ tags: ['jersey', 'wool', ' striped'] }),
+      expect.objectContaining({ tags: ['jersey', 'wool', 'striped'] }),
     );
+  });
+
+  it('adds nothing when the field is left empty', async () => {
+    const { onSave } = await renderForm(aLink({ tags: ['jersey'] }));
+
+    submit();
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ tags: ['jersey'] }));
   });
 
   it('keeps a tag this link carries even when the suggestions lost it', async () => {
@@ -289,18 +410,6 @@ describe('the status', () => {
     );
   });
 
-  it('lets a new one be added', async () => {
-    const { onSave } = await renderForm();
-
-    choose('Status', NEW);
-    type('New status', 'Ordered');
-    submit();
-
-    expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({ status: { kind: 'custom', label: 'Ordered' } }),
-    );
-  });
-
   it('switches back to the built-in status', async () => {
     const { onSave } = await renderForm(aLink({ status: { kind: 'custom', label: 'Bought' } }));
 
@@ -332,7 +441,7 @@ describe('accessibility', () => {
     }
   });
 
-  // The checkboxes and the field for new ones only make sense together.
+  // The tick boxes and the field for new ones only make sense together.
   it('groups the tag controls under one name', async () => {
     await renderForm();
 
@@ -352,24 +461,13 @@ describe('accessibility', () => {
     expect(document.activeElement).toBe(screen.getByLabelText('Title'));
   });
 
-  // The field appears in response to the choice, so that is where the user is
-  // already looking.
-  it('moves focus to the field a new entry needs', async () => {
-    await renderForm();
-
-    choose('Category', NEW);
-
-    expect(document.activeElement).toBe(screen.getByLabelText('New category'));
-  });
-
   it('explains the comma rule instead of leaving it to be guessed', async () => {
     await renderForm();
 
-    const newTags = screen.getByLabelText('New tags');
-    const hintId = newTags.getAttribute('aria-describedby');
+    const hintId = screen.getByLabelText('New tags').getAttribute('aria-describedby');
 
     expect(document.getElementById(hintId ?? '')?.textContent).toBe(
-      'Separate several new tags with commas.',
+      'Separate several with commas, then press Enter to add them.',
     );
   });
 

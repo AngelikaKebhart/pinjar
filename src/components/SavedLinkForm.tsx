@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import type { FormEvent, ReactNode } from 'react';
+import type { FormEvent, KeyboardEvent, ReactNode } from 'react';
 import { useTranslation } from '@/src/i18n/context';
 import { DEFAULT_STATUS, type LinkStatus, type SavedLinkEdits } from '@/src/lib/saved-link';
 import { getCategories, getCustomStatuses, getTags } from '@/src/lib/storage';
@@ -15,6 +15,11 @@ import { getCategories, getCustomStatuses, getTags } from '@/src/lib/storage';
  * the whole point of keeping those lists in storage (§4) — nobody should have
  * to retype "Schnittmuster" for the twentieth time and hope they spell it the
  * same way, because a typo silently creates a second category.
+ *
+ * Adding something new happens in place, and Enter confirms it. That makes
+ * Enter mean the same thing in all three: "take this entry", never "save the
+ * whole form" — which is what an unhandled Enter in a text field would do.
+ * The Save button stays the one way to finish.
  *
  * Everything here is a native form control with a real label. A custom widget
  * would have to re-earn keyboard operability, screen reader announcements and
@@ -43,13 +48,10 @@ export function SavedLinkForm({
   const [note, setNote] = useState(link.note);
 
   const [categoryChoice, setCategoryChoice] = useState(() => categoryToChoice(link.category));
-  const [newCategory, setNewCategory] = useState('');
+  const [statusChoice, setStatusChoice] = useState(() => statusToChoice(link.status));
 
   const [checkedTags, setCheckedTags] = useState<string[]>(link.tags);
   const [newTags, setNewTags] = useState('');
-
-  const [statusChoice, setStatusChoice] = useState(() => statusToChoice(link.status));
-  const [newStatus, setNewStatus] = useState('');
 
   const [knownCategories, setKnownCategories] = useState<string[]>([]);
   const [knownTags, setKnownTags] = useState<string[]>(link.tags);
@@ -80,16 +82,28 @@ export function SavedLinkForm({
     );
   };
 
+  /** Turns what was typed into ticked boxes, ready for the next one. */
+  const addTypedTags = () => {
+    const added = splitTags(newTags);
+    if (added.length === 0) {
+      return;
+    }
+
+    setKnownTags((known) => union(known, added));
+    setCheckedTags((checked) => union(checked, added));
+    setNewTags('');
+  };
+
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
 
     void onSave({
       title,
-      category: choiceToCategory(categoryChoice, newCategory),
-      // Trimming, de-duplicating and dropping blanks is the model's job, so
-      // the freshly typed ones can simply be appended.
-      tags: [...checkedTags, ...newTags.split(',')],
-      status: choiceToStatus(statusChoice, newStatus),
+      category: choiceToCategory(categoryChoice),
+      // Anything still sitting in the field counts too: pressing Save right
+      // after typing a tag must not throw it away.
+      tags: [...checkedTags, ...splitTags(newTags)],
+      status: choiceToStatus(statusChoice),
       note,
     });
   };
@@ -114,21 +128,22 @@ export function SavedLinkForm({
       <ChoiceOrNewField
         id={`${fieldId}-category`}
         label={t('dashboard.link.category')}
-        choice={categoryChoice}
-        onChoose={setCategoryChoice}
+        value={categoryChoice}
+        onChange={setCategoryChoice}
         options={[
           { value: NONE_CHOICE, label: t('editLink.categoryNone') },
           ...knownCategories.map((known) => ({ value: `${KNOWN_PREFIX}${known}`, label: known })),
         ]}
         newOptionLabel={t('editLink.categoryNew')}
-        newValueLabel={t('editLink.categoryNewLabel')}
-        newValue={newCategory}
-        onNewValue={setNewCategory}
+        onAdd={(name) => {
+          setKnownCategories((known) => including(known, name));
+          setCategoryChoice(`${KNOWN_PREFIX}${name}`);
+        }}
       />
 
       <fieldset className="flex flex-col gap-2 rounded-md border border-line p-3">
         {/*
-          A fieldset with a legend, because the checkboxes and the field for
+          A fieldset with a legend, because the tick boxes and the field for
           new ones only make sense together — a screen reader announces the
           group name with every one of them.
         */}
@@ -141,7 +156,7 @@ export function SavedLinkForm({
             <p className="text-sm text-ink-muted">{t('editLink.tagsKnown')}</p>
 
             {/*
-              Checkboxes rather than a multi-select: picking several is one
+              Tick boxes rather than a multi-select: picking several is one
               click each instead of a modifier key, and the current selection
               stays readable at a glance.
             */}
@@ -173,6 +188,13 @@ export function SavedLinkForm({
             type="text"
             value={newTags}
             onChange={(event) => setNewTags(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                // Without this, Enter would save the whole form.
+                event.preventDefault();
+                addTypedTags();
+              }
+            }}
             aria-describedby={`${fieldId}-new-tags-hint`}
             className={INPUT_CLASSES}
           />
@@ -182,17 +204,18 @@ export function SavedLinkForm({
       <ChoiceOrNewField
         id={`${fieldId}-status`}
         label={t('dashboard.link.status')}
-        choice={statusChoice}
-        onChoose={setStatusChoice}
+        value={statusChoice}
+        onChange={setStatusChoice}
         options={[
           // The built-in status is the only translated one (§4).
           { value: BUILTIN_CHOICE, label: t('status.default') },
           ...knownStatuses.map((known) => ({ value: `${KNOWN_PREFIX}${known}`, label: known })),
         ]}
         newOptionLabel={t('editLink.statusNew')}
-        newValueLabel={t('editLink.statusNewLabel')}
-        newValue={newStatus}
-        onNewValue={setNewStatus}
+        onAdd={(label) => {
+          setKnownStatuses((known) => including(known, label));
+          setStatusChoice(`${KNOWN_PREFIX}${label}`);
+        }}
       />
 
       <Field label={t('dashboard.link.note')} htmlFor={`${fieldId}-note`}>
@@ -226,76 +249,120 @@ export function SavedLinkForm({
 }
 
 /**
- * A dropdown of what exists, plus one entry that reveals a field for something
- * new. Category and status differ only in what they call things.
+ * A dropdown of what exists, with one entry that turns it into a text field
+ * for something new. Category and status differ only in what they call things.
  *
- * The alternative — a text field with a `<datalist>` — types and picks in one
- * control, but the suggestions stay invisible until you start typing, so the
- * list you built up is easy to never discover.
+ * The field takes the place of the dropdown rather than appearing below it:
+ * the answer belongs where the question was asked, and nothing on the card
+ * jumps around while being answered.
+ *
+ * Enter takes the entry, Escape abandons it, and leaving the field takes it
+ * too — typing a name and clicking elsewhere must not silently discard it.
+ * Either way focus returns to the dropdown, so tabbing carries on where it
+ * left off.
  */
 function ChoiceOrNewField({
   id,
   label,
-  choice,
-  onChoose,
+  value,
+  onChange,
   options,
   newOptionLabel,
-  newValueLabel,
-  newValue,
-  onNewValue,
+  onAdd,
 }: {
   id: string;
   label: string;
-  choice: string;
-  onChoose: (choice: string) => void;
+  value: string;
+  onChange: (value: string) => void;
   options: { value: string; label: string }[];
   newOptionLabel: string;
-  newValueLabel: string;
-  newValue: string;
-  onNewValue: (value: string) => void;
+  onAdd: (value: string) => void;
 }) {
-  const newValueRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
+  const [draft, setDraft] = useState<string | null>(null);
+  const isAdding = draft !== null;
+  const selectRef = useRef<HTMLSelectElement>(null);
+  const draftRef = useRef<HTMLInputElement>(null);
+  // Focus only goes back to the dropdown when the user was actually in the
+  // field, never on the first render.
+  const wasAdding = useRef(false);
 
-  // The field appears in response to the choice above it, so that is where
-  // the user is looking and where the caret belongs.
   useEffect(() => {
-    if (choice === NEW_CHOICE) {
-      newValueRef.current?.focus();
+    if (isAdding) {
+      draftRef.current?.focus();
+    } else if (wasAdding.current) {
+      selectRef.current?.focus();
     }
-  }, [choice]);
+
+    wasAdding.current = isAdding;
+  }, [isAdding]);
+
+  const confirm = () => {
+    const name = (draft ?? '').trim();
+    if (name !== '') {
+      onAdd(name);
+    }
+
+    // A blank entry simply leaves the previous choice in place, which is what
+    // the dropdown still shows — it was never switched to the "new" option.
+    setDraft(null);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      // Without this, Enter would save the whole form.
+      event.preventDefault();
+      confirm();
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      setDraft(null);
+    }
+  };
+
+  if (isAdding) {
+    return (
+      <Field label={label} htmlFor={id} hint={t('editLink.newHint')} hintId={`${id}-hint`}>
+        <input
+          ref={draftRef}
+          id={id}
+          type="text"
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={confirm}
+          aria-describedby={`${id}-hint`}
+          className={INPUT_CLASSES}
+        />
+      </Field>
+    );
+  }
 
   return (
-    <>
-      <Field label={label} htmlFor={id}>
-        <select
-          id={id}
-          value={choice}
-          onChange={(event) => onChoose(event.target.value)}
-          className={INPUT_CLASSES}
-        >
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
+    <Field label={label} htmlFor={id}>
+      <select
+        ref={selectRef}
+        id={id}
+        value={value}
+        onChange={(event) => {
+          if (event.target.value === NEW_CHOICE) {
+            setDraft('');
+          } else {
+            onChange(event.target.value);
+          }
+        }}
+        className={INPUT_CLASSES}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
 
-          <option value={NEW_CHOICE}>{newOptionLabel}</option>
-        </select>
-      </Field>
-
-      {choice === NEW_CHOICE && (
-        <Field label={newValueLabel} htmlFor={`${id}-new`}>
-          <input
-            ref={newValueRef}
-            id={`${id}-new`}
-            type="text"
-            value={newValue}
-            onChange={(event) => onNewValue(event.target.value)}
-            className={INPUT_CLASSES}
-          />
-        </Field>
-      )}
-    </>
+        <option value={NEW_CHOICE}>{newOptionLabel}</option>
+      </select>
+    </Field>
   );
 }
 
@@ -354,12 +421,7 @@ function categoryToChoice(category: string | null): string {
   return category === null ? NONE_CHOICE : `${KNOWN_PREFIX}${category}`;
 }
 
-function choiceToCategory(choice: string, newCategory: string): string | null {
-  if (choice === NEW_CHOICE) {
-    // A blank name means no category; the model turns it into null.
-    return newCategory;
-  }
-
+function choiceToCategory(choice: string): string | null {
   return choice.startsWith(KNOWN_PREFIX) ? choice.slice(KNOWN_PREFIX.length) : null;
 }
 
@@ -367,15 +429,23 @@ function statusToChoice(status: LinkStatus): string {
   return status.kind === 'builtin' ? BUILTIN_CHOICE : `${KNOWN_PREFIX}${status.label}`;
 }
 
-function choiceToStatus(choice: string, newStatus: string): LinkStatus {
-  if (choice === NEW_CHOICE) {
-    // An empty label falls back to the built-in status; the model enforces it.
-    return { kind: 'custom', label: newStatus };
-  }
-
+function choiceToStatus(choice: string): LinkStatus {
   return choice.startsWith(KNOWN_PREFIX)
     ? { kind: 'custom', label: choice.slice(KNOWN_PREFIX.length) }
     : DEFAULT_STATUS;
+}
+
+/**
+ * Splits what was typed into usable tags.
+ *
+ * The model normalizes again before storing; this exists because tick boxes
+ * need a clean label the moment they appear, not once they are saved.
+ */
+function splitTags(typed: string): string[] {
+  return typed
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter((tag) => tag !== '');
 }
 
 function customLabelOf(status: LinkStatus): string | null {
