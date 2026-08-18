@@ -27,12 +27,27 @@
   "dashboard.savedLinks.empty": "You have not saved anything yet. Open a page you like and click the extension icon in the toolbar.",
   "dashboard.savedLinks.searchNotImplemented": "Search and filters are still to be built.",
 
+  "dashboard.link.title": "Title",
   "dashboard.link.status": "Status",
   "dashboard.link.category": "Category",
   "dashboard.link.tags": "Tags",
   "dashboard.link.note": "Note",
 
   "status.default": "Saved",
+
+  "editLink.action": "Edit",
+  "editLink.actionLabel": "Edit “{title}”",
+  "editLink.formLabel": "Edit “{title}”",
+  "editLink.categoryNone": "No category",
+  "editLink.categoryNew": "Add a new category…",
+  "editLink.tagsKnown": "Tags you used before",
+  "editLink.tagsNone": "You have not used any tags yet.",
+  "editLink.tagsNewLabel": "New tags",
+  "editLink.tagsHint": "Separate several with commas, then press Enter to add them.",
+  "editLink.newHint": "Press Enter to confirm, Escape to cancel.",
+  "editLink.statusNew": "Add a new status…",
+  "editLink.save": "Save",
+  "editLink.cancel": "Cancel",
 
   "deleteLink.action": "Delete",
   "deleteLink.actionLabel": "Delete “{title}”",

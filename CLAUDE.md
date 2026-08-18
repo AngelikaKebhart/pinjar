@@ -26,7 +26,7 @@ Full product concept, feature list, data model, and rationale:
 
 Detailed conventions are encoded as project skills under `.claude/skills/` and are applied automatically by Claude Code when relevant — see there for the full rules. In short:
 
-- **`coding-conventions`** — all code (names, comments, commit messages, docs) is written in English, regardless of the language used in conversation; no user-facing string is ever hardcoded, it goes into the de/en catalogs; Clean Code principles; WXT project structure
+- **`coding-conventions`** — all code (names, comments, commit messages, docs) is written in English, regardless of the language used in conversation; no user-facing string is ever hardcoded, it goes into the de/en catalogs; Clean Code principles; WXT project structure; and after any larger change, an audit of the surrounding tests for ones that still pass but are no longer the right tests
 - **`accessibility-wcag`** — all UI must meet WCAG 2.2 Level AA, including a correct `<html lang>` for the active language and layouts that survive longer German text
 - **`privacy-and-security`** — GDPR/DSGVO-friendly data handling (local-only, minimal data, full user control) and security rules (untrusted webpage data, minimal permissions, no remote code, dependency hygiene)
 - **`git-workflow`** — Conventional Commits in English, trunk-based branching, GitHub Actions CI, Semantic Versioning

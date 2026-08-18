@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useId, useState } from 'react';
 import { LanguageSwitcher } from '@/src/components/LanguageSwitcher';
 import { useTranslation } from '@/src/i18n/context';
-import type { SavedLink } from '@/src/lib/saved-link';
-import { getSavedLinks, removeSavedLink, savedLinks } from '@/src/lib/storage';
+import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
+import { getSavedLinks, removeSavedLink, savedLinks, updateSavedLink } from '@/src/lib/storage';
 import { SavedLinkCard } from './SavedLinkCard';
 
 /**
@@ -28,6 +28,10 @@ function App() {
 
   const handleDelete = useCallback(async (id: string) => {
     await removeSavedLink(id);
+  }, []);
+
+  const handleEdit = useCallback(async (id: string, edits: SavedLinkEdits) => {
+    await updateSavedLink(id, edits);
   }, []);
 
   // The tab title is user-facing text and has to follow the language switch,
@@ -67,7 +71,11 @@ function App() {
             <ul className="mt-6 flex flex-col gap-4">
               {links.map((link) => (
                 <li key={link.id}>
-                  <SavedLinkCard link={link} onDelete={() => handleDelete(link.id)} />
+                  <SavedLinkCard
+                    link={link}
+                    onDelete={() => handleDelete(link.id)}
+                    onEdit={(edits) => handleEdit(link.id, edits)}
+                  />
                 </li>
               ))}
             </ul>
