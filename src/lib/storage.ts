@@ -41,7 +41,8 @@ export const tags = defineList<string>('local:tags');
 /** Custom status labels only — the built-in default is always available. */
 export const customStatuses = defineList<string>('local:customStatuses');
 
-type StoredList<T> = ReturnType<typeof defineList<T>>;
+/** A stored list, exported so callers can `watch()` one without naming its type. */
+export type StoredList<T> = ReturnType<typeof defineList<T>>;
 
 function defineList<T>(key: `local:${string}`) {
   return storage.defineItem<T[]>(key, { fallback: [] });

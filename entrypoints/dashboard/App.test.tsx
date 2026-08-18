@@ -608,3 +608,63 @@ describe('searching and filtering', () => {
     await waitFor(() => expect(announcedCount()).toBe('1 of 3 shown'));
   });
 });
+
+// The filter bar stays mounted while a card below it is being edited, so it
+// has to notice what that edit adds — otherwise a fresh category is only
+// filterable after reloading the page.
+describe('the filters and an open edit form', () => {
+  function filters(): HTMLElement {
+    const heading = screen.getByRole('heading', { name: en['filters.heading'] ?? '' });
+    const section = heading.closest('section');
+    if (section === null) {
+      throw new Error('No filter section found');
+    }
+    return section;
+  }
+
+  async function startEditing(title: string): Promise<void> {
+    fireEvent.click(within(cardOf(title)).getByRole('button', { name: `Edit “${title}”` }));
+    await screen.findByLabelText(en['dashboard.link.title'] ?? '');
+  }
+
+  function enterInForm(label: string, value: string): void {
+    fireEvent.change(within(editForm()).getByLabelText(label), { target: { value } });
+  }
+
+  it('offers a category added on a card without a reload', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    enterInForm('Category', 'new');
+    enterInForm('Category', 'Fabrics');
+    fireEvent.keyDown(within(editForm()).getByLabelText('Category'), { key: 'Enter' });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(await within(filters()).findByRole('option', { name: 'Fabrics' })).toBeTruthy();
+  });
+
+  it('offers a tag added on a card without a reload', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    enterInForm('New tags', 'jersey');
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(await within(filters()).findByLabelText('jersey')).toBeTruthy();
+  });
+
+  it('offers a status added on a card without a reload', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    enterInForm('Status', 'new');
+    enterInForm('Status', 'Ordered');
+    fireEvent.keyDown(within(editForm()).getByLabelText('Status'), { key: 'Enter' });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(await within(filters()).findByRole('option', { name: 'Ordered' })).toBeTruthy();
+  });
+});

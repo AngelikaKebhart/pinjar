@@ -2,7 +2,7 @@ import { useEffect, useId, useState } from 'react';
 import { useTranslation } from '@/src/i18n/context';
 import { isFiltering, NO_FILTER, type LinkFilterCriteria } from '@/src/lib/filter';
 import { DEFAULT_STATUS, statusToKey } from '@/src/lib/saved-link';
-import { getCategories, getCustomStatuses, getTags } from '@/src/lib/storage';
+import { categories, customStatuses, tags, type StoredList } from '@/src/lib/storage';
 
 /**
  * The controls above the list (see docs/concept.md §3.5).
@@ -25,19 +25,9 @@ export function LinkFilters({
   const { t } = useTranslation();
   const fieldId = useId();
 
-  const [categories, setCategories] = useState<string[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
-  const [statuses, setStatuses] = useState<string[]>([]);
-
-  useEffect(() => {
-    void Promise.all([getCategories(), getTags(), getCustomStatuses()]).then(
-      ([storedCategories, storedTags, storedStatuses]) => {
-        setCategories(storedCategories);
-        setTags(storedTags);
-        setStatuses(storedStatuses);
-      },
-    );
-  }, []);
+  const knownCategories = useStoredList(categories);
+  const knownTags = useStoredList(tags);
+  const knownStatuses = useStoredList(customStatuses);
 
   const toggleTag = (tag: string) => {
     onChange({
@@ -87,7 +77,7 @@ export function LinkFilters({
             <option value={ALL}>{t('filters.categoryAll')}</option>
             <option value={NONE}>{t('filters.categoryNone')}</option>
 
-            {categories.map((category) => (
+            {knownCategories.map((category) => (
               <option key={category} value={`${NAMED_PREFIX}${category}`}>
                 {category}
               </option>
@@ -114,7 +104,7 @@ export function LinkFilters({
 
             <option value={statusToKey(DEFAULT_STATUS)}>{t('status.default')}</option>
 
-            {statuses.map((label) => (
+            {knownStatuses.map((label) => (
               <option key={label} value={statusToKey({ kind: 'custom', label })}>
                 {label}
               </option>
@@ -123,12 +113,12 @@ export function LinkFilters({
         </div>
       </div>
 
-      {tags.length > 0 && (
+      {knownTags.length > 0 && (
         <fieldset className="flex flex-col gap-2">
           <legend className="text-sm font-medium">{t('dashboard.link.tags')}</legend>
 
           <ul className="flex max-h-32 flex-wrap gap-2 overflow-y-auto">
-            {tags.map((tag) => (
+            {knownTags.map((tag) => (
               <li key={tag}>
                 <label className="flex cursor-pointer items-center gap-2 rounded-md border border-line px-2 py-1 text-sm break-words hover:bg-surface-hover">
                   <input
@@ -161,6 +151,26 @@ export function LinkFilters({
       )}
     </div>
   );
+}
+
+/**
+ * Reads a stored list and keeps watching it.
+ *
+ * Watching rather than reading once: the filter bar stays mounted while the
+ * user edits a card below it, so a category added there has to reach the
+ * dropdown without a reload. This is the same reason the list of links itself
+ * is watched.
+ */
+function useStoredList(list: StoredList<string>): string[] {
+  const [values, setValues] = useState<string[]>([]);
+
+  useEffect(() => {
+    void list.getValue().then(setValues);
+
+    return list.watch(setValues);
+  }, [list]);
+
+  return values;
 }
 
 /**
