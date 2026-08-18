@@ -3,6 +3,10 @@
   "popup.notImplemented": "Das Speichern von Seiten ist noch nicht umgesetzt. Dieses Popup zeigt später die für die aktuelle Domain gemerkten Links.",
   "popup.openDashboard": "Dashboard öffnen",
 
+  "badge.tooltip.none": "Universal Wishlist — auf dieser Seite ist nichts gemerkt",
+  "badge.tooltip.count_one": "Universal Wishlist — {count} gemerkter Link auf dieser Seite",
+  "badge.tooltip.count_other": "Universal Wishlist — {count} gemerkte Links auf dieser Seite",
+
   "dashboard.documentTitle": "Universal Wishlist — Dashboard",
   "dashboard.title": "Universal Wishlist",
   "dashboard.subtitle": "Alle gemerkten Links, unabhängig vom Shop oder der Webseite, von der sie stammen.",

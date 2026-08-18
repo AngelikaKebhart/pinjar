@@ -3,6 +3,10 @@
   "popup.notImplemented": "Saving pages is not implemented yet. This popup will show the links saved for the current domain.",
   "popup.openDashboard": "Open dashboard",
 
+  "badge.tooltip.none": "Universal Wishlist — nothing saved on this site",
+  "badge.tooltip.count_one": "Universal Wishlist — {count} link saved on this site",
+  "badge.tooltip.count_other": "Universal Wishlist — {count} links saved on this site",
+
   "dashboard.documentTitle": "Universal Wishlist — Dashboard",
   "dashboard.title": "Universal Wishlist",
   "dashboard.subtitle": "All your saved links, independent of the shop or website they came from.",

@@ -16,9 +16,9 @@ can be switched at any time in the Dashboard.
 
 ## Project status
 
-Early development. The toolchain, the bilingual UI and the local storage layer are in place and
-builds work for all three browsers, but the extension does not do anything useful yet: Popup and
-Dashboard are still shells, and saving, badge handling and export/import are yet to be built.
+Early development. The toolchain, the bilingual UI, the local storage layer and the toolbar badge
+are in place and builds work for all three browsers. Popup and Dashboard are still shells, so there
+is no way to save a link from the interface yet; saving and export/import are the next steps.
 
 See [`docs/concept.md`](docs/concept.md) for the full product concept, feature list, and data model
 (written in German).
@@ -173,6 +173,21 @@ needed for the feature set is stored: page URL, title, preview image, your own i
 cookies. Translations are part of the installed bundle — no translation service is ever contacted.
 
 Exported files are plain, unencrypted JSON and may contain personal notes — handle them accordingly.
+
+### Permissions
+
+| Permission  | What it is for                                                                   |
+| ----------- | -------------------------------------------------------------------------------- |
+| `storage`   | keeping your saved links on this device                                          |
+| `activeTab` | reading title and preview image of a page — only when you click save on it       |
+| `scripting` | running that one read-only extraction in the page you are saving                 |
+| `tabs`      | reading the address of open tabs, to count what you saved on the site you are on |
+
+There is **no host permission**, so the extension never gains access to the content of the pages you
+visit. `tabs` is the one that carries a visible cost: browsers present it at install as _"read your
+browsing history"_, because it lets the extension see the addresses of your open tabs. It is what
+makes the badge possible at all — those addresses are compared against your locally saved domains to
+produce a number, and are never stored, logged, or sent anywhere.
 
 ## Contributing
 
