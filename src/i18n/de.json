@@ -24,8 +24,9 @@
   "dashboard.savedLinks.heading": "Gemerkte Links",
   "dashboard.savedLinks.count_one": "{count} gemerkter Link",
   "dashboard.savedLinks.count_other": "{count} gemerkte Links",
+  "dashboard.savedLinks.filtered": "{count} von {total} angezeigt",
+  "dashboard.savedLinks.noMatches": "Kein gemerkter Link passt zu dieser Suche. Versuche weniger Filter oder ein anderes Wort.",
   "dashboard.savedLinks.empty": "Du hast noch nichts gemerkt. Öffne eine Seite, die dir gefällt, und klicke auf das Symbol der Erweiterung in der Symbolleiste.",
-  "dashboard.savedLinks.searchNotImplemented": "Suche und Filter fehlen noch.",
 
   "dashboard.link.title": "Titel",
   "dashboard.link.status": "Status",
@@ -56,6 +57,14 @@
   "deleteLink.confirmLabel": "„{title}“ wirklich löschen",
   "deleteLink.cancel": "Abbrechen",
   "deleteLink.cancelLabel": "„{title}“ behalten",
+
+  "filters.heading": "Suche und Filter",
+  "filters.search": "Suchen",
+  "filters.searchHint": "Durchsucht Titel und Notizen.",
+  "filters.categoryAll": "Alle Kategorien",
+  "filters.categoryNone": "Ohne Kategorie",
+  "filters.statusAll": "Beliebiger Status",
+  "filters.reset": "Filter zurücksetzen",
 
   "settings.heading": "Einstellungen",
   "settings.language.label": "Sprache der Oberfläche",

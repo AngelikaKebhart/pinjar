@@ -23,6 +23,21 @@ async function renderDashboard(): Promise<void> {
   });
 }
 
+/** The count as shown on screen, which updates on every keystroke. */
+function shownCount(): string {
+  return document.querySelector('main p[aria-hidden="true"]')?.textContent ?? '';
+}
+
+/** The count as announced to assistive technology, which lags behind on purpose. */
+function announcedCount(): string {
+  return document.querySelector('[aria-live="polite"]')?.textContent ?? '';
+}
+
+/** The edit form, to tell its fields apart from the filter bar's. */
+function editForm(): HTMLElement {
+  return screen.getByRole('form');
+}
+
 /** Saves a link and returns it, failing loudly if it could not be stored. */
 async function save(draft: Parameters<typeof addSavedLink>[0]) {
   const link = await addSavedLink(draft);
@@ -67,7 +82,7 @@ describe('the list', () => {
 
     await renderDashboard();
 
-    expect(screen.getByText('2 saved links')).toBeTruthy();
+    expect(shownCount()).toBe('2 saved links');
   });
 
   it('shows the newest first', async () => {
@@ -242,7 +257,17 @@ describe('accessibility', () => {
 
     await renderDashboard();
 
-    expect(screen.getByText('1 saved link').getAttribute('aria-live')).toBe('polite');
+    expect(announcedCount()).toBe('1 saved link');
+  });
+
+  // Read out once, not twice: the visible line says the same thing and is
+  // hidden from assistive technology for exactly that reason.
+  it('carries the count in one place only', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+
+    await renderDashboard();
+
+    expect(screen.getAllByText('1 saved link', { ignore: '[aria-hidden="true"]' })).toHaveLength(1);
   });
 
   it('keeps the heading order intact', async () => {
@@ -253,7 +278,8 @@ describe('accessibility', () => {
     const levels = screen
       .getAllByRole('heading')
       .map((heading) => Number(heading.tagName.slice(1)));
-    expect(levels).toEqual([1, 2, 3, 2]);
+    // Title, filters, the list, one card, settings.
+    expect(levels).toEqual([1, 2, 2, 3, 2]);
   });
 
   it('works in German too', async () => {
@@ -262,7 +288,7 @@ describe('accessibility', () => {
 
     await renderDashboard();
 
-    expect(screen.getByText('Kategorie')).toBeTruthy();
+    expect(within(cardOf('Jersey fabric')).getByText('Kategorie')).toBeTruthy();
     expect(screen.getByRole('button', { name: '„Jersey fabric“ löschen' })).toBeTruthy();
   });
 
@@ -294,9 +320,10 @@ describe('editing a link', () => {
    * into the field that takes the dropdown's place, confirm with Enter.
    */
   function addCategory(name: string): void {
-    fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'new' } });
-    fireEvent.change(screen.getByLabelText('Category'), { target: { value: name } });
-    fireEvent.keyDown(screen.getByLabelText('Category'), { key: 'Enter' });
+    const field = () => within(editForm()).getByLabelText('Category');
+    fireEvent.change(field(), { target: { value: 'new' } });
+    fireEvent.change(field(), { target: { value: name } });
+    fireEvent.keyDown(field(), { key: 'Enter' });
   }
 
   it('stores what was changed', async () => {
@@ -305,8 +332,12 @@ describe('editing a link', () => {
 
     await startEditing('Jersey fabric');
     addCategory('Fabrics');
-    fireEvent.change(screen.getByLabelText('New tags'), { target: { value: 'jersey, blue' } });
-    fireEvent.change(screen.getByLabelText('Note'), { target: { value: 'Two metres' } });
+    fireEvent.change(within(editForm()).getByLabelText('New tags'), {
+      target: { value: 'jersey, blue' },
+    });
+    fireEvent.change(within(editForm()).getByLabelText('Note'), {
+      target: { value: 'Two metres' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(async () => {
@@ -335,7 +366,7 @@ describe('editing a link', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => {
-      expect(screen.queryByLabelText('Category')).toBeNull();
+      expect(screen.queryByRole('form')).toBeNull();
     });
   });
 
@@ -366,6 +397,13 @@ describe('editing a link', () => {
 // typed once on one link is offered on the next one, so it cannot end up as
 // two near-identical categories that differ by a typo.
 describe('reusing what was entered before', () => {
+  function addNewCategory(name: string): void {
+    const field = () => within(editForm()).getByLabelText('Category');
+    fireEvent.change(field(), { target: { value: 'new' } });
+    fireEvent.change(field(), { target: { value: name } });
+    fireEvent.keyDown(field(), { key: 'Enter' });
+  }
+
   async function startEditing(title: string): Promise<void> {
     fireEvent.click(within(cardOf(title)).getByRole('button', { name: `Edit “${title}”` }));
     await screen.findByLabelText(en['dashboard.link.title'] ?? '');
@@ -377,14 +415,12 @@ describe('reusing what was entered before', () => {
     await renderDashboard();
 
     await startEditing('First find');
-    fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'new' } });
-    fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'Fabrics' } });
-    fireEvent.keyDown(screen.getByLabelText('Category'), { key: 'Enter' });
+    addNewCategory('Fabrics');
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(screen.queryByRole('form')).toBeNull());
     await startEditing('Second find');
-    fireEvent.change(await screen.findByLabelText('Category'), {
+    fireEvent.change(await within(editForm()).findByLabelText('Category'), {
       target: { value: 'known:Fabrics' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
@@ -403,14 +439,16 @@ describe('reusing what was entered before', () => {
     await renderDashboard();
 
     await startEditing('First find');
-    fireEvent.change(screen.getByLabelText('New tags'), { target: { value: 'jersey' } });
+    fireEvent.change(within(editForm()).getByLabelText('New tags'), {
+      target: { value: 'jersey' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(screen.queryByRole('form')).toBeNull());
     await startEditing('Second find');
 
     // Now a tick box rather than something to type again.
-    fireEvent.click(await screen.findByLabelText('jersey'));
+    fireEvent.click(await within(editForm()).findByLabelText('jersey'));
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(async () => {
@@ -419,5 +457,301 @@ describe('reusing what was entered before', () => {
         { title: 'First find', tags: ['jersey'] },
       ]);
     });
+  });
+});
+
+describe('searching and filtering', () => {
+  /** The filter bar, to tell its controls apart from an open edit form. */
+  function filters(): HTMLElement {
+    const heading = screen.getByRole('heading', { name: en['filters.heading'] ?? '' });
+    const section = heading.closest('section');
+    if (section === null) {
+      throw new Error('No filter section found');
+    }
+    return section;
+  }
+
+  function search(text: string): void {
+    fireEvent.change(within(filters()).getByLabelText('Search'), { target: { value: text } });
+  }
+
+  function listedTitles(): string[] {
+    return screen.getAllByRole('link').map((link) => link.textContent ?? '');
+  }
+
+  async function givenLinks(): Promise<void> {
+    await save({
+      url: 'https://shop.example/jersey',
+      title: 'Blue jersey',
+      category: 'Fabrics',
+      tags: ['jersey', 'blue'],
+      note: 'Two metres',
+    });
+    await save({
+      url: 'https://shop.example/poplin',
+      title: 'Cotton poplin',
+      category: 'Fabrics',
+      tags: ['cotton'],
+      status: { kind: 'custom', label: 'Bought' },
+    });
+    await save({ url: 'https://shop.example/pattern', title: 'Sewing pattern' });
+    await renderDashboard();
+  }
+
+  it('narrows the list down to what matches the text', async () => {
+    await givenLinks();
+
+    search('poplin');
+
+    expect(listedTitles()).toEqual(['Cotton poplin']);
+  });
+
+  it('filters by category', async () => {
+    await givenLinks();
+
+    fireEvent.change(await within(filters()).findByLabelText('Category'), {
+      target: { value: 'named:Fabrics' },
+    });
+
+    expect(listedTitles()).toEqual(['Cotton poplin', 'Blue jersey']);
+  });
+
+  it('can single out the links without a category', async () => {
+    await givenLinks();
+
+    fireEvent.change(within(filters()).getByLabelText('Category'), { target: { value: 'none' } });
+
+    expect(listedTitles()).toEqual(['Sewing pattern']);
+  });
+
+  it('filters by status', async () => {
+    await givenLinks();
+
+    fireEvent.change(await within(filters()).findByLabelText('Status'), {
+      target: { value: 'custom:Bought' },
+    });
+
+    expect(listedTitles()).toEqual(['Cotton poplin']);
+  });
+
+  it('filters by tag', async () => {
+    await givenLinks();
+
+    fireEvent.click(await within(filters()).findByLabelText('jersey'));
+
+    expect(listedTitles()).toEqual(['Blue jersey']);
+  });
+
+  it('combines a filter with the search', async () => {
+    await givenLinks();
+
+    fireEvent.change(await within(filters()).findByLabelText('Category'), {
+      target: { value: 'named:Fabrics' },
+    });
+    search('poplin');
+
+    expect(listedTitles()).toEqual(['Cotton poplin']);
+  });
+
+  it('says how many of how many are left', async () => {
+    await givenLinks();
+
+    search('jersey');
+
+    expect(shownCount()).toBe('1 of 3 shown');
+  });
+
+  // "Nothing saved yet" would be wrong and unhelpful here.
+  it('explains an empty result differently from an empty list', async () => {
+    await givenLinks();
+
+    search('velvet');
+
+    expect(screen.getByText(en['dashboard.savedLinks.noMatches'] ?? '')).toBeTruthy();
+  });
+
+  it('brings everything back when the filters are reset', async () => {
+    await givenLinks();
+    search('poplin');
+
+    fireEvent.click(within(filters()).getByRole('button', { name: 'Reset filters' }));
+
+    expect(listedTitles()).toHaveLength(3);
+  });
+
+  // A button that does nothing is one the user has to think about every time.
+  it('offers no reset while nothing is filtered', async () => {
+    await givenLinks();
+
+    expect(within(filters()).queryByRole('button', { name: 'Reset filters' })).toBeNull();
+  });
+
+  // A category the user calls "all" or "none" must not be read as one of the
+  // collective entries.
+  it.each(['all', 'none'])('keeps a category named "%s" usable as a filter', async (name) => {
+    await save({ url: 'https://shop.example/odd', title: 'Odd one', category: name });
+    await save({ url: 'https://shop.example/other', title: 'Other one' });
+    await renderDashboard();
+
+    fireEvent.change(await within(filters()).findByLabelText('Category'), {
+      target: { value: `named:${name}` },
+    });
+
+    expect(listedTitles()).toEqual(['Odd one']);
+  });
+
+  it('announces the result of a search once the typing stops', async () => {
+    await givenLinks();
+
+    search('jersey');
+
+    await waitFor(() => expect(announcedCount()).toBe('1 of 3 shown'));
+  });
+});
+
+// The filter bar stays mounted while a card below it is being edited, so it
+// has to notice what that edit adds — otherwise a fresh category is only
+// filterable after reloading the page.
+describe('the filters and an open edit form', () => {
+  function filters(): HTMLElement {
+    const heading = screen.getByRole('heading', { name: en['filters.heading'] ?? '' });
+    const section = heading.closest('section');
+    if (section === null) {
+      throw new Error('No filter section found');
+    }
+    return section;
+  }
+
+  async function startEditing(title: string): Promise<void> {
+    fireEvent.click(within(cardOf(title)).getByRole('button', { name: `Edit “${title}”` }));
+    await screen.findByLabelText(en['dashboard.link.title'] ?? '');
+  }
+
+  function enterInForm(label: string, value: string): void {
+    fireEvent.change(within(editForm()).getByLabelText(label), { target: { value } });
+  }
+
+  it('offers a category added on a card without a reload', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    enterInForm('Category', 'new');
+    enterInForm('Category', 'Fabrics');
+    fireEvent.keyDown(within(editForm()).getByLabelText('Category'), { key: 'Enter' });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(await within(filters()).findByRole('option', { name: 'Fabrics' })).toBeTruthy();
+  });
+
+  it('offers a tag added on a card without a reload', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    enterInForm('New tags', 'jersey');
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(await within(filters()).findByLabelText('jersey')).toBeTruthy();
+  });
+
+  it('offers a status added on a card without a reload', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    enterInForm('Status', 'new');
+    enterInForm('Status', 'Ordered');
+    fireEvent.keyDown(within(editForm()).getByLabelText('Status'), { key: 'Enter' });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(await within(filters()).findByRole('option', { name: 'Ordered' })).toBeTruthy();
+  });
+});
+
+// Every option on offer leads somewhere: each filter lists what the others
+// leave, so nothing can be picked that is bound to come back empty.
+describe('the filters narrowing each other', () => {
+  function filters(): HTMLElement {
+    const heading = screen.getByRole('heading', { name: en['filters.heading'] ?? '' });
+    const section = heading.closest('section');
+    if (section === null) {
+      throw new Error('No filter section found');
+    }
+    return section;
+  }
+
+  function chooseCategory(value: string): void {
+    fireEvent.change(within(filters()).getByLabelText('Category'), { target: { value } });
+  }
+
+  function offeredTags(): string[] {
+    return within(filters())
+      .queryAllByRole('checkbox')
+      .map((box) => box.closest('label')?.textContent ?? '');
+  }
+
+  async function givenLinks(): Promise<void> {
+    await save({
+      url: 'https://shop.example/jersey',
+      title: 'Blue jersey',
+      category: 'Fabrics',
+      tags: ['jersey', 'blue'],
+    });
+    await save({
+      url: 'https://shop.example/pattern',
+      title: 'Dress pattern',
+      category: 'Patterns',
+      tags: ['dress'],
+      status: { kind: 'custom', label: 'Bought' },
+    });
+    await renderDashboard();
+    await within(filters()).findByLabelText('jersey');
+  }
+
+  it('offers only the tags used in the chosen category', async () => {
+    await givenLinks();
+
+    chooseCategory('named:Patterns');
+
+    await waitFor(() => expect(offeredTags()).toEqual(['dress']));
+  });
+
+  it('offers only the statuses left by the chosen category', async () => {
+    await givenLinks();
+
+    chooseCategory('named:Fabrics');
+
+    await waitFor(() => {
+      expect(within(filters()).queryByRole('option', { name: 'Bought' })).toBeNull();
+    });
+  });
+
+  // Otherwise the dropdown would collapse to the value already picked and
+  // there would be no way to switch to another category.
+  it('keeps offering the other categories', async () => {
+    await givenLinks();
+
+    chooseCategory('named:Fabrics');
+
+    expect(within(filters()).getByRole('option', { name: 'Patterns' })).toBeTruthy();
+  });
+
+  it('brings the hidden tags back when the category filter is dropped', async () => {
+    await givenLinks();
+    chooseCategory('named:Patterns');
+    await waitFor(() => expect(offeredTags()).toEqual(['dress']));
+
+    chooseCategory('all');
+
+    await waitFor(() => expect(offeredTags()).toEqual(['blue', 'dress', 'jersey']));
+  });
+
+  // Sorted by name rather than by whichever link was saved last, so a tag
+  // keeps its place while the list is being narrowed.
+  it('sorts the tags by name', async () => {
+    await givenLinks();
+
+    expect(offeredTags()).toEqual(['blue', 'dress', 'jersey']);
   });
 });
