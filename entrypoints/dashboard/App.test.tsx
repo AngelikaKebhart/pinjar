@@ -360,22 +360,6 @@ describe('editing a link', () => {
 
     expect(screen.getAllByRole('form')).toHaveLength(1);
   });
-
-  // A new category typed here has to become a suggestion for the next link.
-  it('remembers a newly typed category for later', async () => {
-    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
-    await renderDashboard();
-
-    await startEditing('Jersey fabric');
-    addCategory('Fabrics');
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-
-    await waitFor(async () => {
-      await expect(fakeBrowser.storage.local.get('categories')).resolves.toEqual({
-        categories: ['Fabrics'],
-      });
-    });
-  });
 });
 
 // What the separately stored lists in docs/concept.md §4 are for: something

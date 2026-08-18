@@ -48,7 +48,6 @@
   "editLink.statusNew": "Add a new status…",
   "editLink.save": "Save",
   "editLink.cancel": "Cancel",
-  "editLink.saved": "Changes saved.",
 
   "deleteLink.action": "Delete",
   "deleteLink.actionLabel": "Delete “{title}”",
