@@ -21,7 +21,7 @@ export function SavedLinkCard({
   const { t, formatDate } = useTranslation();
 
   return (
-    <article className="flex gap-4 rounded-lg border border-slate-300 p-4">
+    <article className="flex gap-4 rounded-lg border border-line bg-surface p-4">
       <PreviewImage link={link} />
 
       <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -31,13 +31,13 @@ export function SavedLinkCard({
             href={link.url}
             target="_blank"
             rel="noreferrer"
-            className="break-words text-blue-800 underline hover:text-blue-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+            className="break-words text-link underline hover:text-link-strong"
           >
             {link.title}
           </a>
         </h3>
 
-        <p className="text-sm text-slate-700">
+        <p className="text-sm text-ink-muted">
           {link.domain} · {formatDate(link.createdAt)}
         </p>
 
@@ -48,25 +48,25 @@ export function SavedLinkCard({
           labels from squeezing the values.
         */}
         <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-          <dt className="text-slate-700">{t('dashboard.link.status')}</dt>
+          <dt className="text-ink-muted">{t('dashboard.link.status')}</dt>
           <dd>
             <StatusLabel status={link.status} />
           </dd>
 
           {link.category !== null && (
             <>
-              <dt className="text-slate-700">{t('dashboard.link.category')}</dt>
+              <dt className="text-ink-muted">{t('dashboard.link.category')}</dt>
               <dd className="break-words">{link.category}</dd>
             </>
           )}
 
           {link.tags.length > 0 && (
             <>
-              <dt className="text-slate-700">{t('dashboard.link.tags')}</dt>
+              <dt className="text-ink-muted">{t('dashboard.link.tags')}</dt>
               <dd>
                 <ul className="flex flex-wrap gap-1">
                   {link.tags.map((tag) => (
-                    <li key={tag} className="rounded bg-slate-100 px-2 py-0.5 break-words">
+                    <li key={tag} className="rounded bg-chip px-2 py-0.5 break-words">
                       {tag}
                     </li>
                   ))}
@@ -77,7 +77,7 @@ export function SavedLinkCard({
 
           {link.note !== '' && (
             <>
-              <dt className="text-slate-700">{t('dashboard.link.note')}</dt>
+              <dt className="text-ink-muted">{t('dashboard.link.note')}</dt>
               <dd className="break-words whitespace-pre-line">{link.note}</dd>
             </>
           )}
@@ -118,7 +118,7 @@ function PreviewImage({ link }: { link: SavedLink }) {
       referrerPolicy="no-referrer"
       loading="lazy"
       onError={() => setHasFailed(true)}
-      className="size-24 shrink-0 rounded-md border border-slate-200 object-cover"
+      className="size-24 shrink-0 rounded-md border border-line object-cover"
     />
   );
 }

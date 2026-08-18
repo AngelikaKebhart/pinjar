@@ -72,7 +72,7 @@ function App() {
           type="button"
           onClick={() => void handleSave()}
           disabled={!canSave || isSaving}
-          className="rounded-md bg-blue-700 px-3 py-2 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 disabled:bg-slate-400"
+          className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-on-accent hover:bg-accent-strong disabled:bg-disabled disabled:text-on-disabled"
         >
           {isSaving ? t('popup.saving') : t('popup.savePage')}
         </button>
@@ -82,7 +82,7 @@ function App() {
           the message stays until the next action instead of disappearing on a
           timer the user cannot outrun (WCAG 2.2 AA).
         */}
-        <p aria-live="polite" className="min-h-5 text-sm text-slate-700">
+        <p aria-live="polite" className="min-h-5 text-sm text-ink-muted">
           {statusKey === null ? '' : t(statusKey)}
         </p>
       </div>
@@ -93,7 +93,7 @@ function App() {
         </h2>
 
         {links.length === 0 ? (
-          <p className="text-sm text-slate-700">{t('popup.savedLinks.empty')}</p>
+          <p className="text-sm text-ink-muted">{t('popup.savedLinks.empty')}</p>
         ) : (
           <ul className="flex flex-col gap-1">
             {links.map((link) => (
@@ -107,7 +107,7 @@ function App() {
                   href={link.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="min-w-0 flex-1 break-words rounded-sm py-1 text-sm text-blue-800 underline hover:text-blue-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                  className="min-w-0 flex-1 break-words rounded-sm py-1 text-sm text-link underline hover:text-link-strong"
                 >
                   {link.title}
                 </a>
@@ -124,7 +124,7 @@ function App() {
         onClick={() => {
           void browser.tabs.create({ url: browser.runtime.getURL('/dashboard.html') });
         }}
-        className="rounded-md border border-slate-500 px-3 py-2 text-sm font-medium hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+        className="rounded-md border border-line-strong px-3 py-2 text-sm font-medium hover:bg-surface-hover"
       >
         {t('popup.openDashboard')}
       </button>

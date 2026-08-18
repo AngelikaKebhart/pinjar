@@ -1,15 +1,119 @@
 @import 'tailwindcss';
 
+/*
+ * Semantic color tokens.
+ *
+ * Components name the *role* a color plays ("bg-surface", "text-ink-muted"),
+ * never the color itself. That is what lets the dark palette below swap every
+ * value in one place instead of every component carrying a "dark:" twin — and
+ * it keeps the number of color pairs that need a contrast proof small enough
+ * to actually verify. src/styles/theme.test.ts does verify them.
+ *
+ * Adding a token means adding it to both palettes and to that test.
+ */
+@theme {
+  /* Page background, and the panels sitting on it. */
+  --color-canvas: #f8fafc;
+  --color-surface: #ffffff;
+  /* What a surface turns into while the pointer rests on it. */
+  --color-surface-hover: #f1f5f9;
+
+  /* Text. "ink" carries content, "ink-muted" carries secondary information. */
+  --color-ink: #0f172a;
+  --color-ink-muted: #475569;
+
+  /* Borders. "line" is decorative, "line-strong" outlines a control the user
+     has to be able to find, which is why only that one needs 3:1. */
+  --color-line: #cbd5e1;
+  --color-line-strong: #64748b;
+
+  /* The primary action. */
+  --color-accent: #1d4ed8;
+  --color-accent-strong: #1e3a8a;
+  --color-on-accent: #ffffff;
+
+  /* Links inside text. */
+  --color-link: #1e40af;
+  --color-link-strong: #1e3a8a;
+
+  /* Destructive actions. */
+  --color-danger: #991b1b;
+  --color-danger-strong: #7f1d1d;
+  --color-on-danger: #ffffff;
+
+  /* Chips: tags are quiet, a status stands out a little more. */
+  --color-chip: #f1f5f9;
+  --color-chip-strong: #e2e8f0;
+
+  /* A control that cannot be used right now. */
+  --color-disabled: #64748b;
+  --color-on-disabled: #ffffff;
+
+  /* The focus ring, applied globally below. */
+  --color-focus: #1d4ed8;
+}
+
+/*
+ * The dark palette. Same roles, different values — no component changes.
+ *
+ * Not a mechanical inversion: pure black backgrounds and pure white text read
+ * as harsh, so the darkest surface is a deep blue-grey and the brightest text
+ * stops short of white.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-canvas: #0f172a;
+    --color-surface: #1e293b;
+    --color-surface-hover: #334155;
+
+    --color-ink: #e2e8f0;
+    --color-ink-muted: #94a3b8;
+
+    --color-line: #334155;
+    --color-line-strong: #94a3b8;
+
+    --color-accent: #2563eb;
+    --color-accent-strong: #1d4ed8;
+    --color-on-accent: #ffffff;
+
+    --color-link: #93c5fd;
+    --color-link-strong: #bfdbfe;
+
+    --color-danger: #dc2626;
+    --color-danger-strong: #b91c1c;
+    --color-on-danger: #ffffff;
+
+    --color-chip: #334155;
+    --color-chip-strong: #475569;
+
+    --color-disabled: #475569;
+    --color-on-disabled: #e2e8f0;
+
+    --color-focus: #93c5fd;
+  }
+}
+
 @layer base {
+  /*
+   * Tells the browser which palette is active, so that everything it draws
+   * itself — the <select> drop-down, scrollbars, text selection — follows
+   * along. Without this the language switcher stays a white box in an
+   * otherwise dark dashboard.
+   */
+  :root {
+    color-scheme: light dark;
+  }
+
   body {
-    @apply bg-white text-slate-900;
+    @apply bg-canvas text-ink;
   }
 
   /*
    * A visible focus indicator is a hard requirement (WCAG 2.2 AA, 2.4.7).
-   * Keyboard users must always be able to see where they are.
+   * Keyboard users must always be able to see where they are. Declared once
+   * here rather than per component, so no element can forget it.
    */
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-blue-700;
+    @apply outline-2 outline-offset-2 outline-focus;
   }
 }

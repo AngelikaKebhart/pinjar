@@ -1,0 +1,142 @@
+import { readFileSync } from 'node:fs';
+import { describe, expect, it } from 'vitest';
+
+/**
+ * Proves that every color pair the interface actually renders meets WCAG 2.2
+ * AA — in both palettes.
+ *
+ * This exists because contrast is the expensive half of any redesign: picking
+ * colors is quick, re-verifying every combination by hand is not, and skipping
+ * it is invisible until someone cannot read the interface. Changing a value in
+ * assets/tailwind.css now either passes here or fails loudly.
+ */
+
+const STYLESHEET = readFileSync(new URL('../../assets/tailwind.css', import.meta.url), 'utf8');
+
+/** Text and images of text (WCAG 1.4.3). */
+const TEXT_MINIMUM = 4.5;
+/** Controls, their boundaries, and the focus ring (WCAG 1.4.11). */
+const UI_MINIMUM = 3;
+
+/** Every pairing that occurs in the components, as foreground on background. */
+const TEXT_PAIRS = [
+  ['ink', 'canvas'],
+  ['ink', 'surface'],
+  ['ink', 'surface-hover'],
+  ['ink', 'chip'],
+  ['ink', 'chip-strong'],
+  ['ink-muted', 'canvas'],
+  ['ink-muted', 'surface'],
+  ['link', 'canvas'],
+  ['link', 'surface'],
+  ['link-strong', 'canvas'],
+  ['link-strong', 'surface'],
+  ['on-accent', 'accent'],
+  ['on-accent', 'accent-strong'],
+  ['on-danger', 'danger'],
+  ['on-danger', 'danger-strong'],
+  ['on-disabled', 'disabled'],
+] as const;
+
+const UI_PAIRS = [
+  ['line-strong', 'canvas'],
+  ['line-strong', 'surface'],
+  ['focus', 'canvas'],
+  ['focus', 'surface'],
+] as const;
+
+/**
+ * Reads the token values of one palette.
+ *
+ * The light palette is the `@theme` block; the dark one is the
+ * `prefers-color-scheme` block, which only restates the tokens it changes —
+ * so it is layered on top of light rather than read on its own.
+ */
+function palette(mode: 'light' | 'dark'): Record<string, string> {
+  const light = tokensIn(blockAfter('@theme'));
+  return mode === 'light'
+    ? light
+    : { ...light, ...tokensIn(blockAfter('@media (prefers-color-scheme: dark)')) };
+}
+
+function blockAfter(marker: string): string {
+  const start = STYLESHEET.indexOf(marker);
+  expect(start, `${marker} is missing from the stylesheet`).toBeGreaterThan(-1);
+
+  return STYLESHEET.slice(start, STYLESHEET.indexOf('\n}', start));
+}
+
+function tokensIn(block: string): Record<string, string> {
+  const tokens: Record<string, string> = {};
+
+  for (const match of block.matchAll(/--color-([\w-]+):\s*(#[0-9a-f]{6});/gi)) {
+    const [, name, value] = match;
+    if (name !== undefined && value !== undefined) {
+      tokens[name] = value;
+    }
+  }
+
+  return tokens;
+}
+
+/** WCAG 2.2 relative luminance. */
+function luminance(hex: string): number {
+  const channels = [1, 3, 5].map((offset) => {
+    const value = Number.parseInt(hex.slice(offset, offset + 2), 16) / 255;
+    return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  }) as [number, number, number];
+
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+
+function contrastRatio(foreground: string, background: string): number {
+  const lighter = Math.max(luminance(foreground), luminance(background));
+  const darker = Math.min(luminance(foreground), luminance(background));
+
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+describe.each(['light', 'dark'] as const)('the %s palette', (mode) => {
+  const tokens = palette(mode);
+
+  it('defines every token the components use', () => {
+    const used = [...TEXT_PAIRS, ...UI_PAIRS].flat();
+
+    expect(Object.keys(tokens)).toEqual(expect.arrayContaining(used));
+  });
+
+  it.each(TEXT_PAIRS)('reads %s on %s', (foreground, background) => {
+    const ratio = contrastRatio(tokens[foreground] ?? '', tokens[background] ?? '');
+
+    expect(ratio).toBeGreaterThanOrEqual(TEXT_MINIMUM);
+  });
+
+  it.each(UI_PAIRS)('makes out %s against %s', (foreground, background) => {
+    const ratio = contrastRatio(tokens[foreground] ?? '', tokens[background] ?? '');
+
+    expect(ratio).toBeGreaterThanOrEqual(UI_MINIMUM);
+  });
+});
+
+// A component reaching for a raw palette color is how one half of the
+// interface ends up ignoring the dark palette.
+describe('the components', () => {
+  it('name color roles rather than colors', () => {
+    const files = [
+      'entrypoints/popup/App.tsx',
+      'entrypoints/dashboard/App.tsx',
+      'entrypoints/dashboard/SavedLinkCard.tsx',
+      'src/components/DeleteLinkButton.tsx',
+      'src/components/LanguageSwitcher.tsx',
+      'src/components/StatusLabel.tsx',
+    ];
+
+    const offenders = files.filter((file) =>
+      /(?:text|bg|border|outline|ring|fill)-(?:slate|gray|zinc|blue|red|green|amber)-\d{2,3}/.test(
+        readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8'),
+      ),
+    );
+
+    expect(offenders).toEqual([]);
+  });
+});
