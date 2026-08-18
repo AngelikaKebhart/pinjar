@@ -668,3 +668,90 @@ describe('the filters and an open edit form', () => {
     expect(await within(filters()).findByRole('option', { name: 'Ordered' })).toBeTruthy();
   });
 });
+
+// Every option on offer leads somewhere: each filter lists what the others
+// leave, so nothing can be picked that is bound to come back empty.
+describe('the filters narrowing each other', () => {
+  function filters(): HTMLElement {
+    const heading = screen.getByRole('heading', { name: en['filters.heading'] ?? '' });
+    const section = heading.closest('section');
+    if (section === null) {
+      throw new Error('No filter section found');
+    }
+    return section;
+  }
+
+  function chooseCategory(value: string): void {
+    fireEvent.change(within(filters()).getByLabelText('Category'), { target: { value } });
+  }
+
+  function offeredTags(): string[] {
+    return within(filters())
+      .queryAllByRole('checkbox')
+      .map((box) => box.closest('label')?.textContent ?? '');
+  }
+
+  async function givenLinks(): Promise<void> {
+    await save({
+      url: 'https://shop.example/jersey',
+      title: 'Blue jersey',
+      category: 'Fabrics',
+      tags: ['jersey', 'blue'],
+    });
+    await save({
+      url: 'https://shop.example/pattern',
+      title: 'Dress pattern',
+      category: 'Patterns',
+      tags: ['dress'],
+      status: { kind: 'custom', label: 'Bought' },
+    });
+    await renderDashboard();
+    await within(filters()).findByLabelText('jersey');
+  }
+
+  it('offers only the tags used in the chosen category', async () => {
+    await givenLinks();
+
+    chooseCategory('named:Patterns');
+
+    await waitFor(() => expect(offeredTags()).toEqual(['dress']));
+  });
+
+  it('offers only the statuses left by the chosen category', async () => {
+    await givenLinks();
+
+    chooseCategory('named:Fabrics');
+
+    await waitFor(() => {
+      expect(within(filters()).queryByRole('option', { name: 'Bought' })).toBeNull();
+    });
+  });
+
+  // Otherwise the dropdown would collapse to the value already picked and
+  // there would be no way to switch to another category.
+  it('keeps offering the other categories', async () => {
+    await givenLinks();
+
+    chooseCategory('named:Fabrics');
+
+    expect(within(filters()).getByRole('option', { name: 'Patterns' })).toBeTruthy();
+  });
+
+  it('brings the hidden tags back when the category filter is dropped', async () => {
+    await givenLinks();
+    chooseCategory('named:Patterns');
+    await waitFor(() => expect(offeredTags()).toEqual(['dress']));
+
+    chooseCategory('all');
+
+    await waitFor(() => expect(offeredTags()).toEqual(['blue', 'dress', 'jersey']));
+  });
+
+  // Sorted by name rather than by whichever link was saved last, so a tag
+  // keeps its place while the list is being narrowed.
+  it('sorts the tags by name', async () => {
+    await givenLinks();
+
+    expect(offeredTags()).toEqual(['blue', 'dress', 'jersey']);
+  });
+});

@@ -42,6 +42,21 @@ export function statusToKey(status: LinkStatus): string {
   return status.kind === 'builtin' ? `builtin:${status.key}` : `custom:${status.label}`;
 }
 
+/**
+ * The status a key stands for.
+ *
+ * Anything unrecognized becomes the built-in status rather than an error: the
+ * only source of keys is `statusToKey`, and a status filter that throws would
+ * take the dashboard down over a value that is merely stale.
+ */
+export function keyToStatus(key: string): LinkStatus {
+  return key.startsWith(CUSTOM_KEY_PREFIX)
+    ? { kind: 'custom', label: key.slice(CUSTOM_KEY_PREFIX.length) }
+    : DEFAULT_STATUS;
+}
+
+const CUSTOM_KEY_PREFIX = 'custom:';
+
 export interface SavedLink {
   id: string;
   url: string;

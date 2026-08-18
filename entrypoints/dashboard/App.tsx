@@ -97,7 +97,7 @@ function App() {
         <h2 id={filtersHeadingId} className="mb-3 text-lg font-medium">
           {t('filters.heading')}
         </h2>
-        <LinkFilters criteria={criteria} onChange={setCriteria} />
+        <LinkFilters links={links ?? []} criteria={criteria} onChange={setCriteria} />
       </section>
 
       <main className="mt-8" aria-labelledby={savedLinksHeadingId}>

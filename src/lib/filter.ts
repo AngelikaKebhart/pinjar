@@ -1,4 +1,4 @@
-import { statusToKey, type SavedLink } from './saved-link';
+import { keyToStatus, statusToKey, type LinkStatus, type SavedLink } from './saved-link';
 
 /**
  * Narrowing the dashboard list down (see docs/concept.md §3.5).
@@ -93,4 +93,63 @@ function matchesTags(link: SavedLink, tags: string[]): boolean {
 
 function matchesStatus(link: SavedLink, status: string | null): boolean {
   return status === null || statusToKey(link.status) === status;
+}
+
+/**
+ * What each filter is worth offering (see docs/concept.md §3.5).
+ *
+ * A filter offers the values that the *other* filters leave. Picking the
+ * category "Fabrics" therefore narrows the tag list down to the tags actually
+ * used in it, instead of listing tags that could only ever produce an empty
+ * result.
+ *
+ * Each filter is left out of its own calculation. A single-choice filter would
+ * otherwise collapse to the one value already picked, and the tag list would
+ * lose every tag as soon as one was ticked.
+ *
+ * Whatever is currently picked stays offered even when nothing carries it any
+ * more — a dropdown whose value is missing from its own options renders blank,
+ * and a ticked box that disappeared could never be unticked.
+ */
+
+export interface AvailableCategories {
+  names: string[];
+  /** Whether offering "without a category" would find anything. */
+  uncategorised: boolean;
+}
+
+export function availableCategories(
+  links: SavedLink[],
+  criteria: LinkFilterCriteria,
+): AvailableCategories {
+  const relevant = filterSavedLinks(links, { ...criteria, category: null });
+  const names = relevant
+    .map((link) => link.category)
+    .filter((category): category is string => category !== null);
+
+  return {
+    names: [...new Set(criteria.category ? [...names, criteria.category] : names)],
+    uncategorised: relevant.some((link) => link.category === null) || criteria.category === '',
+  };
+}
+
+export function availableTags(links: SavedLink[], criteria: LinkFilterCriteria): string[] {
+  const relevant = filterSavedLinks(links, { ...criteria, tags: [] });
+
+  return [...new Set([...relevant.flatMap((link) => link.tags), ...criteria.tags])];
+}
+
+export function availableStatuses(links: SavedLink[], criteria: LinkFilterCriteria): LinkStatus[] {
+  const relevant = filterSavedLinks(links, { ...criteria, status: null });
+  const byKey = new Map<string, LinkStatus>();
+
+  for (const link of relevant) {
+    byKey.set(statusToKey(link.status), link.status);
+  }
+
+  if (criteria.status !== null && !byKey.has(criteria.status)) {
+    byKey.set(criteria.status, keyToStatus(criteria.status));
+  }
+
+  return [...byKey.values()];
 }

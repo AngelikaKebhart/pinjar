@@ -1,8 +1,14 @@
-import { useEffect, useId, useState } from 'react';
+import { useId, useMemo } from 'react';
 import { useTranslation } from '@/src/i18n/context';
-import { isFiltering, NO_FILTER, type LinkFilterCriteria } from '@/src/lib/filter';
-import { DEFAULT_STATUS, statusToKey } from '@/src/lib/saved-link';
-import { categories, customStatuses, tags, type StoredList } from '@/src/lib/storage';
+import {
+  availableCategories,
+  availableStatuses,
+  availableTags,
+  isFiltering,
+  NO_FILTER,
+  type LinkFilterCriteria,
+} from '@/src/lib/filter';
+import { statusToKey, type SavedLink } from '@/src/lib/saved-link';
 
 /**
  * The controls above the list (see docs/concept.md §3.5).
@@ -11,23 +17,40 @@ import { categories, customStatuses, tags, type StoredList } from '@/src/lib/sto
  * width without a second layout, and it does not commit the dashboard to a
  * two-column shape before the design pass has had a say.
  *
- * The choices offered are the values actually in use, read from the same
- * stored lists the edit form fills. Offering a category nothing carries would
- * only ever produce an empty list.
+ * The choices are derived from the saved links rather than from the stored
+ * lists of values ever used, and each one accounts for the other filters. So
+ * picking a category narrows the tags to those actually used in it, and no
+ * option on offer can lead to an empty result.
  */
 export function LinkFilters({
+  links,
   criteria,
   onChange,
 }: {
+  /** Every saved link, unfiltered — the options are derived from these. */
+  links: SavedLink[];
   criteria: LinkFilterCriteria;
   onChange: (criteria: LinkFilterCriteria) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const fieldId = useId();
 
-  const knownCategories = useStoredList(categories);
-  const knownTags = useStoredList(tags);
-  const knownStatuses = useStoredList(customStatuses);
+  // Sorted by name, so a value keeps its place instead of moving around with
+  // whichever link was saved last. Sorting is language-aware because German
+  // umlauts do not sort where their code points would put them.
+  const byName = useMemo(() => (a: string, b: string) => a.localeCompare(b, language), [language]);
+
+  const offeredCategories = useMemo(() => {
+    const { names, uncategorised } = availableCategories(links, criteria);
+    return { names: [...names].sort(byName), uncategorised };
+  }, [links, criteria, byName]);
+
+  const offeredTags = useMemo(
+    () => [...availableTags(links, criteria)].sort(byName),
+    [links, criteria, byName],
+  );
+
+  const offeredStatuses = useMemo(() => availableStatuses(links, criteria), [links, criteria]);
 
   const toggleTag = (tag: string) => {
     onChange({
@@ -75,9 +98,11 @@ export function LinkFilters({
             className={CONTROL_CLASSES}
           >
             <option value={ALL}>{t('filters.categoryAll')}</option>
-            <option value={NONE}>{t('filters.categoryNone')}</option>
+            {offeredCategories.uncategorised && (
+              <option value={NONE}>{t('filters.categoryNone')}</option>
+            )}
 
-            {knownCategories.map((category) => (
+            {offeredCategories.names.map((category) => (
               <option key={category} value={`${NAMED_PREFIX}${category}`}>
                 {category}
               </option>
@@ -102,23 +127,22 @@ export function LinkFilters({
           >
             <option value={ALL}>{t('filters.statusAll')}</option>
 
-            <option value={statusToKey(DEFAULT_STATUS)}>{t('status.default')}</option>
-
-            {knownStatuses.map((label) => (
-              <option key={label} value={statusToKey({ kind: 'custom', label })}>
-                {label}
+            {/* The built-in status is the only translated one (§4). */}
+            {offeredStatuses.map((status) => (
+              <option key={statusToKey(status)} value={statusToKey(status)}>
+                {status.kind === 'builtin' ? t(`status.${status.key}`) : status.label}
               </option>
             ))}
           </select>
         </div>
       </div>
 
-      {knownTags.length > 0 && (
+      {offeredTags.length > 0 && (
         <fieldset className="flex flex-col gap-2">
           <legend className="text-sm font-medium">{t('dashboard.link.tags')}</legend>
 
           <ul className="flex max-h-32 flex-wrap gap-2 overflow-y-auto">
-            {knownTags.map((tag) => (
+            {offeredTags.map((tag) => (
               <li key={tag}>
                 <label className="flex cursor-pointer items-center gap-2 rounded-md border border-line px-2 py-1 text-sm break-words hover:bg-surface-hover">
                   <input
@@ -151,26 +175,6 @@ export function LinkFilters({
       )}
     </div>
   );
-}
-
-/**
- * Reads a stored list and keeps watching it.
- *
- * Watching rather than reading once: the filter bar stays mounted while the
- * user edits a card below it, so a category added there has to reach the
- * dropdown without a reload. This is the same reason the list of links itself
- * is watched.
- */
-function useStoredList(list: StoredList<string>): string[] {
-  const [values, setValues] = useState<string[]>([]);
-
-  useEffect(() => {
-    void list.getValue().then(setValues);
-
-    return list.watch(setValues);
-  }, [list]);
-
-  return values;
 }
 
 /**

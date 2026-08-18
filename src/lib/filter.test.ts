@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { NO_FILTER, filterSavedLinks, isFiltering, type LinkFilterCriteria } from './filter';
+import {
+  availableCategories,
+  availableStatuses,
+  availableTags,
+  filterSavedLinks,
+  isFiltering,
+  NO_FILTER,
+  type LinkFilterCriteria,
+} from './filter';
 import { DEFAULT_STATUS, type LinkStatus, type SavedLink } from './saved-link';
 
 let nextId = 0;
@@ -204,5 +212,109 @@ describe('combining filters', () => {
     filterSavedLinks(links, { ...NO_FILTER, search: 'jersey' });
 
     expect(links).toEqual(original);
+  });
+});
+
+describe('what each filter is worth offering', () => {
+  const links = [
+    aLink({ title: 'Blue jersey', category: 'Fabrics', tags: ['jersey', 'blue'] }),
+    aLink({ title: 'Red cotton', category: 'Fabrics', tags: ['cotton', 'red'] }),
+    aLink({
+      title: 'Dress pattern',
+      category: 'Patterns',
+      tags: ['dress'],
+      status: custom('Bought'),
+    }),
+    aLink({ title: 'Loose end', category: null, tags: [] }),
+  ];
+
+  const criteria = (overrides: Partial<LinkFilterCriteria> = {}) => ({
+    ...NO_FILTER,
+    ...overrides,
+  });
+
+  describe('categories', () => {
+    it('offers all of them while nothing else is filtered', () => {
+      expect(availableCategories(links, criteria()).names).toEqual(['Fabrics', 'Patterns']);
+    });
+
+    it('offers the "without a category" entry only when it would find something', () => {
+      expect(availableCategories(links, criteria()).uncategorised).toBe(true);
+      expect(availableCategories(links, criteria({ tags: ['jersey'] })).uncategorised).toBe(false);
+    });
+
+    it('narrows to the categories the other filters leave', () => {
+      expect(availableCategories(links, criteria({ tags: ['dress'] })).names).toEqual(['Patterns']);
+    });
+
+    // Otherwise the dropdown would collapse to the one value already picked.
+    it('ignores the category filter itself', () => {
+      expect(availableCategories(links, criteria({ category: 'Fabrics' })).names).toEqual([
+        'Fabrics',
+        'Patterns',
+      ]);
+    });
+
+    // A select whose value is missing from its options renders blank.
+    it('keeps the picked category even when nothing else matches', () => {
+      expect(
+        availableCategories(links, criteria({ category: 'Fabrics', search: 'pattern' })).names,
+      ).toContain('Fabrics');
+    });
+
+    it('keeps the "without a category" entry while it is picked', () => {
+      expect(
+        availableCategories(links, criteria({ category: '', search: 'jersey' })).uncategorised,
+      ).toBe(true);
+    });
+  });
+
+  describe('tags', () => {
+    // The case this whole thing exists for.
+    it('narrows to the tags used in the chosen category', () => {
+      expect(availableTags(links, criteria({ category: 'Patterns' }))).toEqual(['dress']);
+    });
+
+    it('narrows to the tags left by the search', () => {
+      expect(availableTags(links, criteria({ search: 'jersey' }))).toEqual(['jersey', 'blue']);
+    });
+
+    // Otherwise ticking one tag would clear the list and no second one could
+    // ever be added.
+    it('ignores the tag filter itself', () => {
+      expect(availableTags(links, criteria({ tags: ['jersey'] }))).toContain('cotton');
+    });
+
+    // A tick box that vanished could never be unticked again.
+    it('keeps a ticked tag even when nothing else matches', () => {
+      expect(availableTags(links, criteria({ tags: ['jersey'], search: 'pattern' }))).toEqual([
+        'dress',
+        'jersey',
+      ]);
+    });
+  });
+
+  describe('statuses', () => {
+    it('offers only the ones actually in use', () => {
+      expect(availableStatuses(links, criteria())).toEqual([DEFAULT_STATUS, custom('Bought')]);
+    });
+
+    it('narrows to the statuses the other filters leave', () => {
+      expect(availableStatuses(links, criteria({ category: 'Fabrics' }))).toEqual([DEFAULT_STATUS]);
+    });
+
+    it('ignores the status filter itself', () => {
+      expect(availableStatuses(links, criteria({ status: 'custom:Bought' }))).toHaveLength(2);
+    });
+
+    it('keeps the picked status even when nothing else matches', () => {
+      expect(
+        availableStatuses(links, criteria({ status: 'custom:Bought', category: 'Fabrics' })),
+      ).toContainEqual(custom('Bought'));
+    });
+
+    it('lists each status once, however many links carry it', () => {
+      expect(availableStatuses(links, criteria())).toHaveLength(2);
+    });
   });
 });
