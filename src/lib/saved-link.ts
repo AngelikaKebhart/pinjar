@@ -25,6 +25,23 @@ export type LinkStatus =
 /** The status every link starts with, shown as "Gemerkt" / "Saved". */
 export const DEFAULT_STATUS: LinkStatus = { kind: 'builtin', key: 'default' };
 
+/**
+ * A stable string identity for a status.
+ *
+ * Two statuses are the same one exactly when their keys match, which is what
+ * the status filter compares — comparing the objects would need the same
+ * `kind` check spelled out at every call site, and comparing the displayed
+ * text would make a user-created status named "Saved" indistinguishable from
+ * the built-in one.
+ *
+ * The kind is part of the key, so the two can never collide. This is an
+ * in-memory identity, not a stored value: nothing persists it, and it is free
+ * to change.
+ */
+export function statusToKey(status: LinkStatus): string {
+  return status.kind === 'builtin' ? `builtin:${status.key}` : `custom:${status.label}`;
+}
+
 export interface SavedLink {
   id: string;
   url: string;
