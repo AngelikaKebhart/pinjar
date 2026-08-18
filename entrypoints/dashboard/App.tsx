@@ -1,20 +1,28 @@
-import { useEffect, useId } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { LanguageSwitcher } from '@/src/components/LanguageSwitcher';
 import { useTranslation } from '@/src/i18n/context';
+import { getSavedLinks, savedLinks } from '@/src/lib/storage';
 
 /**
  * Dashboard opened in its own browser tab.
  *
  * Scope (see docs/concept.md §3.5): list every saved link across all domains,
  * with search and filters for category, tags and status, plus inline editing.
- * Only the shell and the language setting exist so far.
+ * So far it only counts what is saved; the list itself is still to come.
  */
 function App() {
   const { t, plural } = useTranslation();
   const settingsHeadingId = useId();
 
-  // Until the storage layer lands there is nothing to count.
-  const savedLinkCount = 0;
+  const [savedLinkCount, setSavedLinkCount] = useState(0);
+
+  // Watched rather than read once: the popup can save a link while this tab
+  // stays open, and the count would otherwise sit there being wrong.
+  useEffect(() => {
+    void getSavedLinks().then((links) => setSavedLinkCount(links.length));
+
+    return savedLinks.watch((links) => setSavedLinkCount(links.length));
+  }, []);
 
   // The tab title is user-facing text and has to follow the language switch,
   // so it cannot stay in the static HTML.

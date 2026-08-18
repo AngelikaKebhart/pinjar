@@ -16,9 +16,9 @@ can be switched at any time in the Dashboard.
 
 ## Project status
 
-Early development. The toolchain, the bilingual UI, the local storage layer and the toolbar badge
-are in place and builds work for all three browsers. Popup and Dashboard are still shells, so there
-is no way to save a link from the interface yet; saving and export/import are the next steps.
+Early development, but usable for the first time: you can save a page from the toolbar icon, see
+what you saved on the site you are on, and the badge counts it. Still missing are the Dashboard list
+with search and filters, assigning categories, tags and notes, and export/import.
 
 See [`docs/concept.md`](docs/concept.md) for the full product concept, feature list, and data model
 (written in German).
