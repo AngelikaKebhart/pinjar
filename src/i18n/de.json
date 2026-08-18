@@ -27,12 +27,23 @@
   "dashboard.savedLinks.empty": "Du hast noch nichts gemerkt. Öffne eine Seite, die dir gefällt, und klicke auf das Symbol der Erweiterung in der Symbolleiste.",
   "dashboard.savedLinks.searchNotImplemented": "Suche und Filter fehlen noch.",
 
+  "dashboard.link.title": "Titel",
   "dashboard.link.status": "Status",
   "dashboard.link.category": "Kategorie",
   "dashboard.link.tags": "Schlagwörter",
   "dashboard.link.note": "Notiz",
 
   "status.default": "Gemerkt",
+
+  "editLink.action": "Bearbeiten",
+  "editLink.actionLabel": "„{title}“ bearbeiten",
+  "editLink.formLabel": "„{title}“ bearbeiten",
+  "editLink.tagsHint": "Mehrere Schlagwörter mit Komma trennen.",
+  "editLink.statusNew": "Neuen Status festlegen…",
+  "editLink.statusNewLabel": "Neuer Status",
+  "editLink.save": "Speichern",
+  "editLink.cancel": "Abbrechen",
+  "editLink.saved": "Änderungen gespeichert.",
 
   "deleteLink.action": "Löschen",
   "deleteLink.actionLabel": "„{title}“ löschen",

@@ -281,3 +281,89 @@ describe('accessibility', () => {
     expect(within(cardOf('Custom status')).getByText('Gekauft')).toBeTruthy();
   });
 });
+
+describe('editing a link', () => {
+  /** Opens the form on the card of the given link. */
+  async function startEditing(title: string): Promise<void> {
+    fireEvent.click(within(cardOf(title)).getByRole('button', { name: `Edit “${title}”` }));
+    await screen.findByLabelText(en['dashboard.link.title'] ?? '');
+  }
+
+  it('stores what was changed', async () => {
+    const link = await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'Fabrics' } });
+    fireEvent.change(screen.getByLabelText('Tags'), { target: { value: 'jersey, blue' } });
+    fireEvent.change(screen.getByLabelText('Note'), { target: { value: 'Two metres' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(async () => {
+      await expect(getSavedLinks()).resolves.toMatchObject([
+        { id: link.id, category: 'Fabrics', tags: ['jersey', 'blue'], note: 'Two metres' },
+      ]);
+    });
+  });
+
+  it('shows the change on the card without a reload', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'Fabrics' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(await screen.findByText('Fabrics')).toBeTruthy();
+  });
+
+  it('closes the form again once saved', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Category')).toBeNull();
+    });
+  });
+
+  it('changes nothing when the edit is cancelled', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Something else' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    await expect(getSavedLinks()).resolves.toMatchObject([{ title: 'Jersey fabric' }]);
+  });
+
+  // Editing one card must not open the form on every card in the list.
+  it('edits only the card it was started on', async () => {
+    await save({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await save({ url: 'https://shop.example/second', title: 'Cotton fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+
+    expect(screen.getAllByRole('form')).toHaveLength(1);
+  });
+
+  // A new category typed here has to become a suggestion for the next link.
+  it('remembers a newly typed category for later', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'Fabrics' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(async () => {
+      await expect(fakeBrowser.storage.local.get('categories')).resolves.toEqual({
+        categories: ['Fabrics'],
+      });
+    });
+  });
+});
