@@ -87,7 +87,7 @@ function App() {
   }, [countText]);
 
   return (
-    <div className="mx-auto max-w-5xl p-6">
+    <div className="mx-auto max-w-5xl p-4 sm:p-6">
       <header>
         <h1 className="text-2xl font-semibold">{t('dashboard.title')}</h1>
         <p className="mt-1 text-sm text-ink-muted">{t('dashboard.subtitle')}</p>

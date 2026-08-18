@@ -13,6 +13,10 @@ This project must conform to WCAG 2.2 AA. Apply the following whenever touching 
 - **Don't rely on color alone**: status (e.g., "Gemerkt"/"Gekauft"/custom statuses) must be conveyed with text or an icon in addition to color, not color alone. Same applies to any success/error states.
 - **Images**: every preview image needs a meaningful `alt` attribute — use the page title as the alt text fallback when no better description exists. Purely decorative icons get `alt=""` or `aria-hidden="true"`.
 - **Text must not be clipped in either language**: German strings run roughly 20–35% longer than their English equivalents ("Save" → "Speichern"). Avoid fixed widths and `overflow: hidden` on labels, buttons and column headers; let them wrap. This matters most in the narrow Popup. Check a new component in both languages before calling it done — truncated text is unreadable content, not a layout nitpick.
+- **Reflow at 320 CSS px (WCAG 1.4.10) and zoom to 200% (1.4.4)**: the Dashboard must stay usable, without horizontal scrolling, at 320 CSS px of width. This is not about phones — extensions barely run on them — it is what 400% browser zoom leaves of an ordinary screen, and it is a Level AA criterion in its own right.
+  - Check every new layout at that width, not just that it avoids a horizontal scrollbar. Text squeezed into a 30px column technically reflows and is still unreadable.
+  - The usual culprits are a fixed-size element next to flexible text (a preview image beside a title) and a two-column grid whose label column is sized by its content — the longer German labels make both worse. Give them a `sm:` breakpoint so they stack while narrow, rather than shrinking the text to nothing.
+  - **No automated test covers this.** jsdom has no layout engine, and asserting on Tailwind class names would test the implementation rather than the result. Verify it by hand in the browser — DevTools device toolbar at 320px, or Ctrl/Cmd+`+` to 400% — and say in the change description that you did.
 
 ## Operable
 

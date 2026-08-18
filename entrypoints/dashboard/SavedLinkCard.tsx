@@ -11,6 +11,11 @@ import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
  * Everything shown here — title, image, note — either comes from an untrusted
  * page or from the user, and is rendered as plain JSX so React escapes it.
  * `dangerouslySetInnerHTML` is forbidden project-wide (docs/concept.md §7.4).
+ *
+ * The card stacks until there is room beside the preview image. At 320 CSS px —
+ * what 400% zoom leaves of a normal screen — the fixed 96px image plus its gap
+ * would take most of the width, and the text beside it would break character by
+ * character (WCAG 2.2 AA, 1.4.10).
  */
 export function SavedLinkCard({
   link,
@@ -37,7 +42,7 @@ export function SavedLinkCard({
   };
 
   return (
-    <article className="flex gap-4 rounded-lg border border-line bg-surface p-4">
+    <article className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-4 sm:flex-row">
       <PreviewImage link={link} />
 
       <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -74,7 +79,11 @@ export function SavedLinkCard({
               instead of two unrelated words, and the auto column keeps the
               longer German labels from squeezing the values.
             */}
-            <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+            {/*
+              Label above value while narrow, side by side once the label
+              column can have its width without starving the value.
+            */}
+            <dl className="grid grid-cols-1 gap-x-3 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
               <dt className="text-ink-muted">{t('dashboard.link.status')}</dt>
               <dd>
                 <StatusLabel status={link.status} />
