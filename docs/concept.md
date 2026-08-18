@@ -37,6 +37,9 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
 - Sobald der Nutzer eine Domain besucht, auf der bereits mindestens ein Link gespeichert wurde, zeigt das Extension-Icon einen **Badge mit der Anzahl** der auf dieser Domain gespeicherten Links (z.B. kleine Zahl auf dem Icon)
 - Klick auf das Icon öffnet das **Popup** (siehe 3.4), das die gemerkten Links dieser Domain auflistet
 - Jeder gelistete Link im Popup ist direkt anklickbar/öffnbar (öffnet die jeweilige gespeicherte URL)
+- Der Badge wird **pro Tab** gesetzt, nicht global: zwei Tabs auf verschiedenen Domains zeigen jeweils ihre eigene Zahl. Bei 0 bleibt der Badge leer statt eine "0" anzuzeigen; ab 100 steht "99+", die genaue Zahl steht im Popup
+- Die Zahl steht zusätzlich als Text im Tooltip des Icons. Badge-Text wird auf das Icon gezeichnet und von Screenreadern nicht vorgelesen – ohne den Tooltip wäre die Information rein visuell (WCAG 2.2 AA, 1.1.1)
+- **Preis dieser Funktion:** Sie erfordert die Permission `tabs`, weil die Adresse eines Tabs sonst nicht lesbar ist. Das kostet die warnungsfreie Installation – Begründung und Abwägung in 6.4 und 7.4
 
 ### 3.3 Organisation: Kategorien, Tags, Status
 - **Kategorien:** Vom Nutzer frei erstellbar (z.B. "Schnittmuster", "Stoffe", "Rezepte"); jeder Link kann **einer** Kategorie zugeordnet werden
@@ -185,10 +188,14 @@ Ein deklarativ im Manifest registriertes Content-Script müsste – weil die Ext
 Stattdessen:
 - Die Extraktion wird beim Speichern per `scripting.executeScript()` in **genau den einen** Tab injiziert, den der Nutzer gerade gemerkt hat
 - Freigeschaltet wird das durch `activeTab`, das der Klick auf das Extension-Icon erteilt – also exakt die Geste, die laut 3.1 ohnehin das Speichern auslöst
-- Benötigte Permissions: `activeTab` und `scripting`, **keine** Host-Permission. Die Extension installiert sich damit ohne Zugriffswarnung
+- Benötigte Permissions für die Extraktion: `activeTab` und `scripting`, **keine** Host-Permission
 - Beim Auslesen selbst geht nichts verloren: Das injizierte Skript läuft in derselben isolierten Welt mit demselben DOM-Zugriff wie ein Content-Script. Es ist derselbe Code, nur zu einem anderen Zeitpunkt geladen
 
-**Was damit bewusst nicht geht:** von selbst aktiv werden, ohne Klick des Nutzers – etwa ein Hinweis-Overlay direkt auf der Seite oder das automatische Erkennen von Produktseiten beim Betreten. Beides ist im ersten Wurf nicht vorgesehen. Der Badge braucht kein Content-Script, er wird vom Background-Worker gesetzt.
+**Was damit bewusst nicht geht:** von selbst aktiv werden, ohne Klick des Nutzers – etwa ein Hinweis-Overlay direkt auf der Seite oder das automatische Erkennen von Produktseiten beim Betreten. Beides ist im ersten Wurf nicht vorgesehen.
+
+**Der Badge ist davon ausgenommen und kostet eine eigene Permission:** Er braucht zwar kein Content-Script – gesetzt wird er vom Background-Worker –, aber er muss die Adresse jedes besuchten Tabs kennen, und zwar *bevor* der Nutzer klickt. Genau das erlaubt `activeTab` nicht: es gewährt Zugriff erst nach einer Geste auf dem Extension-Icon, also nach genau dem Klick, den der Badge ersparen soll. Ohne `tabs` sind `tab.url` in `tabs.query()` und `changeInfo.url` in `tabs.onUpdated` schlicht leer. Deshalb wird `tabs` regulär deklariert (siehe 7.4).
+
+**Vorsicht beim Entwickeln:** WXT fügt dem Dev-Build selbst `"tabs"` hinzu. Ein Badge ohne deklarierte Permission funktioniert unter `pnpm dev` also einwandfrei und fällt erst im Store-Build stumm aus. Permissions gehören deshalb im Produktions-Manifest geprüft (`.output/chrome-mv3/manifest.json`), nicht im Dev-Manifest.
 
 **Falls so ein Feature später gewünscht ist:** über eine *optionale* Host-Permission, die der Nutzer bewusst freischaltet (`permissions.request()`), nicht über eine pauschale Berechtigung in der Grundinstallation.
 
@@ -225,7 +232,7 @@ Auch wenn aktuell keine Cloud-Speicherung stattfindet, sollte die Extension von 
 - **Datenminimierung:** Es werden nur die Daten gespeichert, die für die Funktion notwendig sind (URL, Titel, Bild, Nutzereingaben) – keine Tracking- oder Analyse-Daten
 - **Keine Weitergabe an Dritte:** Da alle Daten rein lokal gespeichert werden, findet keine Übertragung an externe Server statt; das sollte auch so bleiben bzw. bei etwaigen späteren Erweiterungen (z.B. Cloud-Sync) explizit opt-in und transparent gemacht werden
 - **Transparenz:** Eine verständliche Datenschutzerklärung sollte bei Veröffentlichung bereitgestellt werden (z.B. im Chrome Web Store/Firefox Add-ons verlangt), die klar beschreibt, welche Daten wo (nur lokal) gespeichert werden
-- **Berechtigungen (Permissions):** Nur die tatsächlich benötigten Browser-Berechtigungen anfordern (z.B. `activeTab`, `storage`), keine unnötig weitreichenden Rechte wie Zugriff auf alle Webseiten, falls nicht zwingend erforderlich
+- **Berechtigungen (Permissions):** Nur die tatsächlich benötigten Browser-Berechtigungen anfordern (`storage`, `activeTab`, `scripting`, `tabs`), keine unnötig weitreichenden Rechte wie Zugriff auf alle Webseiten. `tabs` erlaubt das Lesen der Tab-Adressen für den Badge; die Datenschutzerklärung muss offenlegen, dass diese Adressen nur lokal und nur zum Zählen verwendet und nicht gespeichert werden
 - **Kontrolle durch den Nutzer:** Möglichkeit, alle gespeicherten Daten jederzeit vollständig zu löschen (z.B. "Alle Daten löschen"-Funktion im Dashboard), zusätzlich zum Löschen einzelner Links
 - **Keine Cookies/kein Fingerprinting:** Die Extension soll keine zusätzlichen Tracking-Mechanismen einsetzen
 
@@ -236,7 +243,9 @@ Auch wenn die Extension keine Server-Kommunikation hat, bestehen reale Angriffsf
 - **Schutz vor bösartigen Webseiten (XSS):** Von Webseiten extrahierte Daten (Titel, Bild-URL) sind nicht vertrauenswürdig und müssen beim Rendern in Popup/Dashboard sicher behandelt werden
   - `dangerouslySetInnerHTML` in React ist **grundsätzlich verboten**; alle Texte werden ausschließlich über normales JSX gerendert (automatisches Escaping)
   - Bild-URLs vor Verwendung validieren (z.B. nur `http(s)`-Schema zulassen)
-- **Minimalprinzip bei Berechtigungen:** `activeTab` statt breiter Host-Permissions wie `<all_urls>`; nur die tatsächlich benötigten Permissions im Manifest deklarieren. Konkret sind das `storage`, `activeTab` und `scripting` – keine Host-Permission (siehe 6.4)
+- **Minimalprinzip bei Berechtigungen:** `activeTab` statt breiter Host-Permissions wie `<all_urls>`; nur die tatsächlich benötigten Permissions im Manifest deklarieren. Konkret sind das `storage`, `activeTab`, `scripting` und `tabs` – **keine** Host-Permission (siehe 6.4)
+  - `tabs` ist die Ausnahme vom Grundsatz "so wenig wie möglich" und eine bewusste Abwägung: Der Domain-Indikator aus 3.2 ist eine Kernfunktion und ohne diese Permission technisch nicht umsetzbar. Browser zeigen sie bei der Installation als *"Deinen Browserverlauf lesen"* an – die Extension installiert sich also **nicht** mehr warnungsfrei
+  - Enger geht es nicht: Die Alternative wäre eine Host-Permission, die zusätzlich Zugriff auf die *Inhalte* aller Seiten gäbe. `tabs` gibt nur Adresse und Titel der Tabs frei, und diese Daten verlassen das Gerät nicht – sie werden ausschließlich gegen die lokal gespeicherten Domains gezählt und nirgends protokolliert
 - **Keine dynamisch nachgeladenen Skripte:** Der gesamte Code ist Teil des Extension-Bundles; es werden keine Remote-Skripte zur Laufzeit nachgeladen (entspricht auch den Vorgaben der Store-Richtlinien und der von Manifest V3 erzwungenen CSP)
 - **Robuste Domain-/URL-Verarbeitung:** Domain-Erkennung für den Badge-Indikator über die native `URL`-API, nicht über eigene Regex-Logik, um Fehlklassifizierungen zu vermeiden
 - **Supply-Chain-Sicherheit:** Bewusst wenige, aktiv gepflegte Abhängigkeiten; Lockfile wird versioniert; regelmäßig `pnpm audit` (oder Äquivalent) ausführen; Dependency-Updates bewusst und nicht blind automatisiert einspielen
