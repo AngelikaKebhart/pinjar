@@ -1,7 +1,19 @@
 {
   "popup.title": "Universal Wishlist",
-  "popup.notImplemented": "Saving pages is not implemented yet. This popup will show the links saved for the current domain.",
+  "popup.loading": "Loading…",
+  "popup.savePage": "Save this page",
+  "popup.saving": "Saving…",
   "popup.openDashboard": "Open dashboard",
+
+  "popup.status.saved": "Saved.",
+  "popup.status.alreadySaved": "This page is already on your list.",
+  "popup.status.unsupportedPage": "This page cannot be saved. Only regular web pages using http or https work.",
+  "popup.status.failed": "Saving did not work. Please try again.",
+  "popup.status.removed": "Removed.",
+
+  "popup.savedLinks.heading": "Saved on {domain}",
+  "popup.savedLinks.empty": "You have not saved anything on this site yet.",
+  "popup.savedLinks.remove": "Remove “{title}”",
 
   "badge.tooltip.none": "Universal Wishlist — nothing saved on this site",
   "badge.tooltip.count_one": "Universal Wishlist — {count} link saved on this site",
@@ -13,7 +25,7 @@
   "dashboard.savedLinks.heading": "Saved links",
   "dashboard.savedLinks.count_one": "{count} saved link",
   "dashboard.savedLinks.count_other": "{count} saved links",
-  "dashboard.savedLinks.notImplemented": "Storage, search and filters are still to be built.",
+  "dashboard.savedLinks.notImplemented": "Save pages from the toolbar icon. The list, search and filters are still to be built.",
 
   "settings.heading": "Settings",
   "settings.language.label": "Interface language",
