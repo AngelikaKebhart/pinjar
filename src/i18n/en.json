@@ -13,7 +13,6 @@
 
   "popup.savedLinks.heading": "Saved on {domain}",
   "popup.savedLinks.empty": "You have not saved anything on this site yet.",
-  "popup.savedLinks.remove": "Remove “{title}”",
 
   "badge.tooltip.none": "Universal Wishlist — nothing saved on this site",
   "badge.tooltip.count_one": "Universal Wishlist — {count} link saved on this site",
@@ -25,7 +24,23 @@
   "dashboard.savedLinks.heading": "Saved links",
   "dashboard.savedLinks.count_one": "{count} saved link",
   "dashboard.savedLinks.count_other": "{count} saved links",
-  "dashboard.savedLinks.notImplemented": "Save pages from the toolbar icon. The list, search and filters are still to be built.",
+  "dashboard.savedLinks.empty": "You have not saved anything yet. Open a page you like and click the extension icon in the toolbar.",
+  "dashboard.savedLinks.searchNotImplemented": "Search and filters are still to be built.",
+
+  "dashboard.link.status": "Status",
+  "dashboard.link.category": "Category",
+  "dashboard.link.tags": "Tags",
+  "dashboard.link.note": "Note",
+
+  "status.default": "Saved",
+
+  "deleteLink.action": "Delete",
+  "deleteLink.actionLabel": "Delete “{title}”",
+  "deleteLink.question": "Delete?",
+  "deleteLink.confirm": "Yes, delete",
+  "deleteLink.confirmLabel": "Yes, delete “{title}”",
+  "deleteLink.cancel": "Cancel",
+  "deleteLink.cancelLabel": "Keep “{title}”",
 
   "settings.heading": "Settings",
   "settings.language.label": "Interface language",

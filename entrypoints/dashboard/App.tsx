@@ -1,27 +1,33 @@
-import { useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 import { LanguageSwitcher } from '@/src/components/LanguageSwitcher';
 import { useTranslation } from '@/src/i18n/context';
-import { getSavedLinks, savedLinks } from '@/src/lib/storage';
+import type { SavedLink } from '@/src/lib/saved-link';
+import { getSavedLinks, removeSavedLink, savedLinks } from '@/src/lib/storage';
+import { SavedLinkCard } from './SavedLinkCard';
 
 /**
  * Dashboard opened in its own browser tab.
  *
  * Scope (see docs/concept.md §3.5): list every saved link across all domains,
  * with search and filters for category, tags and status, plus inline editing.
- * So far it only counts what is saved; the list itself is still to come.
+ * The list and deleting exist; search, filters and editing are still to come.
  */
 function App() {
   const { t, plural } = useTranslation();
+  const [links, setLinks] = useState<SavedLink[] | null>(null);
   const settingsHeadingId = useId();
+  const savedLinksHeadingId = useId();
 
-  const [savedLinkCount, setSavedLinkCount] = useState(0);
-
-  // Watched rather than read once: the popup can save a link while this tab
-  // stays open, and the count would otherwise sit there being wrong.
+  // Watched rather than read once: the popup can save or delete while this tab
+  // stays open, and the list would otherwise sit there being wrong.
   useEffect(() => {
-    void getSavedLinks().then((links) => setSavedLinkCount(links.length));
+    void getSavedLinks().then(setLinks);
 
-    return savedLinks.watch((links) => setSavedLinkCount(links.length));
+    return savedLinks.watch(setLinks);
+  }, []);
+
+  const handleDelete = useCallback(async (id: string) => {
+    await removeSavedLink(id);
   }, []);
 
   // The tab title is user-facing text and has to follow the language switch,
@@ -34,13 +40,38 @@ function App() {
     <div className="mx-auto max-w-5xl p-6">
       <header>
         <h1 className="text-2xl font-semibold">{t('dashboard.title')}</h1>
-        <p className="mt-1 text-sm text-slate-600">{t('dashboard.subtitle')}</p>
+        <p className="mt-1 text-sm text-slate-700">{t('dashboard.subtitle')}</p>
       </header>
 
-      <main className="mt-8">
-        <h2 className="text-lg font-medium">{t('dashboard.savedLinks.heading')}</h2>
-        <p className="mt-2 text-sm">{plural('dashboard.savedLinks.count', savedLinkCount)}</p>
-        <p className="mt-1 text-sm text-slate-600">{t('dashboard.savedLinks.notImplemented')}</p>
+      <main className="mt-8" aria-labelledby={savedLinksHeadingId}>
+        <h2 id={savedLinksHeadingId} className="text-lg font-medium">
+          {t('dashboard.savedLinks.heading')}
+        </h2>
+
+        {/*
+          Announced on change, because deleting a link gives no other feedback
+          once the card is gone.
+        */}
+        <p aria-live="polite" className="mt-2 text-sm">
+          {links === null ? '' : plural('dashboard.savedLinks.count', links.length)}
+        </p>
+
+        <p className="mt-1 text-sm text-slate-700">
+          {t('dashboard.savedLinks.searchNotImplemented')}
+        </p>
+
+        {links !== null &&
+          (links.length === 0 ? (
+            <p className="mt-6 text-sm">{t('dashboard.savedLinks.empty')}</p>
+          ) : (
+            <ul className="mt-6 flex flex-col gap-4">
+              {links.map((link) => (
+                <li key={link.id}>
+                  <SavedLinkCard link={link} onDelete={() => handleDelete(link.id)} />
+                </li>
+              ))}
+            </ul>
+          ))}
       </main>
 
       {/*
