@@ -282,6 +282,28 @@ describe('accessibility', () => {
     expect(levels).toEqual([1, 2, 2, 3, 2, 2]);
   });
 
+  /*
+   * The data section is only shown once the links are known, and it is also
+   * what reports the deletion. An emptied store therefore has to arrive as
+   * "nothing saved" rather than as "not known yet", or the section would
+   * vanish at the very moment it has something to say.
+   */
+  it('stays whole after everything was deleted', async () => {
+    await save({ url: 'https://shop.example/jersey', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    fireEvent.click(screen.getByRole('button', { name: en['data.deleteAll.action'] }));
+    fireEvent.click(screen.getByRole('button', { name: en['data.deleteAll.confirm'] }));
+
+    await waitFor(() =>
+      expect(screen.getByText(en['dashboard.savedLinks.empty'] ?? '')).toBeTruthy(),
+    );
+    expect(screen.getByRole('button', { name: en['data.export.action'] })).toHaveProperty(
+      'disabled',
+      true,
+    );
+  });
+
   it('works in German too', async () => {
     Object.defineProperty(navigator, 'language', { configurable: true, get: () => 'de-DE' });
     await save({ url: 'https://shop.example/item', title: 'Jersey fabric', category: 'Stoffe' });

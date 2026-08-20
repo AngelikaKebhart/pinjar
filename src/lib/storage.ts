@@ -114,6 +114,37 @@ export async function removeSavedLink(id: string): Promise<void> {
 }
 
 /**
+ * Adds what an imported file holds to what is already here (§3.6).
+ *
+ * Adding, never replacing: the file is a copy from another browser, not the
+ * truth about this one. Which of its links are new to this browser has been
+ * decided before they get here — this function stores what it is handed.
+ *
+ * The merged list is sorted rather than appended to, because the file's links
+ * are older or newer than the local ones in no particular order, and the
+ * dashboard shows the newest first.
+ */
+export async function mergeImportedData(data: {
+  links: SavedLink[];
+  categories: string[];
+  tags: string[];
+  customStatuses: string[];
+}): Promise<void> {
+  const existing = await getSavedLinks();
+  const merged = [...existing, ...data.links].sort(
+    (one, other) => Date.parse(other.createdAt) - Date.parse(one.createdAt),
+  );
+
+  await savedLinks.setValue(merged);
+
+  await Promise.all([
+    addUnknownValues(categories, data.categories),
+    addUnknownValues(tags, data.tags),
+    addUnknownValues(customStatuses, data.customStatuses),
+  ]);
+}
+
+/**
  * Wipes every saved link and every remembered suggestion — the "delete all my
  * data" the user is entitled to (docs/concept.md §7.3).
  *
@@ -128,6 +159,56 @@ export async function deleteAllSavedData(): Promise<void> {
     tags.removeValue(),
     customStatuses.removeValue(),
   ]);
+}
+
+/**
+ * What the dashboard needs to know about what is stored right now, so it can
+ * tell an action that would do nothing from one that would.
+ */
+export interface StoredDataPresence {
+  /** At least one saved link. An export with no links would be an empty file. */
+  hasLinks: boolean;
+  /**
+   * Anything at all, links or the values remembered beside them. Categories,
+   * tags and status labels outlive the links that used them, so "no links"
+   * does not mean "nothing left to delete" -- and the right to delete
+   * everything must not depend on the list looking empty (§7.3).
+   */
+  hasAnything: boolean;
+}
+
+export async function getStoredDataPresence(): Promise<StoredDataPresence> {
+  const [links, storedCategories, storedTags, storedStatuses] = await Promise.all([
+    getSavedLinks(),
+    getCategories(),
+    getTags(),
+    getCustomStatuses(),
+  ]);
+
+  const hasLinks = links.length > 0;
+  const remembered = [storedCategories, storedTags, storedStatuses];
+
+  return {
+    hasLinks,
+    hasAnything: hasLinks || remembered.some((list) => list.length > 0),
+  };
+}
+
+/**
+ * Calls back whenever any of that changes, and returns the way to stop.
+ *
+ * All four lists, not just the links: importing a file can bring categories
+ * with it, and deleting everything clears all of them at once.
+ */
+export function watchStoredData(onChange: () => void): () => void {
+  const unwatchers = [
+    savedLinks.watch(onChange),
+    categories.watch(onChange),
+    tags.watch(onChange),
+    customStatuses.watch(onChange),
+  ];
+
+  return () => unwatchers.forEach((unwatch) => unwatch());
 }
 
 export function getCategories(): Promise<string[]> {

@@ -72,6 +72,23 @@
   "data.export.hint": "Writes everything to a file you can carry to another browser. The file is not encrypted and may hold your notes — keep it somewhere you trust.",
   "data.export.done": "Export created — your browser is saving the file.",
 
+  "data.import.action": "Import a file",
+  "data.import.hint": "Adds what the file holds. Links you already saved stay as they are.",
+  "data.import.added_one": "{count} link added.",
+  "data.import.added_other": "{count} links added.",
+  "data.import.duplicates_one": "{count} was already on your list.",
+  "data.import.duplicates_other": "{count} were already on your list.",
+  "data.import.unusable_one": "{count} entry could not be read and was skipped.",
+  "data.import.unusable_other": "{count} entries could not be read and were skipped.",
+  "data.import.error.notReadable": "That file could not be read. Please pick the file this extension wrote.",
+  "data.import.error.notOurFormat": "That file is not a Universal Wishlist export.",
+  "data.import.error.tooNew": "That file was written by a newer version of this extension. Please update the extension first.",
+
+  "data.deleteAll.action": "Delete all data",
+  "data.deleteAll.warning": "This removes every saved link, category, tag and status from this browser. It cannot be undone — export a file first if you want a copy.",
+  "data.deleteAll.confirm": "Yes, delete everything",
+  "data.deleteAll.cancel": "Cancel",
+  "data.deleteAll.done": "All data deleted.",
   "settings.heading": "Settings",
   "settings.language.label": "Interface language",
   "settings.language.auto": "Automatic (browser language)"

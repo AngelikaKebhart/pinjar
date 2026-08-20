@@ -165,14 +165,11 @@ function App() {
         </h2>
         <div className="mt-3">
           {/*
-            Nothing saved means nothing to write, which the section says for
-            itself rather than being hidden — a control that vanishes is
-            harder to find again than one that explains why it is idle. Which
-            of the two it is, though, is only known once the links are read,
-            so like the list above it waits rather than claiming an empty
-            wishlist for a frame.
+            Reads what is stored for itself: which of its actions would do
+            anything depends on more than the links this list shows, since
+            categories and tags outlive the links that used them.
           */}
-          {links !== null && <DataSection hasSavedLinks={links.length > 0} />}
+          <DataSection />
         </div>
       </section>
 
