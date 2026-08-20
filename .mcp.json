@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest",
+        "--isolated=true",
+        "--headless=false",
+        "--no-usage-statistics",
+        "--categoryExtensions=true",
+        "--allowedUrlPattern",
+        "https://justament-consulting.at",
+        "--allowedUrlPattern",
+        "chrome-extension://aikkllojgkagohgejkpkgliikmbpjppg/*"
+      ],
+      "env": {}
+    }
+  }
+}
