@@ -16,11 +16,11 @@ can be switched at any time in the Dashboard.
 
 ## Project status
 
-Early development. You can save a page from the toolbar icon, see what you saved on the site you are
-on, and manage everything in the Dashboard: search, filters for category, tags and status, inline
-editing, and exporting everything to a file. The interface follows your system's light or dark theme.
-Still missing are reading an exported file back in, deleting all data at once, and assigning
-categories and tags straight from the Popup.
+Early development, but feature-complete against the concept. You can save a page from the toolbar
+icon, see what you saved on the site you are on, and manage everything in the Dashboard: search,
+filters for category, tags and status, inline editing, export and import, and deleting all your data
+at once. The interface follows your system's light or dark theme. Assigning categories and tags while
+saving, straight from the Popup, is still to come.
 
 See [`docs/concept.md`](docs/concept.md) for the full product concept, feature list, and data model
 (written in German).

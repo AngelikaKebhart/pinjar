@@ -72,6 +72,23 @@
   "data.export.hint": "Schreibt alles in eine Datei, die du in einen anderen Browser mitnehmen kannst. Die Datei ist unverschlüsselt und enthält womöglich deine Notizen — bewahre sie entsprechend auf.",
   "data.export.done": "Export erstellt — dein Browser speichert die Datei.",
 
+  "data.import.action": "Datei importieren",
+  "data.import.hint": "Fügt hinzu, was die Datei enthält. Bereits gemerkte Links bleiben, wie sie sind.",
+  "data.import.added_one": "{count} Link hinzugefügt.",
+  "data.import.added_other": "{count} Links hinzugefügt.",
+  "data.import.duplicates_one": "{count} stand schon auf deiner Liste.",
+  "data.import.duplicates_other": "{count} standen schon auf deiner Liste.",
+  "data.import.unusable_one": "{count} Eintrag war nicht lesbar und wurde übersprungen.",
+  "data.import.unusable_other": "{count} Einträge waren nicht lesbar und wurden übersprungen.",
+  "data.import.error.notReadable": "Diese Datei konnte nicht gelesen werden. Bitte wähle die Datei, die diese Erweiterung geschrieben hat.",
+  "data.import.error.notOurFormat": "Diese Datei ist kein Export von Universal Wishlist.",
+  "data.import.error.tooNew": "Diese Datei stammt aus einer neueren Version. Bitte aktualisiere zuerst die Erweiterung.",
+
+  "data.deleteAll.action": "Alle Daten löschen",
+  "data.deleteAll.warning": "Damit verschwinden alle gemerkten Links, Kategorien, Schlagwörter und Status aus diesem Browser. Das lässt sich nicht rückgängig machen — exportiere vorher eine Datei, wenn du eine Kopie möchtest.",
+  "data.deleteAll.confirm": "Ja, alles löschen",
+  "data.deleteAll.cancel": "Abbrechen",
+  "data.deleteAll.done": "Alle Daten gelöscht.",
   "settings.heading": "Einstellungen",
   "settings.language.label": "Sprache der Oberfläche",
   "settings.language.auto": "Automatisch (Browsersprache)"

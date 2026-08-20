@@ -4,32 +4,26 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
 import { useTranslation } from '@/src/i18n/context';
 import { TranslationProvider } from '@/src/i18n/TranslationProvider';
-import { addSavedLink } from '@/src/lib/storage';
+import { addSavedLink, getSavedLinks, removeSavedLink } from '@/src/lib/storage';
 import { EXPORT_FORMAT } from '@/src/lib/transfer';
 import { DataSection } from './DataSection';
 
 /** What the browser was handed to save, once the export ran. */
 let downloaded: { blob: Blob; fileName: string; wasInDocument: boolean } | null = null;
 
-interface RenderOptions {
-  language?: string;
-  hasSavedLinks?: boolean;
-}
-
-async function renderSection({
-  language = 'en-US',
-  hasSavedLinks = true,
-}: RenderOptions = {}): Promise<void> {
+/** Renders the section as the dashboard does, once it knows what is stored. */
+async function renderSection(language = 'en-US'): Promise<void> {
   Object.defineProperty(navigator, 'language', { configurable: true, get: () => language });
 
   render(
     <TranslationProvider>
       <LanguageToggle />
-      <DataSection hasSavedLinks={hasSavedLinks} />
+      <DataSection />
     </TranslationProvider>,
   );
 
-  // The catalog is read from storage, so the first paint carries no text yet.
+  // Both the catalog and the stored data are read from storage, so the first
+  // paint has neither text nor buttons yet.
   await screen.findByRole('button', { name: /^(Export as a file|Als Datei exportieren)$/ });
 }
 
@@ -44,18 +38,79 @@ function LanguageToggle() {
   );
 }
 
+async function saveOneLink(title = 'Jersey fabric'): Promise<void> {
+  await addSavedLink({ url: 'https://shop.example/jersey', title });
+}
+
 function exportButton(): HTMLElement {
-  return screen.getByRole('button', { name: 'Export as a file' });
+  return screen.getByRole('button', { name: /^(Export as a file|Als Datei exportieren)$/ });
 }
 
-function message(): string {
-  return document.querySelector('[aria-live="polite"]')?.textContent ?? '';
+function importButton(): HTMLElement {
+  return screen.getByRole('button', { name: /^(Import a file|Datei importieren)$/ });
 }
 
-async function exportedFile(): Promise<unknown> {
-  await waitFor(() => expect(downloaded).not.toBeNull());
+function deleteButton(): HTMLElement {
+  return screen.getByRole('button', { name: /^(Delete all data|Alle Daten löschen)$/ });
+}
 
-  return JSON.parse(await (downloaded as { blob: Blob }).blob.text());
+/**
+ * The message shown with a button. Each action reports directly below the
+ * button that caused it, so this is also what proves it lands there.
+ */
+function noticeNear(button: HTMLElement): string {
+  return button.parentElement?.querySelector('[aria-live="polite"]')?.textContent ?? '';
+}
+
+/** Puts a file into the picker the way choosing one would. */
+function chooseFile(contents: string): void {
+  const input = filePicker();
+  const file = new File([contents], 'wishlist.json', { type: 'application/json' });
+
+  Object.defineProperty(input, 'files', { value: [file], configurable: true });
+  fireEvent.change(input);
+}
+
+/**
+ * The picker behind the import button. It carries no label of its own: it is
+ * hidden from sight and from assistive technology, and the button in front of
+ * it is what everything goes through.
+ */
+function filePicker(): HTMLInputElement {
+  const input = document.querySelector<HTMLInputElement>('input[type="file"]');
+
+  if (input === null) {
+    throw new Error('the import file picker is missing from the document');
+  }
+
+  return input;
+}
+
+/** A file as the export half would have written it. */
+function anExport(links: unknown[] = []): string {
+  return JSON.stringify({
+    format: EXPORT_FORMAT,
+    version: 1,
+    exportedAt: '2026-08-01T10:00:00.000Z',
+    links,
+    categories: [],
+    tags: [],
+    customStatuses: [],
+  });
+}
+
+function aStoredLink(url: string, title: string): Record<string, unknown> {
+  return {
+    url,
+    title,
+    imageUrl: null,
+    category: null,
+    tags: [],
+    status: { kind: 'builtin', key: 'default' },
+    note: '',
+    createdAt: '2026-07-01T10:00:00.000Z',
+    updatedAt: '2026-07-01T10:00:00.000Z',
+  };
 }
 
 beforeEach(() => {
@@ -93,6 +148,7 @@ function define(target: object, name: string, value: unknown): void {
 
 describe('exporting', () => {
   it('hands the browser a file named after the extension and the day', async () => {
+    await saveOneLink();
     await renderSection();
 
     fireEvent.click(exportButton());
@@ -102,12 +158,14 @@ describe('exporting', () => {
   });
 
   it('writes every saved link into it', async () => {
-    await addSavedLink({ url: 'https://shop.example/jersey', title: 'Jersey fabric' });
+    await saveOneLink();
     await renderSection();
 
     fireEvent.click(exportButton());
 
-    await expect(exportedFile()).resolves.toMatchObject({
+    await waitFor(() => expect(downloaded).not.toBeNull());
+    const written: unknown = JSON.parse(await (downloaded as { blob: Blob }).blob.text());
+    expect(written).toMatchObject({
       format: EXPORT_FORMAT,
       links: [{ url: 'https://shop.example/jersey', title: 'Jersey fabric' }],
     });
@@ -118,6 +176,7 @@ describe('exporting', () => {
    * export would fail there with nothing to show for it.
    */
   it('clicks a link that is part of the document', async () => {
+    await saveOneLink();
     await renderSection();
 
     fireEvent.click(exportButton());
@@ -125,41 +184,211 @@ describe('exporting', () => {
     await waitFor(() => expect(downloaded).not.toBeNull());
     expect(downloaded?.wasInDocument).toBe(true);
   });
-});
 
-describe('with nothing saved', () => {
-  it('has nothing to export, and says so instead of warning about notes', async () => {
-    await renderSection({ hasSavedLinks: false });
+  it('is not offered while there is nothing to write', async () => {
+    await renderSection();
 
     expect(exportButton()).toHaveProperty('disabled', true);
     expect(screen.getByText(/nothing to export/i)).toBeTruthy();
     expect(screen.queryByText(/not encrypted/i)).toBeNull();
   });
 
-  it('offers the export again as soon as something is saved', async () => {
-    await renderSection({ hasSavedLinks: true });
+  // The section is read from storage rather than handed down, so it has to
+  // notice a link saved from the popup while this tab stays open.
+  it('becomes possible as soon as something is saved', async () => {
+    await renderSection();
 
-    expect(exportButton()).toHaveProperty('disabled', false);
+    await saveOneLink();
+
+    await waitFor(() => expect(exportButton()).toHaveProperty('disabled', false));
     expect(screen.getByText(/not encrypted/i)).toBeTruthy();
   });
 });
 
-describe('the confirmation', () => {
-  // Where the file ends up is the browser's business, so this is the only
-  // feedback the extension itself gives — it may not be easy to miss.
-  it('appears out loud once the file is written', async () => {
+describe('importing', () => {
+  /*
+   * Left to the browser's own control, the way in would be a native button
+   * that Tailwind's reset draws as plain text and that never speaks the
+   * language the dashboard was switched to.
+   */
+  it('opens the picker from a button of its own', async () => {
+    await renderSection();
+    const opened = vi.fn();
+    filePicker().addEventListener('click', opened);
+
+    fireEvent.click(importButton());
+
+    expect(opened).toHaveBeenCalledOnce();
+  });
+
+  // Which is exactly when a file is most likely to be waiting.
+  it('is offered even with an empty wishlist', async () => {
+    await renderSection();
+
+    expect(importButton()).toHaveProperty('disabled', false);
+  });
+
+  it('adds what the file holds and says how many', async () => {
+    await renderSection();
+
+    chooseFile(anExport([aStoredLink('https://shop.example/jersey', 'Jersey fabric')]));
+
+    await waitFor(() => expect(noticeNear(importButton())).toContain('1 link added.'));
+    await expect(getSavedLinks()).resolves.toMatchObject([{ title: 'Jersey fabric' }]);
+  });
+
+  it('mentions the ones that were already saved', async () => {
+    await saveOneLink('Mine');
+    await renderSection();
+
+    chooseFile(anExport([aStoredLink('https://shop.example/jersey', 'Theirs')]));
+
+    await waitFor(() =>
+      expect(noticeNear(importButton())).toContain('1 was already on your list.'),
+    );
+  });
+
+  it('mentions the entries it could not read', async () => {
+    await renderSection();
+
+    chooseFile(anExport([aStoredLink('chrome://extensions', 'Not saveable')]));
+
+    await waitFor(() =>
+      expect(noticeNear(importButton())).toContain('could not be read and was skipped'),
+    );
+  });
+
+  // A wrong file is a normal mistake, so the message has to say what to do.
+  it.each([
+    ['a file that is not JSON', 'not a file', 'That file could not be read'],
+    ['JSON from somewhere else', '{"bookmarks":[]}', 'not a Universal Wishlist export'],
+  ])('explains %s', async (_case, contents, expected) => {
+    await renderSection();
+
+    chooseFile(contents);
+
+    await waitFor(() => expect(noticeNear(importButton())).toContain(expected));
+    await expect(getSavedLinks()).resolves.toEqual([]);
+  });
+
+  // Picking the same file twice fires no second change event unless the
+  // picker is cleared, and nothing would appear to happen.
+  it('can be given the same file twice', async () => {
+    await renderSection();
+    const file = anExport([aStoredLink('https://shop.example/jersey', 'Jersey fabric')]);
+
+    chooseFile(file);
+    await waitFor(() => expect(noticeNear(importButton())).toContain('1 link added.'));
+    chooseFile(file);
+
+    await waitFor(() =>
+      expect(noticeNear(importButton())).toContain('1 was already on your list.'),
+    );
+  });
+
+  it('leaves the export possible once a file has brought links in', async () => {
+    await renderSection();
+
+    chooseFile(anExport([aStoredLink('https://shop.example/jersey', 'Jersey fabric')]));
+
+    await waitFor(() => expect(exportButton()).toHaveProperty('disabled', false));
+  });
+
+  it('reports in German too', async () => {
+    await renderSection('de-DE');
+
+    chooseFile(anExport([aStoredLink('https://shop.example/jersey', 'Jersey fabric')]));
+
+    await waitFor(() => expect(noticeNear(importButton())).toContain('1 Link hinzugefügt.'));
+  });
+});
+
+describe('deleting everything', () => {
+  it('asks before it does anything', async () => {
+    await saveOneLink();
+    await renderSection();
+
+    fireEvent.click(deleteButton());
+
+    expect(screen.getByRole('button', { name: 'Yes, delete everything' })).toBeTruthy();
+    await expect(getSavedLinks()).resolves.toHaveLength(1);
+  });
+
+  // Nothing brings the data back, so the warning has to say so.
+  it('says what goes and that it cannot be undone', async () => {
+    await saveOneLink();
+    await renderSection();
+
+    fireEvent.click(deleteButton());
+
+    expect(screen.getByText(/cannot be undone/i)).toBeTruthy();
+  });
+
+  it('removes everything once confirmed', async () => {
+    await addSavedLink({
+      url: 'https://shop.example/jersey',
+      title: 'Jersey fabric',
+      category: 'Fabrics',
+    });
+    await renderSection();
+
+    fireEvent.click(deleteButton());
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, delete everything' }));
+
+    await waitFor(() => expect(noticeNear(deleteButton())).toContain('All data deleted.'));
+    await expect(getSavedLinks()).resolves.toEqual([]);
+  });
+
+  it('keeps everything when the question is dismissed', async () => {
+    await saveOneLink();
+    await renderSection();
+
+    fireEvent.click(deleteButton());
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(deleteButton()).toBeTruthy();
+    await expect(getSavedLinks()).resolves.toHaveLength(1);
+  });
+
+  it('is not offered when there is nothing at all to delete', async () => {
+    await renderSection();
+
+    expect(deleteButton()).toHaveProperty('disabled', true);
+  });
+
+  /*
+   * Categories, tags and status values outlive the links that used them. The
+   * right to clear everything must not depend on the list looking empty
+   * (docs/concept.md §7.3).
+   */
+  it('is still offered when only remembered values are left', async () => {
+    const link = await addSavedLink({ url: 'https://shop.example/jersey', category: 'Fabrics' });
+    await removeSavedLink(link?.id ?? '');
+    await renderSection();
+
+    expect(exportButton()).toHaveProperty('disabled', true);
+    expect(deleteButton()).toHaveProperty('disabled', false);
+  });
+});
+
+describe('the messages', () => {
+  it('appear below the button that caused them, and nowhere else', async () => {
+    await saveOneLink();
     await renderSection();
 
     fireEvent.click(exportButton());
 
-    await waitFor(() => expect(message()).toContain('your browser is saving the file'));
+    await waitFor(() => expect(noticeNear(exportButton())).toContain('your browser is saving'));
+    expect(noticeNear(importButton())).toBe('');
+    expect(noticeNear(deleteButton())).toBe('');
   });
 
-  it('stays out of the way until there is something to say', async () => {
+  it('stay away until there is something to say', async () => {
+    await saveOneLink();
     await renderSection();
 
-    expect(message()).toBe('');
-    expect(screen.getByText(/not encrypted/i)).toBeTruthy();
+    expect(noticeNear(exportButton())).toBe('');
+    expect(noticeNear(importButton())).toBe('');
   });
 
   /*
@@ -167,39 +396,59 @@ describe('the confirmation', () => {
    * would otherwise still be standing there in German after the dashboard was
    * switched to English (docs/concept.md §3.7).
    */
-  it('changes language along with the interface', async () => {
-    await renderSection({ language: 'de-DE' });
+  it('change language along with the interface', async () => {
+    await saveOneLink();
+    await renderSection('de-DE');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Als Datei exportieren' }));
-    await waitFor(() => expect(message()).toContain('dein Browser speichert die Datei'));
+    fireEvent.click(exportButton());
+    await waitFor(() =>
+      expect(noticeNear(exportButton())).toContain('dein Browser speichert die Datei'),
+    );
 
     fireEvent.click(screen.getByRole('button', { name: 'switch to English' }));
 
-    await waitFor(() => expect(message()).toContain('your browser is saving the file'));
+    await waitFor(() =>
+      expect(noticeNear(exportButton())).toContain('your browser is saving the file'),
+    );
   });
 
-  // Its border says "this went well" in color alone, which not everyone can
-  // see; the glyph in front of it says the same thing in shape.
-  it('carries a marker that is seen but not read out', async () => {
+  // Its border says how it went in color alone, which not everyone can see;
+  // the glyph in front of it says the same thing in shape.
+  it('carry a marker that is seen but not read out', async () => {
+    await saveOneLink();
     await renderSection();
 
     fireEvent.click(exportButton());
 
-    await waitFor(() => expect(message()).toContain('✓'));
+    await waitFor(() => expect(noticeNear(exportButton())).toContain('✓'));
     expect(screen.getByText('✓').getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('mark a refused file apart from a successful action', async () => {
+    await renderSection();
+
+    chooseFile('not a file');
+
+    await waitFor(() =>
+      expect(noticeNear(importButton())).toContain('That file could not be read'),
+    );
+    expect(screen.getByText('!').getAttribute('aria-hidden')).toBe('true');
+    expect(screen.queryByText('✓')).toBeNull();
   });
 });
 
 describe('the German interface', () => {
   it('translates the whole section', async () => {
-    await renderSection({ language: 'de-DE' });
+    await saveOneLink();
+    await renderSection('de-DE');
 
-    expect(screen.getByRole('button', { name: 'Als Datei exportieren' })).toBeTruthy();
     expect(screen.getByText(/unverschlüsselt/i)).toBeTruthy();
+    expect(importButton()).toBeTruthy();
+    expect(deleteButton()).toBeTruthy();
   });
 
   it('translates the empty case too', async () => {
-    await renderSection({ language: 'de-DE', hasSavedLinks: false });
+    await renderSection('de-DE');
 
     expect(screen.getByText(/nichts zu exportieren/i)).toBeTruthy();
   });

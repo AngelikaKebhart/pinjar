@@ -125,9 +125,12 @@ describe('the components', () => {
     const files = [
       'entrypoints/popup/App.tsx',
       'entrypoints/dashboard/App.tsx',
+      'entrypoints/dashboard/DataSection.tsx',
+      'entrypoints/dashboard/LinkFilters.tsx',
       'entrypoints/dashboard/SavedLinkCard.tsx',
       'src/components/DeleteLinkButton.tsx',
       'src/components/LanguageSwitcher.tsx',
+      'src/components/SavedLinkForm.tsx',
       'src/components/StatusLabel.tsx',
     ];
 
