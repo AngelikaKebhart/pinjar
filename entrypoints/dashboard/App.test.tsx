@@ -278,8 +278,8 @@ describe('accessibility', () => {
     const levels = screen
       .getAllByRole('heading')
       .map((heading) => Number(heading.tagName.slice(1)));
-    // Title, filters, the list, one card, settings.
-    expect(levels).toEqual([1, 2, 2, 3, 2]);
+    // Title, filters, the list, one card, the data section, settings.
+    expect(levels).toEqual([1, 2, 2, 3, 2, 2]);
   });
 
   it('works in German too', async () => {

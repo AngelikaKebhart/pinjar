@@ -4,6 +4,7 @@ import { useTranslation } from '@/src/i18n/context';
 import { filterSavedLinks, isFiltering, NO_FILTER } from '@/src/lib/filter';
 import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
 import { getSavedLinks, removeSavedLink, savedLinks, updateSavedLink } from '@/src/lib/storage';
+import { DataSection } from './DataSection';
 import { LinkFilters } from './LinkFilters';
 import { SavedLinkCard } from './SavedLinkCard';
 
@@ -12,13 +13,15 @@ import { SavedLinkCard } from './SavedLinkCard';
  *
  * Scope (see docs/concept.md §3.5): list every saved link across all domains,
  * with search and filters for category, tags and status, plus inline editing.
- * All of that exists; export and import are still to come.
+ * Exporting everything as a file sits below the list (§3.6); reading such a
+ * file back in is still to come.
  */
 function App() {
   const { t, plural } = useTranslation();
   const [links, setLinks] = useState<SavedLink[] | null>(null);
   const [criteria, setCriteria] = useState(NO_FILTER);
   const settingsHeadingId = useId();
+  const dataHeadingId = useId();
   const savedLinksHeadingId = useId();
   const filtersHeadingId = useId();
 
@@ -156,6 +159,23 @@ function App() {
         it would be missing from the region list a screen reader navigates by.
         Pointing at the heading names it in whichever language is active.
       */}
+      <section className="mt-10" aria-labelledby={dataHeadingId}>
+        <h2 id={dataHeadingId} className="text-lg font-medium">
+          {t('data.heading')}
+        </h2>
+        <div className="mt-3">
+          {/*
+            Nothing saved means nothing to write, which the section says for
+            itself rather than being hidden — a control that vanishes is
+            harder to find again than one that explains why it is idle. Which
+            of the two it is, though, is only known once the links are read,
+            so like the list above it waits rather than claiming an empty
+            wishlist for a frame.
+          */}
+          {links !== null && <DataSection hasSavedLinks={links.length > 0} />}
+        </div>
+      </section>
+
       <section className="mt-10" aria-labelledby={settingsHeadingId}>
         <h2 id={settingsHeadingId} className="text-lg font-medium">
           {t('settings.heading')}
