@@ -55,22 +55,48 @@ The workflow is always:
 3. Reach the UI as regular tabs: `chrome-extension://<id>/popup.html` and
    `chrome-extension://<id>/dashboard.html`.
 
-Three constraints are worth knowing before writing a test plan:
+### Test it the way a user would use it
+
+Drive the extension through the interface: click the buttons, tick the boxes, type into
+the fields, read the result back off the page. A test run that reaches past the UI proves
+that the storage layer works, which the unit tests already cover — what it cannot show is
+whether the thing is usable, and that is the entire point of taking the browser out.
+
+`evaluate_script` is the exception, not a shortcut. It is on the `ask` list in
+`.claude/settings.json` on purpose. Reach for it only when there is genuinely no way to
+observe or do the thing through the UI — reading `document.documentElement.lang` for WCAG
+3.1.1 is such a case, the accessibility tree does not carry it, and so is the toolbar
+badge, which appears on no page at all. When it is unavoidable, ask first and say what is
+being read and why nothing else would do. Never use it to set up state that clicking could
+have produced.
+
+Four constraints are worth knowing before writing a test plan:
 
 - **Chrome's `--load-extension` flag no longer works** (disabled since Chrome 137, and the
   `DisableLoadExtensionCommandLineSwitch` escape hatch is gone as of Chrome 151). Loading
   over CDP via `install_extension` is the only remaining route, which is why
   `--categoryExtensions=true` is set in `.mcp.json`.
-- **The popup bubble itself cannot be inspected.** `trigger_extension_action` clicks the
-  toolbar icon, but the bubble never becomes a debuggable page. Opened as a tab instead,
-  the popup has no meaningful "current tab" — the save button is correctly disabled there.
-  Popup layout, translations and accessibility are testable this way; the save flow is not.
-  Test that one against the background service worker or against pre-seeded storage.
+- **The popup bubble is reachable, but only while it stays open.** `trigger_extension_action`
+  opens it, and a moment later it appears in `list_pages` as a regular extension page. Select
+  it with `select_page` and `bringToFront: false` — bringing anything else to the front
+  dismisses the bubble, and so does navigating the tab underneath it. Because the tab below
+  stays the active one, the popup sees it as the current page and the save button is enabled,
+  so the full save flow is testable this way. Opening `popup.html` as a tab of its own is a
+  different situation: it is then its own active tab, has no meaningful "current page", and
+  the save button is correctly disabled. Good enough for layout and translations, useless for
+  saving.
 - **The browser is restricted to a URL allowlist** (`--allowedUrlPattern`), and the
   extension's own pages have to be part of it or navigating to them fails outright. Chrome
   derives the ID of an unpacked extension from its folder path, so the entry currently in
   `.mcp.json` stays valid — but moving `.output/chrome-mv3` changes the ID and silently
   breaks every test. Read the ID back from `list_extensions` when that happens.
+- **`fill` does not reach React state on a `<textarea>`.** The value lands in the DOM, the
+  component never hears about it, and the field saves empty without any error. Click the
+  field and use `type_text` for anything multi-line. `fill` is fine for `<input>` and
+  `<select>`.
 
 `take_snapshot` returns the accessibility tree, which makes it the better tool than
-`take_screenshot` for checking landmarks, live regions and label association.
+`take_screenshot` for checking landmarks, live regions and label association. Two things it
+does not show: the `lang` attribute, and any text a live region is still holding back — the
+dashboard's result count is announced on a deliberate delay, so a snapshot taken right after
+a keystroke shows the previous count rather than a bug.

@@ -12,6 +12,8 @@ export interface Translation {
   plural: (key: PluralMessageKey, count: number, params?: MessageParams) => string;
   formatNumber: (value: number, options?: Intl.NumberFormatOptions) => string;
   formatDate: (value: Date | string, options?: Intl.DateTimeFormatOptions) => string;
+  /** Orders user-provided names — categories, tags, status labels — for display. */
+  compareNames: (one: string, other: string) => number;
 }
 
 const TranslationContext = createContext<Translation | null>(null);

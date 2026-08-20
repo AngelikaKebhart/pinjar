@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent, ReactNode } from 'react';
 import { useTranslation } from '@/src/i18n/context';
 import { DEFAULT_STATUS, type LinkStatus, type SavedLinkEdits } from '@/src/lib/saved-link';
@@ -40,7 +40,7 @@ export function SavedLinkForm({
   onSave: (edits: SavedLinkEdits) => void | Promise<void>;
   onCancel: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, compareNames } = useTranslation();
   const fieldId = useId();
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -56,6 +56,26 @@ export function SavedLinkForm({
   const [knownCategories, setKnownCategories] = useState<string[]>([]);
   const [knownTags, setKnownTags] = useState<string[]>(link.tags);
   const [knownStatuses, setKnownStatuses] = useState<string[]>([]);
+
+  // Offered in the same order as the dashboard filters, so a value sits in the
+  // same place whether it is being picked here or filtered by there.
+  const offeredCategories = useMemo(
+    () => [...knownCategories].sort(compareNames),
+    [knownCategories, compareNames],
+  );
+  const offeredTags = useMemo(() => [...knownTags].sort(compareNames), [knownTags, compareNames]);
+
+  // Sorted by the label, which for the built-in status is its translation
+  // (§4) — that is what the user reads, and it puts the status in the same
+  // place the filter does.
+  const offeredStatuses = useMemo(() => {
+    const options = [
+      { value: BUILTIN_CHOICE, label: t('status.default') },
+      ...knownStatuses.map((known) => ({ value: `${KNOWN_PREFIX}${known}`, label: known })),
+    ];
+
+    return options.sort((one, other) => compareNames(one.label, other.label));
+  }, [knownStatuses, compareNames, t]);
 
   // Opening the form moves focus into it; otherwise the keyboard user is left
   // behind on a button that no longer exists.
@@ -132,7 +152,7 @@ export function SavedLinkForm({
         onChange={setCategoryChoice}
         options={[
           { value: NONE_CHOICE, label: t('editLink.categoryNone') },
-          ...knownCategories.map((known) => ({ value: `${KNOWN_PREFIX}${known}`, label: known })),
+          ...offeredCategories.map((known) => ({ value: `${KNOWN_PREFIX}${known}`, label: known })),
         ]}
         newOptionLabel={t('editLink.categoryNew')}
         onAdd={(name) => {
@@ -161,7 +181,7 @@ export function SavedLinkForm({
               stays readable at a glance.
             */}
             <ul className="flex max-h-48 flex-wrap gap-2 overflow-y-auto">
-              {knownTags.map((tag) => (
+              {offeredTags.map((tag) => (
                 <li key={tag}>
                   <label className="flex cursor-pointer items-center gap-2 rounded-md border border-line px-2 py-1 text-sm break-words hover:bg-surface-hover">
                     <input
@@ -206,11 +226,7 @@ export function SavedLinkForm({
         label={t('dashboard.link.status')}
         value={statusChoice}
         onChange={setStatusChoice}
-        options={[
-          // The built-in status is the only translated one (§4).
-          { value: BUILTIN_CHOICE, label: t('status.default') },
-          ...knownStatuses.map((known) => ({ value: `${KNOWN_PREFIX}${known}`, label: known })),
-        ]}
+        options={offeredStatuses}
         newOptionLabel={t('editLink.statusNew')}
         onAdd={(label) => {
           setKnownStatuses((known) => including(known, label));
