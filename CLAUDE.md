@@ -39,3 +39,38 @@ Do not duplicate these rules here — consult the skills, they stay up to date i
 - Start local dev: `pnpm dev` (auto-launches a browser with the extension loaded, hot reload)
 - Build per browser: `pnpm build -b chrome` / `pnpm build -b firefox` / `pnpm build -b edge` (or `pnpm wxt build -b <browser>`, depending on how scripts are set up)
 - See `docs/concept.md` §9 for detailed local-testing/debugging steps, and the README once it exists
+
+## Driving the extension in a real browser
+
+Claude Code can load and operate the extension itself through the `chrome-devtools`
+MCP server configured in `.mcp.json`. The server has to be approved once per machine
+(`/mcp`, or the prompt shown when a session starts); until then none of its tools exist.
+
+The workflow is always:
+
+1. `pnpm build` — `install_extension` reads `.output/chrome-mv3` from disk, so a stale
+   build is silently tested instead of the current code. The WXT dev server is not involved.
+2. `install_extension` with the absolute path to `.output/chrome-mv3`, then
+   `list_extensions` to get the generated extension ID.
+3. Reach the UI as regular tabs: `chrome-extension://<id>/popup.html` and
+   `chrome-extension://<id>/dashboard.html`.
+
+Three constraints are worth knowing before writing a test plan:
+
+- **Chrome's `--load-extension` flag no longer works** (disabled since Chrome 137, and the
+  `DisableLoadExtensionCommandLineSwitch` escape hatch is gone as of Chrome 151). Loading
+  over CDP via `install_extension` is the only remaining route, which is why
+  `--categoryExtensions=true` is set in `.mcp.json`.
+- **The popup bubble itself cannot be inspected.** `trigger_extension_action` clicks the
+  toolbar icon, but the bubble never becomes a debuggable page. Opened as a tab instead,
+  the popup has no meaningful "current tab" — the save button is correctly disabled there.
+  Popup layout, translations and accessibility are testable this way; the save flow is not.
+  Test that one against the background service worker or against pre-seeded storage.
+- **The browser is restricted to a URL allowlist** (`--allowedUrlPattern`), and the
+  extension's own pages have to be part of it or navigating to them fails outright. Chrome
+  derives the ID of an unpacked extension from its folder path, so the entry currently in
+  `.mcp.json` stays valid — but moving `.output/chrome-mv3` changes the ID and silently
+  breaks every test. Read the ID back from `list_extensions` when that happens.
+
+`take_snapshot` returns the accessibility tree, which makes it the better tool than
+`take_screenshot` for checking landmarks, live regions and label association.
