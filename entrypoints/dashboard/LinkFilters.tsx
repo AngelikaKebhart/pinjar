@@ -32,25 +32,32 @@ export function LinkFilters({
   criteria: LinkFilterCriteria;
   onChange: (criteria: LinkFilterCriteria) => void;
 }) {
-  const { t, language } = useTranslation();
+  const { t, compareNames } = useTranslation();
   const fieldId = useId();
 
-  // Sorted by name, so a value keeps its place instead of moving around with
-  // whichever link was saved last. Sorting is language-aware because German
-  // umlauts do not sort where their code points would put them.
-  const byName = useMemo(() => (a: string, b: string) => a.localeCompare(b, language), [language]);
-
+  // Every list of choices is sorted by name, so a value keeps its place
+  // instead of moving around with whichever link was saved last.
   const offeredCategories = useMemo(() => {
     const { names, uncategorised } = availableCategories(links, criteria);
-    return { names: [...names].sort(byName), uncategorised };
-  }, [links, criteria, byName]);
+    return { names: [...names].sort(compareNames), uncategorised };
+  }, [links, criteria, compareNames]);
 
   const offeredTags = useMemo(
-    () => [...availableTags(links, criteria)].sort(byName),
-    [links, criteria, byName],
+    () => [...availableTags(links, criteria)].sort(compareNames),
+    [links, criteria, compareNames],
   );
 
-  const offeredStatuses = useMemo(() => availableStatuses(links, criteria), [links, criteria]);
+  // Sorted by the label actually shown, not by the stored status: the built-in
+  // one is the only translated status (§4), so ordering it by its key would
+  // put it somewhere else than where the user reads it.
+  const offeredStatuses = useMemo(() => {
+    const labelled = availableStatuses(links, criteria).map((status) => ({
+      key: statusToKey(status),
+      label: status.kind === 'builtin' ? t(`status.${status.key}`) : status.label,
+    }));
+
+    return labelled.sort((one, other) => compareNames(one.label, other.label));
+  }, [links, criteria, compareNames, t]);
 
   const toggleTag = (tag: string) => {
     onChange({
@@ -127,10 +134,9 @@ export function LinkFilters({
           >
             <option value={ALL}>{t('filters.statusAll')}</option>
 
-            {/* The built-in status is the only translated one (§4). */}
-            {offeredStatuses.map((status) => (
-              <option key={statusToKey(status)} value={statusToKey(status)}>
-                {status.kind === 'builtin' ? t(`status.${status.key}`) : status.label}
+            {offeredStatuses.map(({ key, label }) => (
+              <option key={key} value={key}>
+                {label}
               </option>
             ))}
           </select>

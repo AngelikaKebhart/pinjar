@@ -89,6 +89,7 @@ describe('LanguageSwitcher', () => {
       plural: (key) => key,
       formatNumber: (value) => String(value),
       formatDate: () => '',
+      compareNames: (one, other) => one.localeCompare(other),
     };
 
     render(

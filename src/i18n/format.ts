@@ -90,3 +90,13 @@ export function formatDate(
 
   return new Intl.DateTimeFormat(language, options).format(date);
 }
+
+/**
+ * Compares two names the way the active language reads them.
+ *
+ * Not a plain `<`: German umlauts do not sort where their code points would
+ * put them, so "Österreich" would land after "Recht" instead of beside "O".
+ */
+export function compareNames(language: Language, one: string, other: string): number {
+  return one.localeCompare(other, language);
+}

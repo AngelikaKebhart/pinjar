@@ -229,6 +229,24 @@ describe('the category', () => {
     expect(screen.getByRole('option', { name: 'Patterns' })).toBeTruthy();
   });
 
+  // The same order the dashboard filter uses, so a category sits in the same
+  // place whether it is being picked here or filtered by there.
+  it('offers them sorted by name rather than in the order they were created', async () => {
+    await addSavedLink({ url: 'https://shop.example/a', category: 'Patterns' });
+    await addSavedLink({ url: 'https://shop.example/b', category: 'Fabrics' });
+
+    await renderForm();
+    await screen.findByRole('option', { name: 'Fabrics' });
+
+    const select = screen.getByLabelText('Category') as HTMLSelectElement;
+    expect([...select.options].map((option) => option.textContent)).toEqual([
+      'No category',
+      'Fabrics',
+      'Patterns',
+      'Add a new category…',
+    ]);
+  });
+
   // The point of the whole exercise: a category is typed once, then picked.
   it('takes one of them without retyping it', async () => {
     await addSavedLink({ url: 'https://shop.example/a', category: 'Fabrics' });

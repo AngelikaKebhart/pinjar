@@ -713,6 +713,12 @@ describe('the filters narrowing each other', () => {
       .map((box) => box.closest('label')?.textContent ?? '');
   }
 
+  /** The statuses on offer, without the "any status" entry that leads the list. */
+  function offeredStatuses(): string[] {
+    const select = within(filters()).getByLabelText('Status') as HTMLSelectElement;
+    return [...select.options].slice(1).map((option) => option.textContent ?? '');
+  }
+
   async function givenLinks(): Promise<void> {
     await save({
       url: 'https://shop.example/jersey',
@@ -775,5 +781,30 @@ describe('the filters narrowing each other', () => {
     await givenLinks();
 
     expect(offeredTags()).toEqual(['blue', 'dress', 'jersey']);
+  });
+
+  // By the label on screen, not by the stored status: the built-in one is the
+  // only translated status (§4), so ordering it by its key would put it
+  // somewhere else than where the user reads it. Without this the list was
+  // in order of first appearance and shuffled itself on every edit.
+  it('sorts the statuses by the label shown', async () => {
+    // Saved newest last, so first appearance in the list would be the reverse
+    // of the order asserted below.
+    await save({
+      url: 'https://shop.example/first',
+      title: 'Wrapped up',
+      status: { kind: 'custom', label: 'Zebra print ordered' },
+    });
+    await save({
+      url: 'https://shop.example/second',
+      title: 'Waiting',
+      status: { kind: 'custom', label: 'Asked about it' },
+    });
+    await save({ url: 'https://shop.example/third', title: 'Still wishlisted' });
+
+    await renderDashboard();
+    await within(filters()).findByRole('option', { name: 'Asked about it' });
+
+    expect(offeredStatuses()).toEqual(['Asked about it', 'Saved', 'Zebra print ordered']);
   });
 });

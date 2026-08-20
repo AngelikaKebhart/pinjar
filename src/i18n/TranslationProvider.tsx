@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { languagePreference } from '@/src/lib/settings';
 import { TranslationContextProvider } from './context';
 import type { Translation } from './context';
-import { formatDate, formatNumber, translate, translatePlural } from './format';
+import { compareNames, formatDate, formatNumber, translate, translatePlural } from './format';
 import { resolveLanguage } from './language';
 import { CATALOGS } from './messages';
 import type { LanguagePreference } from './messages';
@@ -66,6 +66,7 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
       plural: (key, count, params) => translatePlural(catalog, language, key, count, params),
       formatNumber: (value, options) => formatNumber(language, value, options),
       formatDate: (value, options) => formatDate(language, value, options),
+      compareNames: (one, other) => compareNames(language, one, other),
     };
   }, [language, preference]);
 
