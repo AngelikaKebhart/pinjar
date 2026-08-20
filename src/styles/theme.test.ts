@@ -1,4 +1,5 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
+import { sep } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 /**
@@ -121,20 +122,32 @@ describe.each(['light', 'dark'] as const)('the %s palette', (mode) => {
 // A component reaching for a raw palette color is how one half of the
 // interface ends up ignoring the dark palette.
 describe('the components', () => {
-  it('name color roles rather than colors', () => {
-    const files = [
-      'entrypoints/popup/App.tsx',
-      'entrypoints/dashboard/App.tsx',
-      'entrypoints/dashboard/DataSection.tsx',
-      'entrypoints/dashboard/LinkFilters.tsx',
-      'entrypoints/dashboard/SavedLinkCard.tsx',
-      'src/components/DeleteLinkButton.tsx',
-      'src/components/LanguageSwitcher.tsx',
-      'src/components/SavedLinkForm.tsx',
-      'src/components/StatusLabel.tsx',
-    ];
+  /**
+   * Every component, found rather than listed.
+   *
+   * A list kept by hand stops covering the components written after it, and
+   * says nothing while it does — which is exactly when the rule is easiest to
+   * break unnoticed. Two components had been missing from it for months.
+   */
+  function componentFiles(): string[] {
+    return ['entrypoints', 'src/components'].flatMap((root) =>
+      readdirSync(new URL(`../../${root}`, import.meta.url), {
+        recursive: true,
+        encoding: 'utf8',
+      })
+        .filter((entry) => entry.endsWith('.tsx') && !entry.includes('.test.'))
+        .map((entry) => `${root}/${entry.split(sep).join('/')}`),
+    );
+  }
 
-    const offenders = files.filter((file) =>
+  // A guard that found nothing would pass while checking nothing.
+  it('finds the components to check', () => {
+    expect(componentFiles()).toContain('src/components/StatusLabel.tsx');
+    expect(componentFiles().length).toBeGreaterThan(5);
+  });
+
+  it('name color roles rather than colors', () => {
+    const offenders = componentFiles().filter((file) =>
       /(?:text|bg|border|outline|ring|fill)-(?:slate|gray|zinc|blue|red|green|amber)-\d{2,3}/.test(
         readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8'),
       ),
