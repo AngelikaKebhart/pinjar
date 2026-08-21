@@ -160,6 +160,11 @@ switch** — a screen reader picks its pronunciation from it (WCAG 2.2 AA, 3.1.1
 **If it fails:** `color-scheme: light dark` is not reaching the page, or the language effect is
 not writing the attribute.
 
+**Not a failure:** on automatic, a dark dashboard next to a light popup. Firefox tells an
+extension page in a tab what the browser theme is, and the popup what the operating system is — so
+the two disagree whenever those two settings do. Setting Appearance to Hell or Dunkel is what
+overrules both, and is worth checking here for exactly that reason.
+
 ---
 
 ## What this list does not cover
