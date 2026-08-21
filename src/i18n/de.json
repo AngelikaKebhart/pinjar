@@ -10,6 +10,7 @@
   "popup.status.unsupportedPage": "Diese Seite lässt sich nicht merken. Es funktionieren nur normale Webseiten über http oder https.",
   "popup.status.failed": "Das Merken hat nicht geklappt. Bitte versuche es noch einmal.",
   "popup.status.removed": "Entfernt.",
+  "popup.status.detailsSaved": "Details gespeichert.",
 
   "popup.savedLinks.heading": "Gemerkt auf {domain}",
   "popup.savedLinks.empty": "Auf dieser Seite hast du noch nichts gemerkt.",
@@ -36,7 +37,6 @@
 
   "status.default": "Gemerkt",
 
-  "editLink.action": "Bearbeiten",
   "editLink.actionLabel": "„{title}“ bearbeiten",
   "editLink.formLabel": "„{title}“ bearbeiten",
   "editLink.categoryNone": "Keine Kategorie",
@@ -50,7 +50,6 @@
   "editLink.save": "Speichern",
   "editLink.cancel": "Abbrechen",
 
-  "deleteLink.action": "Löschen",
   "deleteLink.actionLabel": "„{title}“ löschen",
   "deleteLink.question": "Löschen?",
   "deleteLink.confirm": "Ja, löschen",

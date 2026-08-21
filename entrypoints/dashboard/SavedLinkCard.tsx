@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { DeleteLinkButton } from '@/src/components/DeleteLinkButton';
+import { EditLinkButton } from '@/src/components/EditLinkButton';
 import { SavedLinkForm } from '@/src/components/SavedLinkForm';
 import { StatusLabel } from '@/src/components/StatusLabel';
 import { useTranslation } from '@/src/i18n/context';
@@ -72,69 +73,74 @@ export function SavedLinkCard({
             onCancel={closeForm}
           />
         ) : (
-          <>
-            {/*
-              A description list, because every row is a label and its value.
-              That is what lets a screen reader announce "Category: Fabrics"
-              instead of two unrelated words, and the auto column keeps the
-              longer German labels from squeezing the values.
-            */}
-            {/*
-              Label above value while narrow, side by side once the label
-              column can have its width without starving the value.
-            */}
-            <dl className="grid grid-cols-1 gap-x-3 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
-              <dt className="text-ink-muted">{t('dashboard.link.status')}</dt>
-              <dd>
-                <StatusLabel status={link.status} />
-              </dd>
+          /*
+           * A description list, because every row is a label and its value.
+           * That is what lets a screen reader announce "Category: Fabrics"
+           * instead of two unrelated words, and the auto column keeps the
+           * longer German labels from squeezing the values.
+           *
+           * Label above value while narrow, side by side once the label column
+           * can have its width without starving the value.
+           */
+          <dl className="grid grid-cols-1 gap-x-3 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
+            <dt className="text-ink-muted">{t('dashboard.link.status')}</dt>
+            <dd>
+              <StatusLabel status={link.status} />
+            </dd>
 
-              {link.category !== null && (
-                <>
-                  <dt className="text-ink-muted">{t('dashboard.link.category')}</dt>
-                  <dd className="break-words">{link.category}</dd>
-                </>
-              )}
+            {link.category !== null && (
+              <>
+                <dt className="text-ink-muted">{t('dashboard.link.category')}</dt>
+                <dd className="break-words">{link.category}</dd>
+              </>
+            )}
 
-              {link.tags.length > 0 && (
-                <>
-                  <dt className="text-ink-muted">{t('dashboard.link.tags')}</dt>
-                  <dd>
-                    <ul className="flex flex-wrap gap-1">
-                      {link.tags.map((tag) => (
-                        <li key={tag} className="rounded bg-chip px-2 py-0.5 break-words">
-                          {tag}
-                        </li>
-                      ))}
-                    </ul>
-                  </dd>
-                </>
-              )}
+            {link.tags.length > 0 && (
+              <>
+                <dt className="text-ink-muted">{t('dashboard.link.tags')}</dt>
+                <dd>
+                  <ul className="flex flex-wrap gap-1">
+                    {link.tags.map((tag) => (
+                      <li key={tag} className="rounded bg-chip px-2 py-0.5 break-words">
+                        {tag}
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </>
+            )}
 
-              {link.note !== '' && (
-                <>
-                  <dt className="text-ink-muted">{t('dashboard.link.note')}</dt>
-                  <dd className="break-words whitespace-pre-line">{link.note}</dd>
-                </>
-              )}
-            </dl>
-
-            <div className="mt-1 flex flex-wrap gap-2">
-              <button
-                ref={editButtonRef}
-                type="button"
-                onClick={() => setIsEditing(true)}
-                aria-label={t('editLink.actionLabel', { title: link.title })}
-                className="rounded-md border border-line-strong px-3 py-1.5 text-sm font-medium hover:bg-surface-hover"
-              >
-                {t('editLink.action')}
-              </button>
-
-              <DeleteLinkButton title={link.title} onDelete={onDelete} />
-            </div>
-          </>
+            {link.note !== '' && (
+              <>
+                <dt className="text-ink-muted">{t('dashboard.link.note')}</dt>
+                <dd className="break-words whitespace-pre-line">{link.note}</dd>
+              </>
+            )}
+          </dl>
         )}
       </div>
+
+      {/*
+        Beside the content rather than under it, and gone while the form has
+        the card — the form brings its own Save and Cancel, and a second pair
+        of buttons next to them would only invite the wrong one.
+
+        Capped in width so that the delete question, which is words and not an
+        icon, wraps inside this column instead of taking the room from the
+        text. Below the breakpoint the card stacks and they end up under the
+        content anyway, which at 320px is the only place they fit (1.4.10).
+      */}
+      {!isEditing && (
+        <div className="flex shrink-0 flex-wrap gap-2 sm:max-w-36 sm:justify-end">
+          <EditLinkButton
+            ref={editButtonRef}
+            title={link.title}
+            onEdit={() => setIsEditing(true)}
+          />
+
+          <DeleteLinkButton title={link.title} onDelete={onDelete} />
+        </div>
+      )}
     </article>
   );
 }

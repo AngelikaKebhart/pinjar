@@ -10,6 +10,7 @@
   "popup.status.unsupportedPage": "This page cannot be saved. Only regular web pages using http or https work.",
   "popup.status.failed": "Saving did not work. Please try again.",
   "popup.status.removed": "Removed.",
+  "popup.status.detailsSaved": "Details saved.",
 
   "popup.savedLinks.heading": "Saved on {domain}",
   "popup.savedLinks.empty": "You have not saved anything on this site yet.",
@@ -36,7 +37,6 @@
 
   "status.default": "Saved",
 
-  "editLink.action": "Edit",
   "editLink.actionLabel": "Edit “{title}”",
   "editLink.formLabel": "Edit “{title}”",
   "editLink.categoryNone": "No category",
@@ -50,7 +50,6 @@
   "editLink.save": "Save",
   "editLink.cancel": "Cancel",
 
-  "deleteLink.action": "Delete",
   "deleteLink.actionLabel": "Delete “{title}”",
   "deleteLink.question": "Delete?",
   "deleteLink.confirm": "Yes, delete",

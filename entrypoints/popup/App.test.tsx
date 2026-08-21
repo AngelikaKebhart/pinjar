@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
 import { TranslationProvider } from '@/src/i18n/TranslationProvider';
 import { CATALOGS } from '@/src/i18n/messages';
-import { addSavedLink } from '@/src/lib/storage';
+import { addSavedLink, getSavedLinks } from '@/src/lib/storage';
 import App from './App';
 
 const en = CATALOGS.en;
@@ -31,6 +31,24 @@ async function renderPopup(): Promise<void> {
 
 function saveButton(): HTMLElement {
   return screen.getByRole('button', { name: en['popup.savePage'] ?? '' });
+}
+
+/** The button that opens the form on one link in the list. */
+function editButton(title: string): HTMLElement {
+  return screen.getByRole('button', { name: `Edit “${title}”` });
+}
+
+/** The form for title, category, tags, status and note, once it is open. */
+function detailsForm(title: string): HTMLElement {
+  return screen.getByRole('form', { name: `Edit “${title}”` });
+}
+
+function detailsSaveButton(): HTMLElement {
+  return screen.getByRole('button', { name: en['editLink.save'] ?? '' });
+}
+
+function detailsCancelButton(): HTMLElement {
+  return screen.getByRole('button', { name: en['editLink.cancel'] ?? '' });
 }
 
 beforeEach(() => {
@@ -71,7 +89,7 @@ describe('saving the current page', () => {
     fireEvent.click(saveButton());
 
     expect(await screen.findByText(en['popup.status.alreadySaved'] ?? '')).toBeTruthy();
-    expect(screen.getAllByRole('link')).toHaveLength(1);
+    await expect(getSavedLinks()).resolves.toHaveLength(1);
   });
 
   // A browser page has no domain to file anything under, so the button would
@@ -91,6 +109,64 @@ describe('saving the current page', () => {
     await renderPopup();
 
     expect(screen.getByText(en['popup.status.unsupportedPage'] ?? '')).toBeTruthy();
+  });
+});
+
+/*
+ * Concept §3.1: category, tags, status and note can be given from the popup.
+ * Each link carries its own button for them, so that saving stays the single
+ * click the extension promises and the list stays what the popup shows.
+ */
+describe('editing a link from the list', () => {
+  it('opens the form from the button on that link', async () => {
+    await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await givenTabOn('https://shop.example/second');
+    await renderPopup();
+
+    fireEvent.click(editButton('Jersey fabric'));
+
+    expect(detailsForm('Jersey fabric')).toBeTruthy();
+  });
+
+  it('keeps what was filled in', async () => {
+    await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await givenTabOn('https://shop.example/second');
+    await renderPopup();
+
+    fireEvent.click(editButton('Jersey fabric'));
+    fireEvent.change(screen.getByLabelText('Note'), { target: { value: 'Size M' } });
+    fireEvent.change(screen.getByLabelText('New tags'), { target: { value: 'jersey, blue' } });
+    fireEvent.click(detailsSaveButton());
+
+    expect(await screen.findByText(en['popup.status.detailsSaved'] ?? '')).toBeTruthy();
+    await expect(getSavedLinks()).resolves.toMatchObject([
+      { note: 'Size M', tags: ['jersey', 'blue'] },
+    ]);
+  });
+
+  // Saving is one click and stays one click. A form opening by itself would
+  // push the list out of sight of everyone who only wanted to save.
+  it('stays closed when a page is saved', async () => {
+    await givenTabOn('https://shop.example/item');
+    await renderPopup();
+
+    fireEvent.click(saveButton());
+
+    expect(await screen.findByText(en['popup.status.saved'] ?? '')).toBeTruthy();
+    expect(screen.queryByRole('form')).toBeNull();
+  });
+
+  // Otherwise focus falls to the document, and a keyboard user starts over at
+  // the top of the popup.
+  it('hands focus back to the button when the form is dismissed', async () => {
+    await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await givenTabOn('https://shop.example/second');
+    await renderPopup();
+
+    fireEvent.click(editButton('Jersey fabric'));
+    fireEvent.click(detailsCancelButton());
+
+    await waitFor(() => expect(document.activeElement).toBe(editButton('Jersey fabric')));
   });
 });
 
@@ -194,6 +270,28 @@ describe('accessibility', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Keep “Jersey fabric”' }));
 
     expect(screen.getByRole('link', { name: 'Jersey fabric' })).toBeTruthy();
+  });
+
+  /*
+   * The question replaces the button that asked it and the button comes back
+   * in its place, so focus has to travel both ways. Left behind, it falls to
+   * the document and the next Tab starts over at the top of the popup.
+   */
+  it('carries focus into the delete question and back out of it', async () => {
+    await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await givenTabOn('https://shop.example/second');
+    await renderPopup();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete “Jersey fabric”' }));
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Yes, delete “Jersey fabric”' }),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Keep “Jersey fabric”' }));
+
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Delete “Jersey fabric”' }),
+    );
   });
 
   it('keeps working in German', async () => {

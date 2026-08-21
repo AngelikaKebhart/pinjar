@@ -1,17 +1,20 @@
 import { useCallback, useEffect, useId, useState } from 'react';
-import { DeleteLinkButton } from '@/src/components/DeleteLinkButton';
 import { useTranslation } from '@/src/i18n/context';
 import type { MessageKey } from '@/src/i18n/messages';
 import { getCurrentPage, saveCurrentPage, type CurrentPage } from '@/src/lib/current-page';
-import type { SavedLink } from '@/src/lib/saved-link';
-import { getSavedLinksForDomain, removeSavedLink } from '@/src/lib/storage';
+import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
+import { getSavedLinksForDomain, removeSavedLink, updateSavedLink } from '@/src/lib/storage';
+import { SavedLinkRow } from './SavedLinkRow';
 
 /**
  * Popup shown when the toolbar icon is clicked.
  *
  * Scope (see docs/concept.md §3.4): save the current page with one click and
- * list what is already saved for the site it belongs to. Assigning category,
- * tags and a note is the dashboard's job for now.
+ * list what is already saved for the site it belongs to.
+ *
+ * Category, tags, status and note can be given here as well (§3.1), but never
+ * on the way: saving is one click and stays one click, and every link on the
+ * list carries its own button to open the form when it is wanted.
  */
 function App() {
   const { t } = useTranslation();
@@ -54,6 +57,12 @@ function App() {
     await loadLinks(page.domain);
   };
 
+  const handleEdit = async (link: SavedLink, edits: SavedLinkEdits) => {
+    await updateSavedLink(link.id, edits);
+    setStatusKey('popup.status.detailsSaved');
+    await loadLinks(page?.domain ?? null);
+  };
+
   const handleRemove = async (link: SavedLink) => {
     await removeSavedLink(link.id);
     setStatusKey('popup.status.removed');
@@ -63,7 +72,7 @@ function App() {
   // Nothing is worth rendering before we know which page we are looking at.
   if (links === null) {
     return (
-      <main className="w-80 p-4">
+      <main className="w-96 p-4">
         <p className="text-sm">{t('popup.loading')}</p>
       </main>
     );
@@ -75,7 +84,7 @@ function App() {
   const canSave = currentDomain !== null;
 
   return (
-    <main className="flex w-80 flex-col gap-4 p-4">
+    <main className="flex w-96 flex-col gap-4 p-4">
       <h1 className="text-base font-semibold">{t('popup.title')}</h1>
 
       <div className="flex flex-col gap-2">
@@ -101,8 +110,8 @@ function App() {
       {/*
         Only where there is a site to list links for. On a browser page the
         heading would name a domain that does not exist, and the list would
-        claim that nothing is saved here yet — where "here" is a page that
-        can never hold anything.
+        claim that nothing is saved here yet — where "here" is a page that can
+        never hold anything.
       */}
       {canSave && (
         <section aria-labelledby={savedLinksHeadingId} className="flex flex-col gap-2">
@@ -113,24 +122,14 @@ function App() {
           {links.length === 0 ? (
             <p className="text-sm text-ink-muted">{t('popup.savedLinks.empty')}</p>
           ) : (
-            <ul className="flex flex-col gap-1">
+            <ul className="flex flex-col gap-2">
               {links.map((link) => (
-                <li key={link.id} className="flex flex-wrap items-center gap-2">
-                  {/*
-                  A real link, so it keeps its semantics and middle-click. The
-                  popup would otherwise navigate itself; target opens a tab.
-                  noreferrer keeps the extension's address off the target site.
-                */}
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="min-w-0 flex-1 break-words rounded-sm py-1 text-sm text-link underline hover:text-link-strong"
-                  >
-                    {link.title}
-                  </a>
-
-                  <DeleteLinkButton title={link.title} onDelete={() => handleRemove(link)} />
+                <li key={link.id}>
+                  <SavedLinkRow
+                    link={link}
+                    onDelete={() => handleRemove(link)}
+                    onEdit={(edits) => handleEdit(link, edits)}
+                  />
                 </li>
               ))}
             </ul>

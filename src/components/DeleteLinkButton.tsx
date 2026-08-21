@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { IconButton } from '@/src/components/IconButton';
+import { DeleteIcon } from '@/src/components/icons';
 import { useTranslation } from '@/src/i18n/context';
 
 /**
@@ -11,6 +13,10 @@ import { useTranslation } from '@/src/i18n/context';
  * The confirmation is inline rather than a dialog: it needs no focus trap, it
  * cannot be missed behind the window, and it keeps the answer next to the
  * thing being answered about.
+ *
+ * Only the way in is an icon. The question and its two answers stay words:
+ * an icon is a good enough hint for something the user can undo by not
+ * pressing it, and no hint at all for a decision that is final.
  */
 export function DeleteLinkButton({
   title,
@@ -22,26 +28,40 @@ export function DeleteLinkButton({
 }) {
   const { t } = useTranslation();
   const [isAsking, setIsAsking] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const confirmRef = useRef<HTMLButtonElement>(null);
+  const wasAsking = useRef(false);
 
-  // The button the user pressed is replaced by this pair, so focus has to be
-  // handed over — it would otherwise fall back to the document.
+  /*
+   * Whichever button is on screen replaces the one that was pressed, so focus
+   * has to be handed over both ways — it would otherwise fall back to the
+   * document, and a keyboard user would tab in again from the top of a list
+   * that may be long. Asking moves it to the answer, dismissing moves it back
+   * to the button that asked.
+   *
+   * Confirming is the one case with nowhere to hand it: the link is gone and
+   * this component with it. What happened is announced by the status line the
+   * caller updates.
+   */
   useEffect(() => {
     if (isAsking) {
       confirmRef.current?.focus();
+    } else if (wasAsking.current) {
+      triggerRef.current?.focus();
     }
+
+    wasAsking.current = isAsking;
   }, [isAsking]);
 
   if (!isAsking) {
     return (
-      <button
-        type="button"
+      <IconButton
+        ref={triggerRef}
+        label={t('deleteLink.actionLabel', { title })}
         onClick={() => setIsAsking(true)}
-        aria-label={t('deleteLink.actionLabel', { title })}
-        className={ACTION_CLASSES}
       >
-        {t('deleteLink.action')}
-      </button>
+        <DeleteIcon />
+      </IconButton>
     );
   }
 
