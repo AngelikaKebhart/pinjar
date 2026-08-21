@@ -2,6 +2,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
+import { ThemeProvider } from '@/src/components/ThemeProvider';
 import { TranslationProvider } from '@/src/i18n/TranslationProvider';
 import { CATALOGS } from '@/src/i18n/messages';
 import { addSavedLink, getSavedLinks } from '@/src/lib/storage';
@@ -11,9 +12,11 @@ const en = CATALOGS.en;
 
 async function renderDashboard(): Promise<void> {
   render(
-    <TranslationProvider>
-      <App />
-    </TranslationProvider>,
+    <ThemeProvider>
+      <TranslationProvider>
+        <App />
+      </TranslationProvider>
+    </ThemeProvider>,
   );
 
   // The heading is there immediately, the list only once storage has answered.

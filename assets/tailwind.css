@@ -4,104 +4,90 @@
  * Semantic color tokens.
  *
  * Components name the *role* a color plays ("bg-surface", "text-ink-muted"),
- * never the color itself. That is what lets the dark palette below swap every
- * value in one place instead of every component carrying a "dark:" twin — and
- * it keeps the number of color pairs that need a contrast proof small enough
- * to actually verify. src/styles/theme.test.ts does verify them.
+ * never the color itself. That is what lets the dark palette swap every value
+ * without a single component carrying a "dark:" twin — and it keeps the number
+ * of color pairs that need a contrast proof small enough to actually verify.
+ * src/styles/theme.test.ts does verify them, in both palettes.
  *
- * Adding a token means adding it to both palettes and to that test.
+ * Each token carries both its values through `light-dark()`, which resolves
+ * against the `color-scheme` in force further down. One line per role, one
+ * place to change it, and no way for the two palettes to drift apart by
+ * forgetting one of them.
+ *
+ * The dark values are not a mechanical inversion: pure black backgrounds and
+ * pure white text read as harsh, so the darkest surface is a deep blue-grey
+ * and the brightest text stops short of white.
+ *
+ * Adding a token means adding it here and to that test.
  */
 @theme {
   /* Page background, and the panels sitting on it. */
-  --color-canvas: #f8fafc;
-  --color-surface: #ffffff;
+  --color-canvas: light-dark(#f8fafc, #0f172a);
+  --color-surface: light-dark(#ffffff, #1e293b);
   /* What a surface turns into while the pointer rests on it. */
-  --color-surface-hover: #f1f5f9;
+  --color-surface-hover: light-dark(#f1f5f9, #334155);
 
   /* Text. "ink" carries content, "ink-muted" carries secondary information. */
-  --color-ink: #0f172a;
-  --color-ink-muted: #475569;
+  --color-ink: light-dark(#0f172a, #e2e8f0);
+  --color-ink-muted: light-dark(#475569, #94a3b8);
 
   /* Borders. "line" is decorative, "line-strong" outlines a control the user
      has to be able to find, which is why only that one needs 3:1. */
-  --color-line: #cbd5e1;
-  --color-line-strong: #64748b;
+  --color-line: light-dark(#cbd5e1, #334155);
+  --color-line-strong: light-dark(#64748b, #94a3b8);
 
   /* The primary action. */
-  --color-accent: #1d4ed8;
-  --color-accent-strong: #1e3a8a;
-  --color-on-accent: #ffffff;
+  --color-accent: light-dark(#1d4ed8, #2563eb);
+  --color-accent-strong: light-dark(#1e3a8a, #1d4ed8);
+  --color-on-accent: light-dark(#ffffff, #ffffff);
 
   /* Links inside text. */
-  --color-link: #1e40af;
-  --color-link-strong: #1e3a8a;
+  --color-link: light-dark(#1e40af, #93c5fd);
+  --color-link-strong: light-dark(#1e3a8a, #bfdbfe);
 
   /* Destructive actions. */
-  --color-danger: #991b1b;
-  --color-danger-strong: #7f1d1d;
-  --color-on-danger: #ffffff;
+  --color-danger: light-dark(#991b1b, #dc2626);
+  --color-danger-strong: light-dark(#7f1d1d, #b91c1c);
+  --color-on-danger: light-dark(#ffffff, #ffffff);
 
   /* Chips: tags are quiet, a status stands out a little more. */
-  --color-chip: #f1f5f9;
-  --color-chip-strong: #e2e8f0;
+  --color-chip: light-dark(#f1f5f9, #334155);
+  --color-chip-strong: light-dark(#e2e8f0, #475569);
 
   /* A control that cannot be used right now. */
-  --color-disabled: #64748b;
-  --color-on-disabled: #ffffff;
+  --color-disabled: light-dark(#64748b, #475569);
+  --color-on-disabled: light-dark(#ffffff, #e2e8f0);
 
   /* The focus ring, applied globally below. */
-  --color-focus: #1d4ed8;
-}
-
-/*
- * The dark palette. Same roles, different values — no component changes.
- *
- * Not a mechanical inversion: pure black backgrounds and pure white text read
- * as harsh, so the darkest surface is a deep blue-grey and the brightest text
- * stops short of white.
- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-canvas: #0f172a;
-    --color-surface: #1e293b;
-    --color-surface-hover: #334155;
-
-    --color-ink: #e2e8f0;
-    --color-ink-muted: #94a3b8;
-
-    --color-line: #334155;
-    --color-line-strong: #94a3b8;
-
-    --color-accent: #2563eb;
-    --color-accent-strong: #1d4ed8;
-    --color-on-accent: #ffffff;
-
-    --color-link: #93c5fd;
-    --color-link-strong: #bfdbfe;
-
-    --color-danger: #dc2626;
-    --color-danger-strong: #b91c1c;
-    --color-on-danger: #ffffff;
-
-    --color-chip: #334155;
-    --color-chip-strong: #475569;
-
-    --color-disabled: #475569;
-    --color-on-disabled: #e2e8f0;
-
-    --color-focus: #93c5fd;
-  }
+  --color-focus: light-dark(#1d4ed8, #93c5fd);
 }
 
 @layer base {
   /*
-   * Tells the browser which palette is active, so that everything it draws
-   * itself — the <select> drop-down, scrollbars, text selection — follows
-   * along. Without this the language switcher stays a white box in an
-   * otherwise dark dashboard.
+   * `color-scheme` is the single switch behind the palette above, and it also
+   * tells the browser which colors to use for what it draws itself — the
+   * <select> drop-down, scrollbars, text selection. Without it the language
+   * switcher would stay a white box in an otherwise dark dashboard.
+   *
+   * "light dark" means "whatever the browser says", which is the default and
+   * what the setting calls automatic. The attribute overrides it, and is put
+   * on <html> by the ThemeProvider from the stored preference.
+   *
+   * The override exists because the browser's answer is not always one answer:
+   * Firefox tells an extension page in a tab what its own theme is, while
+   * telling the popup what the operating system is — so the dashboard can end
+   * up dark and the popup light, on the same machine, both behaving correctly.
    */
   :root {
     color-scheme: light dark;
+  }
+
+  :root[data-theme='light'] {
+    color-scheme: light;
+  }
+
+  :root[data-theme='dark'] {
+    color-scheme: dark;
   }
 
   body {
