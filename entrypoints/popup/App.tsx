@@ -29,6 +29,14 @@ function App() {
   useEffect(() => {
     void getCurrentPage().then(async (current) => {
       setPage(current);
+
+      // A page that cannot be saved leaves the button greyed out, and a
+      // disabled button that gives no reason is a dead end. Said here rather
+      // than on click, which is exactly what the button no longer allows.
+      if ((current?.domain ?? null) === null) {
+        setStatusKey('popup.status.unsupportedPage');
+      }
+
       await loadLinks(current?.domain ?? null);
     });
   }, [loadLinks]);
@@ -61,7 +69,10 @@ function App() {
     );
   }
 
-  const canSave = page !== null && page.domain !== null;
+  // The site the popup was opened over, or `null` for anything that cannot be
+  // saved at all — a browser page, a local file, the extension's own pages.
+  const currentDomain = page?.domain ?? null;
+  const canSave = currentDomain !== null;
 
   return (
     <main className="flex w-80 flex-col gap-4 p-4">
@@ -87,37 +98,45 @@ function App() {
         </p>
       </div>
 
-      <section aria-labelledby={savedLinksHeadingId} className="flex flex-col gap-2">
-        <h2 id={savedLinksHeadingId} className="text-sm font-medium">
-          {t('popup.savedLinks.heading', { domain: page?.domain ?? '' })}
-        </h2>
+      {/*
+        Only where there is a site to list links for. On a browser page the
+        heading would name a domain that does not exist, and the list would
+        claim that nothing is saved here yet — where "here" is a page that
+        can never hold anything.
+      */}
+      {canSave && (
+        <section aria-labelledby={savedLinksHeadingId} className="flex flex-col gap-2">
+          <h2 id={savedLinksHeadingId} className="text-sm font-medium">
+            {t('popup.savedLinks.heading', { domain: currentDomain })}
+          </h2>
 
-        {links.length === 0 ? (
-          <p className="text-sm text-ink-muted">{t('popup.savedLinks.empty')}</p>
-        ) : (
-          <ul className="flex flex-col gap-1">
-            {links.map((link) => (
-              <li key={link.id} className="flex flex-wrap items-center gap-2">
-                {/*
+          {links.length === 0 ? (
+            <p className="text-sm text-ink-muted">{t('popup.savedLinks.empty')}</p>
+          ) : (
+            <ul className="flex flex-col gap-1">
+              {links.map((link) => (
+                <li key={link.id} className="flex flex-wrap items-center gap-2">
+                  {/*
                   A real link, so it keeps its semantics and middle-click. The
                   popup would otherwise navigate itself; target opens a tab.
                   noreferrer keeps the extension's address off the target site.
                 */}
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="min-w-0 flex-1 break-words rounded-sm py-1 text-sm text-link underline hover:text-link-strong"
-                >
-                  {link.title}
-                </a>
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="min-w-0 flex-1 break-words rounded-sm py-1 text-sm text-link underline hover:text-link-strong"
+                  >
+                    {link.title}
+                  </a>
 
-                <DeleteLinkButton title={link.title} onDelete={() => handleRemove(link)} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+                  <DeleteLinkButton title={link.title} onDelete={() => handleRemove(link)} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       <button
         type="button"
