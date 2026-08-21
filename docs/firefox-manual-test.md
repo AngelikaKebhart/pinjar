@@ -37,7 +37,18 @@ page). Anything the add-on throws lands there.
 **Do:** load the temporary add-on as described above.
 
 **Expect:** it appears in the list with no warning, and `about:addons` → Universal Wishlist →
-Permissions lists storage, tabs, activeTab and scripting — nothing about website content.
+Permissions and data shows exactly this:
+
+- under required permissions, **"Access browser tabs"** and nothing else. `storage`, `activeTab`
+  and `scripting` are in the manifest but are not warning-worthy to Firefox, so they are not
+  listed — their absence here is correct, not a missing permission.
+- **nothing about website content.** A line about access to data for all websites would mean a
+  host permission crept into the manifest, which is the one thing §6.4 of the concept rules out.
+- under data collection, **"no data collection"** — this is the `data_collection_permissions`
+  declaration, required by Firefox since November 2025 and visible nowhere else.
+
+The description on that page is also worth a glance: in a German Firefox it has to be the German
+one, which is the only proof that `_locales` resolved.
 
 **If it fails:** a manifest key MV2 does not know, or the version floor is wrong. The generated
 manifest is `.output/firefox-mv2/manifest.json`; compare it against `wxt.config.ts`.
