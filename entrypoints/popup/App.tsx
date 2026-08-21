@@ -1,17 +1,22 @@
 import { useCallback, useEffect, useId, useState } from 'react';
 import { DeleteLinkButton } from '@/src/components/DeleteLinkButton';
+import { SavedLinkForm } from '@/src/components/SavedLinkForm';
 import { useTranslation } from '@/src/i18n/context';
 import type { MessageKey } from '@/src/i18n/messages';
 import { getCurrentPage, saveCurrentPage, type CurrentPage } from '@/src/lib/current-page';
-import type { SavedLink } from '@/src/lib/saved-link';
-import { getSavedLinksForDomain, removeSavedLink } from '@/src/lib/storage';
+import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
+import { getSavedLinksForDomain, removeSavedLink, updateSavedLink } from '@/src/lib/storage';
 
 /**
  * Popup shown when the toolbar icon is clicked.
  *
  * Scope (see docs/concept.md §3.4): save the current page with one click and
- * list what is already saved for the site it belongs to. Assigning category,
- * tags and a note is the dashboard's job for now.
+ * list what is already saved for the site it belongs to.
+ *
+ * Category, tags, status and note can be given straight away (§3.1), but only
+ * after the link is stored, never before: saving is one click and stays one
+ * click. Whoever wanted nothing more than that closes the popup and has lost
+ * nothing; the same fields are in the dashboard for later.
  */
 function App() {
   const { t } = useTranslation();
@@ -20,6 +25,8 @@ function App() {
   const [isSaving, setIsSaving] = useState(false);
   // The one line of feedback under the button; null while nothing happened.
   const [statusKey, setStatusKey] = useState<MessageKey | null>(null);
+  // The link whose details are open for editing, if any.
+  const [detailsFor, setDetailsFor] = useState<SavedLink | null>(null);
   const savedLinksHeadingId = useId();
 
   const loadLinks = useCallback(async (domain: string | null) => {
@@ -51,7 +58,26 @@ function App() {
     setIsSaving(false);
 
     setStatusKey(`popup.status.${outcome.status}`);
+
+    // Both outcomes name a link that is on the list now, so both lead to the
+    // same place. Pressing save on a page that is already saved would
+    // otherwise be a gesture with no answer to it.
+    if (outcome.status === 'saved' || outcome.status === 'alreadySaved') {
+      setDetailsFor(outcome.link);
+    }
+
     await loadLinks(page.domain);
+  };
+
+  const handleDetails = async (edits: SavedLinkEdits) => {
+    if (detailsFor === null) {
+      return;
+    }
+
+    await updateSavedLink(detailsFor.id, edits);
+    setDetailsFor(null);
+    setStatusKey('popup.status.detailsSaved');
+    await loadLinks(page?.domain ?? null);
   };
 
   const handleRemove = async (link: SavedLink) => {
@@ -79,14 +105,21 @@ function App() {
       <h1 className="text-base font-semibold">{t('popup.title')}</h1>
 
       <div className="flex flex-col gap-2">
-        <button
-          type="button"
-          onClick={() => void handleSave()}
-          disabled={!canSave || isSaving}
-          className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-on-accent hover:bg-accent-strong disabled:bg-disabled disabled:text-on-disabled"
-        >
-          {isSaving ? t('popup.saving') : t('popup.savePage')}
-        </button>
+        {/*
+          Out of the way while the details are open: the page it would save is
+          the one whose details are on screen, and saving it again would only
+          answer that it is already on the list.
+        */}
+        {detailsFor === null && (
+          <button
+            type="button"
+            onClick={() => void handleSave()}
+            disabled={!canSave || isSaving}
+            className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-on-accent hover:bg-accent-strong disabled:bg-disabled disabled:text-on-disabled"
+          >
+            {isSaving ? t('popup.saving') : t('popup.savePage')}
+          </button>
+        )}
 
         {/*
           Announced rather than only shown: saving gives no other feedback, and
@@ -98,55 +131,75 @@ function App() {
         </p>
       </div>
 
-      {/*
-        Only where there is a site to list links for. On a browser page the
-        heading would name a domain that does not exist, and the list would
-        claim that nothing is saved here yet — where "here" is a page that
-        can never hold anything.
-      */}
-      {canSave && (
-        <section aria-labelledby={savedLinksHeadingId} className="flex flex-col gap-2">
-          <h2 id={savedLinksHeadingId} className="text-sm font-medium">
-            {t('popup.savedLinks.heading', { domain: currentDomain })}
-          </h2>
+      {detailsFor !== null ? (
+        <div className="flex flex-col gap-2">
+          {/*
+            Says that nothing here is owed: the link is stored either way, and
+            what the form offers can still be changed in the dashboard. Without
+            it, a form appearing on its own reads like an unfinished save.
+          */}
+          <p className="text-sm text-ink-muted">{t('popup.details.hint')}</p>
 
-          {links.length === 0 ? (
-            <p className="text-sm text-ink-muted">{t('popup.savedLinks.empty')}</p>
-          ) : (
-            <ul className="flex flex-col gap-1">
-              {links.map((link) => (
-                <li key={link.id} className="flex flex-wrap items-center gap-2">
-                  {/*
-                  A real link, so it keeps its semantics and middle-click. The
-                  popup would otherwise navigate itself; target opens a tab.
-                  noreferrer keeps the extension's address off the target site.
-                */}
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="min-w-0 flex-1 break-words rounded-sm py-1 text-sm text-link underline hover:text-link-strong"
-                  >
-                    {link.title}
-                  </a>
+          <SavedLinkForm
+            link={detailsFor}
+            onSave={handleDetails}
+            onCancel={() => setDetailsFor(null)}
+          />
+        </div>
+      ) : (
+        <>
+          {/*
+            Only where there is a site to list links for. On a browser page the
+            heading would name a domain that does not exist, and the list would
+            claim that nothing is saved here yet — where "here" is a page that
+            can never hold anything.
+          */}
+          {canSave && (
+            <section aria-labelledby={savedLinksHeadingId} className="flex flex-col gap-2">
+              <h2 id={savedLinksHeadingId} className="text-sm font-medium">
+                {t('popup.savedLinks.heading', { domain: currentDomain })}
+              </h2>
 
-                  <DeleteLinkButton title={link.title} onDelete={() => handleRemove(link)} />
-                </li>
-              ))}
-            </ul>
+              {links.length === 0 ? (
+                <p className="text-sm text-ink-muted">{t('popup.savedLinks.empty')}</p>
+              ) : (
+                <ul className="flex flex-col gap-1">
+                  {links.map((link) => (
+                    <li key={link.id} className="flex flex-wrap items-center gap-2">
+                      {/*
+                        A real link, so it keeps its semantics and middle-click.
+                        The popup would otherwise navigate itself; target opens
+                        a tab. noreferrer keeps the extension's address off the
+                        target site.
+                      */}
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="min-w-0 flex-1 break-words rounded-sm py-1 text-sm text-link underline hover:text-link-strong"
+                      >
+                        {link.title}
+                      </a>
+
+                      <DeleteLinkButton title={link.title} onDelete={() => handleRemove(link)} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
           )}
-        </section>
-      )}
 
-      <button
-        type="button"
-        onClick={() => {
-          void browser.tabs.create({ url: browser.runtime.getURL('/dashboard.html') });
-        }}
-        className="rounded-md border border-line-strong px-3 py-2 text-sm font-medium hover:bg-surface-hover"
-      >
-        {t('popup.openDashboard')}
-      </button>
+          <button
+            type="button"
+            onClick={() => {
+              void browser.tabs.create({ url: browser.runtime.getURL('/dashboard.html') });
+            }}
+            className="rounded-md border border-line-strong px-3 py-2 text-sm font-medium hover:bg-surface-hover"
+          >
+            {t('popup.openDashboard')}
+          </button>
+        </>
+      )}
     </main>
   );
 }

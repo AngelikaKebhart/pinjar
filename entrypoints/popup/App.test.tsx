@@ -5,7 +5,7 @@ import type { Mock } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
 import { TranslationProvider } from '@/src/i18n/TranslationProvider';
 import { CATALOGS } from '@/src/i18n/messages';
-import { addSavedLink } from '@/src/lib/storage';
+import { addSavedLink, getSavedLinks } from '@/src/lib/storage';
 import App from './App';
 
 const en = CATALOGS.en;
@@ -33,6 +33,19 @@ function saveButton(): HTMLElement {
   return screen.getByRole('button', { name: en['popup.savePage'] ?? '' });
 }
 
+/** The form for category, tags, status and note, once saving has opened it. */
+function detailsForm(title: string): HTMLElement {
+  return screen.getByRole('form', { name: `Edit “${title}”` });
+}
+
+function detailsSaveButton(): HTMLElement {
+  return screen.getByRole('button', { name: en['editLink.save'] ?? '' });
+}
+
+function detailsCancelButton(): HTMLElement {
+  return screen.getByRole('button', { name: en['editLink.cancel'] ?? '' });
+}
+
 beforeEach(() => {
   fakeBrowser.reset();
   vi.restoreAllMocks();
@@ -56,6 +69,10 @@ describe('saving the current page', () => {
     fireEvent.click(saveButton());
 
     expect(await screen.findByText(en['popup.status.saved'] ?? '')).toBeTruthy();
+
+    // Saving leads straight into the details, and the list is behind them.
+    fireEvent.click(detailsCancelButton());
+
     expect(screen.getByRole('link', { name: 'Jersey fabric, blue' })).toBeTruthy();
   });
 
@@ -67,11 +84,12 @@ describe('saving the current page', () => {
     // The button reads "Saving…" until the first save is through, so waiting
     // for the confirmation is also what makes it findable again.
     expect(await screen.findByText(en['popup.status.saved'] ?? '')).toBeTruthy();
+    fireEvent.click(detailsCancelButton());
 
     fireEvent.click(saveButton());
 
     expect(await screen.findByText(en['popup.status.alreadySaved'] ?? '')).toBeTruthy();
-    expect(screen.getAllByRole('link')).toHaveLength(1);
+    await expect(getSavedLinks()).resolves.toHaveLength(1);
   });
 
   // A browser page has no domain to file anything under, so the button would
@@ -91,6 +109,66 @@ describe('saving the current page', () => {
     await renderPopup();
 
     expect(screen.getByText(en['popup.status.unsupportedPage'] ?? '')).toBeTruthy();
+  });
+});
+
+/*
+ * Concept §3.1: category, tags, status and note can be given while saving.
+ * They follow the save rather than standing in front of it, so that saving
+ * stays the single click the extension promises.
+ */
+describe('the details right after saving', () => {
+  it('are offered without a second click', async () => {
+    await givenTabOn('https://shop.example/item');
+    await renderPopup();
+
+    fireEvent.click(saveButton());
+
+    expect(await screen.findByText(en['popup.status.saved'] ?? '')).toBeTruthy();
+    expect(detailsForm('Jersey fabric, blue')).toBeTruthy();
+  });
+
+  it('keep what was filled in', async () => {
+    await givenTabOn('https://shop.example/item');
+    await renderPopup();
+    fireEvent.click(saveButton());
+    expect(await screen.findByText(en['popup.status.saved'] ?? '')).toBeTruthy();
+
+    fireEvent.change(screen.getByLabelText('Note'), { target: { value: 'Size M' } });
+    fireEvent.change(screen.getByLabelText('New tags'), { target: { value: 'jersey, blue' } });
+    fireEvent.click(detailsSaveButton());
+
+    expect(await screen.findByText(en['popup.status.detailsSaved'] ?? '')).toBeTruthy();
+    await expect(getSavedLinks()).resolves.toMatchObject([
+      { note: 'Size M', tags: ['jersey', 'blue'] },
+    ]);
+  });
+
+  // The link is stored before the form appears, so dismissing it is not an
+  // undo — it only means the user wanted nothing more than the one click.
+  it('leave the link saved when they are dismissed', async () => {
+    await givenTabOn('https://shop.example/item');
+    await renderPopup();
+    fireEvent.click(saveButton());
+    expect(await screen.findByText(en['popup.status.saved'] ?? '')).toBeTruthy();
+
+    fireEvent.click(detailsCancelButton());
+
+    await expect(getSavedLinks()).resolves.toHaveLength(1);
+    expect(screen.getByRole('link', { name: 'Jersey fabric, blue' })).toBeTruthy();
+  });
+
+  // Saving a page that is already on the list would otherwise be a gesture
+  // with no answer to it.
+  it('are offered for a page that is already on the list', async () => {
+    await addSavedLink({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await givenTabOn('https://shop.example/item');
+    await renderPopup();
+
+    fireEvent.click(saveButton());
+
+    expect(await screen.findByText(en['popup.status.alreadySaved'] ?? '')).toBeTruthy();
+    expect(detailsForm('Jersey fabric')).toBeTruthy();
   });
 });
 

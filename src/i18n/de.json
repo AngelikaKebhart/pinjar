@@ -10,6 +10,9 @@
   "popup.status.unsupportedPage": "Diese Seite lässt sich nicht merken. Es funktionieren nur normale Webseiten über http oder https.",
   "popup.status.failed": "Das Merken hat nicht geklappt. Bitte versuche es noch einmal.",
   "popup.status.removed": "Entfernt.",
+  "popup.status.detailsSaved": "Details gespeichert.",
+
+  "popup.details.hint": "Der Link ist bereits gespeichert. Was du hier ergänzt, kannst du später im Dashboard jederzeit ändern.",
 
   "popup.savedLinks.heading": "Gemerkt auf {domain}",
   "popup.savedLinks.empty": "Auf dieser Seite hast du noch nichts gemerkt.",
