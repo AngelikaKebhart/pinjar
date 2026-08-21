@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from '@/src/i18n/context';
 import {
   deleteAllSavedData,
@@ -239,11 +239,37 @@ function DeleteEverything({
 }) {
   const { t } = useTranslation();
   const [isAsking, setIsAsking] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const questionRef = useRef<HTMLDivElement>(null);
+  const wasAsking = useRef(false);
+  const warningId = useId();
+
+  /*
+   * The button that was pressed is replaced by the question, so focus has to
+   * be handed over: it would otherwise fall back to the document, leaving a
+   * keyboard user to tab in from the top of the page again. The question
+   * carries the warning as its accessible name, so moving focus there is also
+   * what reads the warning out before it can be answered — without it, the
+   * one safeguard against an irreversible deletion is silent (WCAG 2.2 AA,
+   * 4.1.3). Answering hands focus back, except after a deletion, which leaves
+   * the button disabled and therefore unfocusable; what happened is announced
+   * by the notice instead.
+   */
+  useEffect(() => {
+    if (isAsking) {
+      questionRef.current?.focus();
+    } else if (wasAsking.current) {
+      triggerRef.current?.focus();
+    }
+
+    wasAsking.current = isAsking;
+  }, [isAsking]);
 
   if (!isAsking) {
     return (
       <div className="flex flex-col gap-2">
         <button
+          ref={triggerRef}
           type="button"
           onClick={() => setIsAsking(true)}
           disabled={!hasAnythingToDelete}
@@ -258,8 +284,16 @@ function DeleteEverything({
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-danger p-4">
-      <p className="text-sm">{t('data.deleteAll.warning')}</p>
+    <div
+      ref={questionRef}
+      tabIndex={-1}
+      role="group"
+      aria-labelledby={warningId}
+      className="flex flex-col gap-3 rounded-lg border border-danger p-4"
+    >
+      <p id={warningId} className="text-sm">
+        {t('data.deleteAll.warning')}
+      </p>
 
       <div className="flex flex-wrap gap-2">
         <button

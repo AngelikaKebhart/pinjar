@@ -82,6 +82,16 @@ describe('saving the current page', () => {
 
     expect(saveButton()).toHaveProperty('disabled', true);
   });
+
+  // A greyed-out button that gives no reason leaves the user guessing whether
+  // the extension is broken.
+  it('says why a browser page cannot be saved', async () => {
+    await givenTabOn('chrome://extensions');
+
+    await renderPopup();
+
+    expect(screen.getByText(en['popup.status.unsupportedPage'] ?? '')).toBeTruthy();
+  });
 });
 
 describe('the links of this site', () => {
@@ -110,6 +120,20 @@ describe('the links of this site', () => {
     await renderPopup();
 
     expect(screen.getByText(en['popup.savedLinks.empty'] ?? '')).toBeTruthy();
+  });
+
+  /*
+   * On a browser page there is no site to name. The heading would read
+   * "Saved on " with nothing behind it, and the list below it would report
+   * that nothing is saved here yet — for a page that can never hold anything.
+   */
+  it('lists nothing for a page that has no site', async () => {
+    await givenTabOn('chrome://extensions');
+
+    await renderPopup();
+
+    expect(screen.queryByRole('heading', { level: 2 })).toBeNull();
+    expect(screen.queryByText(en['popup.savedLinks.empty'] ?? '')).toBeNull();
   });
 
   it('opens a saved link in a new tab rather than inside the popup', async () => {
