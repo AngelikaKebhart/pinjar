@@ -7,10 +7,16 @@ import tailwindcss from '@tailwindcss/vite';
  * Firefox requires a stable add-on ID, and since November 2025 also an explicit
  * data collection declaration. The extension stores everything locally and
  * transmits nothing, so "none" is declared.
+ *
+ * The floor is the one Tailwind 4 draws: its output uses `@property`, which
+ * Firefox understands from 128 on. Older versions would install this add-on
+ * happily and then render it wrong, with nothing to say why — and 128 is also
+ * the current ESR line, so nobody is shut out who is not already behind.
  */
 const firefoxSettings = {
   gecko: {
     id: 'universal-wishlist@angelikakebhart.github.io',
+    strict_min_version: '128.0',
     data_collection_permissions: {
       required: ['none'],
     },

@@ -95,6 +95,9 @@ No store publication is needed to try out a build.
 
 > Temporary add-ons are removed when Firefox restarts and have to be loaded again.
 
+> Firefox 128 or newer is required. The manifest says so, because Tailwind 4 emits CSS that
+> older versions cannot read — they would install the add-on and then render it wrong.
+
 ## Debugging
 
 - **Popup:** right-click inside the opened popup and choose _Inspect_.
