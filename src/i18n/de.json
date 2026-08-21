@@ -90,5 +90,10 @@
   "data.deleteAll.done": "Alle Daten gelöscht.",
   "settings.heading": "Einstellungen",
   "settings.language.label": "Sprache der Oberfläche",
-  "settings.language.auto": "Automatisch (Browsersprache)"
+  "settings.language.auto": "Automatisch (Browsersprache)",
+
+  "settings.theme.label": "Erscheinungsbild",
+  "settings.theme.auto": "Automatisch (Browsereinstellung)",
+  "settings.theme.light": "Hell",
+  "settings.theme.dark": "Dunkel"
 }

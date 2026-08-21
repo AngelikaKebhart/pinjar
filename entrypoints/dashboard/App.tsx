@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { LanguageSwitcher } from '@/src/components/LanguageSwitcher';
+import { ThemeSwitcher } from '@/src/components/ThemeSwitcher';
 import { useTranslation } from '@/src/i18n/context';
 import { filterSavedLinks, isFiltering, NO_FILTER } from '@/src/lib/filter';
 import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
@@ -177,8 +178,10 @@ function App() {
         <h2 id={settingsHeadingId} className="text-lg font-medium">
           {t('settings.heading')}
         </h2>
-        <div className="mt-3">
+        {/* Side by side where there is room, stacked once there is not. */}
+        <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:gap-8">
           <LanguageSwitcher />
+          <ThemeSwitcher />
         </div>
       </section>
     </div>

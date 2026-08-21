@@ -49,7 +49,14 @@ export default defineConfig({
     // Still no host permission, so the extension has no standing access to the
     // content of any website.
     permissions: ['storage', 'activeTab', 'scripting', 'tabs'],
-    ...(browser === 'firefox' ? { browser_specific_settings: firefoxSettings } : {}),
+    ...(browser === 'firefox'
+      ? { browser_specific_settings: firefoxSettings }
+      : // The counterpart to the Firefox floor above, drawn by the same thing:
+        // the built stylesheet carries `@property`, `color-mix()` and cascade
+        // layers, which is Tailwind 4's own floor of Chromium 111. Not 123,
+        // which `light-dark()` would cost — the build compiles that away into
+        // custom properties every one of these versions already understands.
+        { minimum_chrome_version: '111' }),
   }),
   vite: () => ({
     plugins: [tailwindcss()],

@@ -49,15 +49,26 @@ const UI_PAIRS = [
 /**
  * Reads the token values of one palette.
  *
- * The light palette is the `@theme` block; the dark one is the
- * `prefers-color-scheme` block, which only restates the tokens it changes —
- * so it is layered on top of light rather than read on its own.
+ * Both live in the same `@theme` block: every token is a `light-dark()` pair,
+ * so neither palette can quietly lose a token the other has. Which half is
+ * read here is the same decision the browser makes from `color-scheme`.
  */
 function palette(mode: 'light' | 'dark'): Record<string, string> {
-  const light = tokensIn(blockAfter('@theme'));
-  return mode === 'light'
-    ? light
-    : { ...light, ...tokensIn(blockAfter('@media (prefers-color-scheme: dark)')) };
+  const block = blockAfter('@theme');
+  const tokens: Record<string, string> = {};
+
+  for (const match of block.matchAll(
+    /--color-([\w-]+):\s*light-dark\(\s*(#[0-9a-f]{6})\s*,\s*(#[0-9a-f]{6})\s*\)/gi,
+  )) {
+    const [, name, light, dark] = match;
+    const value = mode === 'light' ? light : dark;
+
+    if (name !== undefined && value !== undefined) {
+      tokens[name] = value;
+    }
+  }
+
+  return tokens;
 }
 
 function blockAfter(marker: string): string {
@@ -65,19 +76,6 @@ function blockAfter(marker: string): string {
   expect(start, `${marker} is missing from the stylesheet`).toBeGreaterThan(-1);
 
   return STYLESHEET.slice(start, STYLESHEET.indexOf('\n}', start));
-}
-
-function tokensIn(block: string): Record<string, string> {
-  const tokens: Record<string, string> = {};
-
-  for (const match of block.matchAll(/--color-([\w-]+):\s*(#[0-9a-f]{6});/gi)) {
-    const [, name, value] = match;
-    if (name !== undefined && value !== undefined) {
-      tokens[name] = value;
-    }
-  }
-
-  return tokens;
 }
 
 /** WCAG 2.2 relative luminance. */

@@ -90,5 +90,10 @@
   "data.deleteAll.done": "All data deleted.",
   "settings.heading": "Settings",
   "settings.language.label": "Interface language",
-  "settings.language.auto": "Automatic (browser language)"
+  "settings.language.auto": "Automatic (browser language)",
+
+  "settings.theme.label": "Appearance",
+  "settings.theme.auto": "Automatic (browser setting)",
+  "settings.theme.light": "Light",
+  "settings.theme.dark": "Dark"
 }
