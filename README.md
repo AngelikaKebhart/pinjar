@@ -95,6 +95,13 @@ No store publication is needed to try out a build.
 
 > Temporary add-ons are removed when Firefox restarts and have to be loaded again.
 
+> Firefox 128 or newer is required. The manifest says so, because Tailwind 4 emits CSS that
+> older versions cannot read — they would install the add-on and then render it wrong.
+
+Firefox is the only target built as MV2, and the differences it brings cannot be caught by the
+test suite. [`docs/firefox-manual-test.md`](docs/firefox-manual-test.md) lists what has to be
+clicked through there by hand, and why each item is on the list.
+
 ## Debugging
 
 - **Popup:** right-click inside the opened popup and choose _Inspect_.

@@ -12,23 +12,33 @@ import { savedLinks } from '@/src/lib/storage';
  *
  * The body runs again every time the worker is woken up, which is why it starts
  * by bringing all badges up to date rather than assuming they survived.
+ *
+ * `persistent: false` only reaches the Firefox build, which is MV2 and would
+ * otherwise keep this page in memory for the whole browser session. There is
+ * nothing here to keep alive between events: every listener starts from what
+ * is in storage. Chrome and Edge are MV3, where a service worker is already
+ * the only option.
  */
-export default defineBackground(() => {
-  void applyBadgeAppearance();
-  void refreshAllBadges();
+export default defineBackground({
+  persistent: false,
 
-  // `url` is only set when the address actually changed; `status` catches a tab
-  // that finishes loading without one, e.g. when it is restored from a session.
-  browser.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
-    if (changeInfo.url === undefined && changeInfo.status !== 'complete') {
-      return;
-    }
+  main() {
+    void applyBadgeAppearance();
+    void refreshAllBadges();
 
-    void refreshBadgeForTab(tab);
-  });
+    // `url` is only set when the address actually changed; `status` catches a
+    // tab that finishes loading without one, e.g. restored from a session.
+    browser.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
+      if (changeInfo.url === undefined && changeInfo.status !== 'complete') {
+        return;
+      }
 
-  // Saving or deleting a link changes the count for every tab on that domain,
-  // and the language decides the wording of the tooltip.
-  savedLinks.watch(() => void refreshAllBadges());
-  languagePreference.watch(() => void refreshAllBadges());
+      void refreshBadgeForTab(tab);
+    });
+
+    // Saving or deleting a link changes the count for every tab on that domain,
+    // and the language decides the wording of the tooltip.
+    savedLinks.watch(() => void refreshAllBadges());
+    languagePreference.watch(() => void refreshAllBadges());
+  },
 });
