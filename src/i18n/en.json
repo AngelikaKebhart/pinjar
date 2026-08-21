@@ -37,7 +37,6 @@
 
   "status.default": "Saved",
 
-  "editLink.action": "Edit",
   "editLink.actionLabel": "Edit “{title}”",
   "editLink.formLabel": "Edit “{title}”",
   "editLink.categoryNone": "No category",
@@ -51,7 +50,6 @@
   "editLink.save": "Save",
   "editLink.cancel": "Cancel",
 
-  "deleteLink.action": "Delete",
   "deleteLink.actionLabel": "Delete “{title}”",
   "deleteLink.question": "Delete?",
   "deleteLink.confirm": "Yes, delete",

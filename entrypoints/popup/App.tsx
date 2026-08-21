@@ -72,7 +72,7 @@ function App() {
   // Nothing is worth rendering before we know which page we are looking at.
   if (links === null) {
     return (
-      <main className="w-80 p-4">
+      <main className="w-96 p-4">
         <p className="text-sm">{t('popup.loading')}</p>
       </main>
     );
@@ -84,7 +84,7 @@ function App() {
   const canSave = currentDomain !== null;
 
   return (
-    <main className="flex w-80 flex-col gap-4 p-4">
+    <main className="flex w-96 flex-col gap-4 p-4">
       <h1 className="text-base font-semibold">{t('popup.title')}</h1>
 
       <div className="flex flex-col gap-2">
@@ -122,7 +122,7 @@ function App() {
           {links.length === 0 ? (
             <p className="text-sm text-ink-muted">{t('popup.savedLinks.empty')}</p>
           ) : (
-            <ul className="flex flex-col gap-3">
+            <ul className="flex flex-col gap-2">
               {links.map((link) => (
                 <li key={link.id}>
                   <SavedLinkRow

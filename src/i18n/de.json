@@ -37,7 +37,6 @@
 
   "status.default": "Gemerkt",
 
-  "editLink.action": "Bearbeiten",
   "editLink.actionLabel": "„{title}“ bearbeiten",
   "editLink.formLabel": "„{title}“ bearbeiten",
   "editLink.categoryNone": "Keine Kategorie",
@@ -51,7 +50,6 @@
   "editLink.save": "Speichern",
   "editLink.cancel": "Abbrechen",
 
-  "deleteLink.action": "Löschen",
   "deleteLink.actionLabel": "„{title}“ löschen",
   "deleteLink.question": "Löschen?",
   "deleteLink.confirm": "Ja, löschen",

@@ -1,4 +1,6 @@
 import type { Ref } from 'react';
+import { IconButton } from '@/src/components/IconButton';
+import { EditIcon } from '@/src/components/icons';
 import { useTranslation } from '@/src/i18n/context';
 
 /**
@@ -8,9 +10,9 @@ import { useTranslation } from '@/src/i18n/context';
  * wording, in looks or in target size. Which of them a link is edited from
  * makes no difference to what editing means.
  *
- * The label names the link, because "Edit" on its own says nothing when a
- * whole list of them is read out one after another (WCAG 2.2 AA, 2.4.6).
- * Sighted users see the short word and the link right next to it.
+ * The name behind the pencil names the link, because "Edit" on its own says
+ * nothing when a whole list of them is read out one after another (WCAG 2.2
+ * AA, 2.4.6).
  *
  * Opening and closing the form stays with the caller: it owns the space the
  * form appears in, and it is the one that has to hand focus back here
@@ -29,14 +31,8 @@ export function EditLinkButton({
   const { t } = useTranslation();
 
   return (
-    <button
-      ref={ref}
-      type="button"
-      onClick={onEdit}
-      aria-label={t('editLink.actionLabel', { title })}
-      className="rounded-md border border-line-strong px-3 py-1.5 text-sm font-medium text-ink hover:bg-surface-hover"
-    >
-      {t('editLink.action')}
-    </button>
+    <IconButton ref={ref} label={t('editLink.actionLabel', { title })} onClick={onEdit}>
+      <EditIcon />
+    </IconButton>
   );
 }

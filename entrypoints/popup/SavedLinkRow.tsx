@@ -54,13 +54,17 @@ export function SavedLinkRow({
   }
 
   /*
-   * The title has the row to itself and the buttons sit underneath. Beside
-   * them it would be left with about a third of the popup's 320px — in German
-   * more so, where both buttons are longer words — and a title is what tells
-   * two saved links apart (WCAG 2.2 AA, 1.4.10).
+   * Title and its two buttons on one line. As icons they cost 88px of the
+   * popup's width instead of the two words they replace, which is what leaves
+   * the title enough of the line to still be read (WCAG 2.2 AA, 1.4.10) —
+   * German buttons included, since a pencil is the same width in any language.
+   *
+   * The floor under the title is what keeps that true when the delete button
+   * turns into a question in words: rather than squeezing the title into a
+   * column three characters wide, the question moves to a line of its own.
    */
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-wrap items-start gap-2">
       {/*
         A real link, so it keeps its semantics and middle-click. The popup
         would otherwise navigate itself; target opens a tab. noreferrer keeps
@@ -70,16 +74,14 @@ export function SavedLinkRow({
         href={link.url}
         target="_blank"
         rel="noreferrer"
-        className="break-words rounded-sm py-1 text-sm text-link underline hover:text-link-strong"
+        className="min-w-40 flex-1 break-words rounded-sm py-1 text-sm text-link underline hover:text-link-strong"
       >
         {link.title}
       </a>
 
-      <div className="flex flex-wrap gap-2">
-        <EditLinkButton ref={editButtonRef} title={link.title} onEdit={() => setIsEditing(true)} />
+      <EditLinkButton ref={editButtonRef} title={link.title} onEdit={() => setIsEditing(true)} />
 
-        <DeleteLinkButton title={link.title} onDelete={onDelete} />
-      </div>
+      <DeleteLinkButton title={link.title} onDelete={onDelete} />
     </div>
   );
 }

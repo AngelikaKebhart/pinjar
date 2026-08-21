@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { IconButton } from '@/src/components/IconButton';
+import { DeleteIcon } from '@/src/components/icons';
 import { useTranslation } from '@/src/i18n/context';
 
 /**
@@ -11,6 +13,10 @@ import { useTranslation } from '@/src/i18n/context';
  * The confirmation is inline rather than a dialog: it needs no focus trap, it
  * cannot be missed behind the window, and it keeps the answer next to the
  * thing being answered about.
+ *
+ * Only the way in is an icon. The question and its two answers stay words:
+ * an icon is a good enough hint for something the user can undo by not
+ * pressing it, and no hint at all for a decision that is final.
  */
 export function DeleteLinkButton({
   title,
@@ -34,14 +40,9 @@ export function DeleteLinkButton({
 
   if (!isAsking) {
     return (
-      <button
-        type="button"
-        onClick={() => setIsAsking(true)}
-        aria-label={t('deleteLink.actionLabel', { title })}
-        className={ACTION_CLASSES}
-      >
-        {t('deleteLink.action')}
-      </button>
+      <IconButton label={t('deleteLink.actionLabel', { title })} onClick={() => setIsAsking(true)}>
+        <DeleteIcon />
+      </IconButton>
     );
   }
 
