@@ -324,6 +324,30 @@ describe('deleting everything', () => {
     expect(screen.getByText(/cannot be undone/i)).toBeTruthy();
   });
 
+  /*
+   * The warning is the only safeguard there is, and it appears where the
+   * button just was. Without focus following it, it is never read out and a
+   * keyboard user has to tab in from the top of the page to answer it.
+   */
+  it('hands focus to the warning, which carries it as its name', async () => {
+    await saveOneLink();
+    await renderSection();
+
+    fireEvent.click(deleteButton());
+
+    expect(document.activeElement).toBe(screen.getByRole('group', { name: /cannot be undone/i }));
+  });
+
+  it('hands focus back to the button when the question is dismissed', async () => {
+    await saveOneLink();
+    await renderSection();
+
+    fireEvent.click(deleteButton());
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(document.activeElement).toBe(deleteButton());
+  });
+
   it('removes everything once confirmed', async () => {
     await addSavedLink({
       url: 'https://shop.example/jersey',
