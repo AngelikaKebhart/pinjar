@@ -12,8 +12,6 @@
   "popup.status.removed": "Removed.",
   "popup.status.detailsSaved": "Details saved.",
 
-  "popup.details.hint": "The link is already saved. Anything you add here can still be changed later in the dashboard.",
-
   "popup.savedLinks.heading": "Saved on {domain}",
   "popup.savedLinks.empty": "You have not saved anything on this site yet.",
 

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { DeleteLinkButton } from '@/src/components/DeleteLinkButton';
+import { EditLinkButton } from '@/src/components/EditLinkButton';
 import { SavedLinkForm } from '@/src/components/SavedLinkForm';
 import { StatusLabel } from '@/src/components/StatusLabel';
 import { useTranslation } from '@/src/i18n/context';
@@ -120,15 +121,11 @@ export function SavedLinkCard({
             </dl>
 
             <div className="mt-1 flex flex-wrap gap-2">
-              <button
+              <EditLinkButton
                 ref={editButtonRef}
-                type="button"
-                onClick={() => setIsEditing(true)}
-                aria-label={t('editLink.actionLabel', { title: link.title })}
-                className="rounded-md border border-line-strong px-3 py-1.5 text-sm font-medium hover:bg-surface-hover"
-              >
-                {t('editLink.action')}
-              </button>
+                title={link.title}
+                onEdit={() => setIsEditing(true)}
+              />
 
               <DeleteLinkButton title={link.title} onDelete={onDelete} />
             </div>

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
@@ -33,7 +33,12 @@ function saveButton(): HTMLElement {
   return screen.getByRole('button', { name: en['popup.savePage'] ?? '' });
 }
 
-/** The form for category, tags, status and note, once saving has opened it. */
+/** The button that opens the form on one link in the list. */
+function editButton(title: string): HTMLElement {
+  return screen.getByRole('button', { name: `Edit “${title}”` });
+}
+
+/** The form for title, category, tags, status and note, once it is open. */
 function detailsForm(title: string): HTMLElement {
   return screen.getByRole('form', { name: `Edit “${title}”` });
 }
@@ -69,10 +74,6 @@ describe('saving the current page', () => {
     fireEvent.click(saveButton());
 
     expect(await screen.findByText(en['popup.status.saved'] ?? '')).toBeTruthy();
-
-    // Saving leads straight into the details, and the list is behind them.
-    fireEvent.click(detailsCancelButton());
-
     expect(screen.getByRole('link', { name: 'Jersey fabric, blue' })).toBeTruthy();
   });
 
@@ -84,7 +85,6 @@ describe('saving the current page', () => {
     // The button reads "Saving…" until the first save is through, so waiting
     // for the confirmation is also what makes it findable again.
     expect(await screen.findByText(en['popup.status.saved'] ?? '')).toBeTruthy();
-    fireEvent.click(detailsCancelButton());
 
     fireEvent.click(saveButton());
 
@@ -113,27 +113,27 @@ describe('saving the current page', () => {
 });
 
 /*
- * Concept §3.1: category, tags, status and note can be given while saving.
- * They follow the save rather than standing in front of it, so that saving
- * stays the single click the extension promises.
+ * Concept §3.1: category, tags, status and note can be given from the popup.
+ * Each link carries its own button for them, so that saving stays the single
+ * click the extension promises and the list stays what the popup shows.
  */
-describe('the details right after saving', () => {
-  it('are offered without a second click', async () => {
-    await givenTabOn('https://shop.example/item');
+describe('editing a link from the list', () => {
+  it('opens the form from the button on that link', async () => {
+    await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await givenTabOn('https://shop.example/second');
     await renderPopup();
 
-    fireEvent.click(saveButton());
+    fireEvent.click(editButton('Jersey fabric'));
 
-    expect(await screen.findByText(en['popup.status.saved'] ?? '')).toBeTruthy();
-    expect(detailsForm('Jersey fabric, blue')).toBeTruthy();
+    expect(detailsForm('Jersey fabric')).toBeTruthy();
   });
 
-  it('keep what was filled in', async () => {
-    await givenTabOn('https://shop.example/item');
+  it('keeps what was filled in', async () => {
+    await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await givenTabOn('https://shop.example/second');
     await renderPopup();
-    fireEvent.click(saveButton());
-    expect(await screen.findByText(en['popup.status.saved'] ?? '')).toBeTruthy();
 
+    fireEvent.click(editButton('Jersey fabric'));
     fireEvent.change(screen.getByLabelText('Note'), { target: { value: 'Size M' } });
     fireEvent.change(screen.getByLabelText('New tags'), { target: { value: 'jersey, blue' } });
     fireEvent.click(detailsSaveButton());
@@ -144,31 +144,29 @@ describe('the details right after saving', () => {
     ]);
   });
 
-  // The link is stored before the form appears, so dismissing it is not an
-  // undo — it only means the user wanted nothing more than the one click.
-  it('leave the link saved when they are dismissed', async () => {
+  // Saving is one click and stays one click. A form opening by itself would
+  // push the list out of sight of everyone who only wanted to save.
+  it('stays closed when a page is saved', async () => {
     await givenTabOn('https://shop.example/item');
     await renderPopup();
+
     fireEvent.click(saveButton());
+
     expect(await screen.findByText(en['popup.status.saved'] ?? '')).toBeTruthy();
-
-    fireEvent.click(detailsCancelButton());
-
-    await expect(getSavedLinks()).resolves.toHaveLength(1);
-    expect(screen.getByRole('link', { name: 'Jersey fabric, blue' })).toBeTruthy();
+    expect(screen.queryByRole('form')).toBeNull();
   });
 
-  // Saving a page that is already on the list would otherwise be a gesture
-  // with no answer to it.
-  it('are offered for a page that is already on the list', async () => {
-    await addSavedLink({ url: 'https://shop.example/item', title: 'Jersey fabric' });
-    await givenTabOn('https://shop.example/item');
+  // Otherwise focus falls to the document, and a keyboard user starts over at
+  // the top of the popup.
+  it('hands focus back to the button when the form is dismissed', async () => {
+    await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await givenTabOn('https://shop.example/second');
     await renderPopup();
 
-    fireEvent.click(saveButton());
+    fireEvent.click(editButton('Jersey fabric'));
+    fireEvent.click(detailsCancelButton());
 
-    expect(await screen.findByText(en['popup.status.alreadySaved'] ?? '')).toBeTruthy();
-    expect(detailsForm('Jersey fabric')).toBeTruthy();
+    await waitFor(() => expect(document.activeElement).toBe(editButton('Jersey fabric')));
   });
 });
 
