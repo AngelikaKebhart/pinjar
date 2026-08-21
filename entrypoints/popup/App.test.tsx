@@ -272,6 +272,28 @@ describe('accessibility', () => {
     expect(screen.getByRole('link', { name: 'Jersey fabric' })).toBeTruthy();
   });
 
+  /*
+   * The question replaces the button that asked it and the button comes back
+   * in its place, so focus has to travel both ways. Left behind, it falls to
+   * the document and the next Tab starts over at the top of the popup.
+   */
+  it('carries focus into the delete question and back out of it', async () => {
+    await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await givenTabOn('https://shop.example/second');
+    await renderPopup();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete “Jersey fabric”' }));
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Yes, delete “Jersey fabric”' }),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Keep “Jersey fabric”' }));
+
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Delete “Jersey fabric”' }),
+    );
+  });
+
   it('keeps working in German', async () => {
     await givenTabOn('https://shop.example/item');
     Object.defineProperty(navigator, 'language', { configurable: true, get: () => 'de-DE' });

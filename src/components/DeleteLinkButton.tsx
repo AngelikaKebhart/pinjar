@@ -28,19 +28,38 @@ export function DeleteLinkButton({
 }) {
   const { t } = useTranslation();
   const [isAsking, setIsAsking] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const confirmRef = useRef<HTMLButtonElement>(null);
+  const wasAsking = useRef(false);
 
-  // The button the user pressed is replaced by this pair, so focus has to be
-  // handed over — it would otherwise fall back to the document.
+  /*
+   * Whichever button is on screen replaces the one that was pressed, so focus
+   * has to be handed over both ways — it would otherwise fall back to the
+   * document, and a keyboard user would tab in again from the top of a list
+   * that may be long. Asking moves it to the answer, dismissing moves it back
+   * to the button that asked.
+   *
+   * Confirming is the one case with nowhere to hand it: the link is gone and
+   * this component with it. What happened is announced by the status line the
+   * caller updates.
+   */
   useEffect(() => {
     if (isAsking) {
       confirmRef.current?.focus();
+    } else if (wasAsking.current) {
+      triggerRef.current?.focus();
     }
+
+    wasAsking.current = isAsking;
   }, [isAsking]);
 
   if (!isAsking) {
     return (
-      <IconButton label={t('deleteLink.actionLabel', { title })} onClick={() => setIsAsking(true)}>
+      <IconButton
+        ref={triggerRef}
+        label={t('deleteLink.actionLabel', { title })}
+        onClick={() => setIsAsking(true)}
+      >
         <DeleteIcon />
       </IconButton>
     );
