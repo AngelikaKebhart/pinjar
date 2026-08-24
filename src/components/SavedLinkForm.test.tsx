@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
 import { TranslationProvider } from '@/src/i18n/TranslationProvider';
@@ -476,7 +476,9 @@ describe('accessibility', () => {
   it('moves focus into the form', async () => {
     await renderForm();
 
-    expect(document.activeElement).toBe(screen.getByLabelText('Title'));
+    // The field exists in the first render, the focus arrives with the effect
+    // after it — asserting straight away races that effect on a busy machine.
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('Title')));
   });
 
   it('explains the comma rule instead of leaving it to be guessed', async () => {
