@@ -13,7 +13,8 @@ import { SavedLinkCard } from './SavedLinkCard';
  * Dashboard opened in its own browser tab.
  *
  * Scope (see docs/concept.md §3.5): list every saved link across all domains,
- * with search and filters for category, tags and status, plus inline editing.
+ * with search and filters for category, tags, status and domain, plus inline
+ * editing.
  * Exporting everything as a file sits below the list (§3.6); reading such a
  * file back in is still to come.
  */

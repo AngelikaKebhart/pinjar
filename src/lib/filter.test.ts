@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   availableCategories,
+  availableDomains,
   availableStatuses,
   availableTags,
   filterSavedLinks,
@@ -59,6 +60,7 @@ describe('with nothing set', () => {
     ['links without a category', { category: '' }],
     ['a tag', { tags: ['jersey'] }],
     ['a status', { status: 'builtin:default' }],
+    ['a domain', { domain: 'shop.example' }],
   ])('reports %s as narrowing things down', (_case, criteria) => {
     expect(isFiltering({ ...NO_FILTER, ...criteria })).toBe(true);
   });
@@ -186,6 +188,26 @@ describe('filtering by status', () => {
   });
 });
 
+describe('filtering by domain', () => {
+  const links = [
+    aLink({ title: 'From the shop', domain: 'shop.example' }),
+    aLink({ title: 'Also from the shop', domain: 'shop.example' }),
+    aLink({ title: 'From the blog', domain: 'blog.example' }),
+  ];
+
+  it('keeps only the links saved on that domain', () => {
+    expect(titlesMatching(links, { domain: 'shop.example' })).toEqual([
+      'From the shop',
+      'Also from the shop',
+    ]);
+  });
+
+  // A subdomain is a domain of its own; the badge counts it separately too.
+  it('matches the hostname exactly rather than loosely', () => {
+    expect(titlesMatching(links, { domain: 'example' })).toEqual([]);
+  });
+});
+
 describe('combining filters', () => {
   const links = [
     aLink({ title: 'Blue jersey', category: 'Fabrics', tags: ['jersey', 'blue'] }),
@@ -200,6 +222,18 @@ describe('combining filters', () => {
 
   it('applies search and filters together', () => {
     expect(titlesMatching(links, { search: 'jersey', tags: ['blue'] })).toEqual(['Blue jersey']);
+  });
+
+  it('narrows a domain down by the other filters', () => {
+    const acrossDomains = [
+      aLink({ title: 'Shop jersey', domain: 'shop.example', tags: ['jersey'] }),
+      aLink({ title: 'Shop cotton', domain: 'shop.example', tags: ['cotton'] }),
+      aLink({ title: 'Blog jersey', domain: 'blog.example', tags: ['jersey'] }),
+    ];
+
+    expect(titlesMatching(acrossDomains, { domain: 'shop.example', tags: ['jersey'] })).toEqual([
+      'Shop jersey',
+    ]);
   });
 
   it('can end up with nothing at all', () => {
@@ -217,15 +251,26 @@ describe('combining filters', () => {
 
 describe('what each filter is worth offering', () => {
   const links = [
-    aLink({ title: 'Blue jersey', category: 'Fabrics', tags: ['jersey', 'blue'] }),
-    aLink({ title: 'Red cotton', category: 'Fabrics', tags: ['cotton', 'red'] }),
+    aLink({
+      title: 'Blue jersey',
+      category: 'Fabrics',
+      tags: ['jersey', 'blue'],
+      domain: 'shop.example',
+    }),
+    aLink({
+      title: 'Red cotton',
+      category: 'Fabrics',
+      tags: ['cotton', 'red'],
+      domain: 'shop.example',
+    }),
     aLink({
       title: 'Dress pattern',
       category: 'Patterns',
       tags: ['dress'],
       status: custom('Bought'),
+      domain: 'patterns.example',
     }),
-    aLink({ title: 'Loose end', category: null, tags: [] }),
+    aLink({ title: 'Loose end', category: null, tags: [], domain: 'blog.example' }),
   ];
 
   const criteria = (overrides: Partial<LinkFilterCriteria> = {}) => ({
@@ -291,6 +336,34 @@ describe('what each filter is worth offering', () => {
         'dress',
         'jersey',
       ]);
+    });
+  });
+
+  describe('domains', () => {
+    it('lists each domain once, however many links carry it', () => {
+      expect(availableDomains(links, criteria())).toEqual([
+        'shop.example',
+        'patterns.example',
+        'blog.example',
+      ]);
+    });
+
+    it('narrows to the domains the other filters leave', () => {
+      expect(availableDomains(links, criteria({ category: 'Patterns' }))).toEqual([
+        'patterns.example',
+      ]);
+    });
+
+    // Otherwise the dropdown would collapse to the one value already picked.
+    it('ignores the domain filter itself', () => {
+      expect(availableDomains(links, criteria({ domain: 'shop.example' }))).toHaveLength(3);
+    });
+
+    // A select whose value is missing from its options renders blank.
+    it('keeps the picked domain even when nothing else matches', () => {
+      expect(
+        availableDomains(links, criteria({ domain: 'shop.example', search: 'pattern' })),
+      ).toContain('shop.example');
     });
   });
 

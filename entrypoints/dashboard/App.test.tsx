@@ -567,6 +567,18 @@ describe('searching and filtering', () => {
     expect(listedTitles()).toEqual(['Blue jersey']);
   });
 
+  it('filters by domain', async () => {
+    await save({ url: 'https://shop.example/jersey', title: 'Blue jersey' });
+    await save({ url: 'https://blog.example/post', title: 'Sewing tutorial' });
+    await renderDashboard();
+
+    fireEvent.change(await within(filters()).findByLabelText('Domain'), {
+      target: { value: 'named:blog.example' },
+    });
+
+    expect(listedTitles()).toEqual(['Sewing tutorial']);
+  });
+
   it('combines a filter with the search', async () => {
     await givenLinks();
 

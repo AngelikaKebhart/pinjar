@@ -2,6 +2,7 @@ import { useId, useMemo } from 'react';
 import { useTranslation } from '@/src/i18n/context';
 import {
   availableCategories,
+  availableDomains,
   availableStatuses,
   availableTags,
   isFiltering,
@@ -44,6 +45,11 @@ export function LinkFilters({
 
   const offeredTags = useMemo(
     () => [...availableTags(links, criteria)].sort(compareNames),
+    [links, criteria, compareNames],
+  );
+
+  const offeredDomains = useMemo(
+    () => [...availableDomains(links, criteria)].sort(compareNames),
     [links, criteria, compareNames],
   );
 
@@ -141,6 +147,28 @@ export function LinkFilters({
             ))}
           </select>
         </div>
+
+        <div className="flex min-w-56 flex-1 flex-col gap-1">
+          <label htmlFor={`${fieldId}-domain`} className="text-sm font-medium">
+            {t('dashboard.link.domain')}
+          </label>
+          <select
+            id={`${fieldId}-domain`}
+            value={domainToChoice(criteria.domain)}
+            onChange={(event) =>
+              onChange({ ...criteria, domain: choiceToDomain(event.target.value) })
+            }
+            className={CONTROL_CLASSES}
+          >
+            <option value={ALL}>{t('filters.domainAll')}</option>
+
+            {offeredDomains.map((domain) => (
+              <option key={domain} value={`${NAMED_PREFIX}${domain}`}>
+                {domain}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {offeredTags.length > 0 && (
@@ -184,13 +212,13 @@ export function LinkFilters({
 }
 
 /**
- * The category options.
+ * The category and domain options.
  *
  * Real names are prefixed so a category the user actually calls "all" or
- * "none" is still read back as itself rather than as one of the two
- * collective entries. The status options need no such care: every key from
- * `statusToKey` carries a `builtin:`/`custom:` prefix already, so none of
- * them can equal `all`.
+ * "none" — or a single-label hostname that happens to be `all` — is still
+ * read back as itself rather than as one of the collective entries. The
+ * status options need no such care: every key from `statusToKey` carries a
+ * `builtin:`/`custom:` prefix already, so none of them can equal `all`.
  */
 const ALL = 'all';
 const NONE = 'none';
@@ -211,6 +239,15 @@ function choiceToCategory(choice: string): string | null {
 
   // The empty string is what the filter reads as "without a category".
   return choice === NONE ? '' : choice.slice(NAMED_PREFIX.length);
+}
+
+// Every saved link has a domain, so there is no "without one" entry to offer.
+function domainToChoice(domain: string | null): string {
+  return domain === null ? ALL : `${NAMED_PREFIX}${domain}`;
+}
+
+function choiceToDomain(choice: string): string | null {
+  return choice === ALL ? null : choice.slice(NAMED_PREFIX.length);
 }
 
 const CONTROL_CLASSES =

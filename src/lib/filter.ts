@@ -3,7 +3,7 @@ import { keyToStatus, statusToKey, type LinkStatus, type SavedLink } from './sav
 /**
  * Narrowing the dashboard list down (see docs/concept.md §3.5).
  *
- * Pure functions over an array — no storage, no React. Combining four filters
+ * Pure functions over an array — no storage, no React. Combining five filters
  * correctly is the kind of logic that is easy to get subtly wrong and hard to
  * see wrong in a browser, which is exactly what unit tests are for.
  */
@@ -21,6 +21,12 @@ export interface LinkFilterCriteria {
   tags: string[];
   /** A key from `statusToKey`. `null` matches every status. */
   status: string | null;
+  /**
+   * A hostname as stored on the link. `null` matches every domain — there is
+   * no "without a domain" case, because a link that has none cannot be saved
+   * at all (see `createSavedLink`).
+   */
+  domain: string | null;
 }
 
 /** Everything unset: the whole list, in the order storage returns it. */
@@ -29,6 +35,7 @@ export const NO_FILTER: LinkFilterCriteria = {
   category: null,
   tags: [],
   status: null,
+  domain: null,
 };
 
 /**
@@ -42,7 +49,8 @@ export function isFiltering(criteria: LinkFilterCriteria): boolean {
     criteria.search.trim() !== '' ||
     criteria.category !== null ||
     criteria.tags.length > 0 ||
-    criteria.status !== null
+    criteria.status !== null ||
+    criteria.domain !== null
   );
 }
 
@@ -62,7 +70,8 @@ export function filterSavedLinks(links: SavedLink[], criteria: LinkFilterCriteri
       matchesText(link, search) &&
       matchesCategory(link, criteria.category) &&
       matchesTags(link, criteria.tags) &&
-      matchesStatus(link, criteria.status),
+      matchesStatus(link, criteria.status) &&
+      matchesDomain(link, criteria.domain),
   );
 }
 
@@ -93,6 +102,10 @@ function matchesTags(link: SavedLink, tags: string[]): boolean {
 
 function matchesStatus(link: SavedLink, status: string | null): boolean {
   return status === null || statusToKey(link.status) === status;
+}
+
+function matchesDomain(link: SavedLink, domain: string | null): boolean {
+  return domain === null || link.domain === domain;
 }
 
 /**
@@ -137,6 +150,13 @@ export function availableTags(links: SavedLink[], criteria: LinkFilterCriteria):
   const relevant = filterSavedLinks(links, { ...criteria, tags: [] });
 
   return [...new Set([...relevant.flatMap((link) => link.tags), ...criteria.tags])];
+}
+
+export function availableDomains(links: SavedLink[], criteria: LinkFilterCriteria): string[] {
+  const relevant = filterSavedLinks(links, { ...criteria, domain: null });
+  const domains = relevant.map((link) => link.domain);
+
+  return [...new Set(criteria.domain ? [...domains, criteria.domain] : domains)];
 }
 
 export function availableStatuses(links: SavedLink[], criteria: LinkFilterCriteria): LinkStatus[] {
