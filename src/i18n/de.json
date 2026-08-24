@@ -33,6 +33,7 @@
   "dashboard.link.status": "Status",
   "dashboard.link.category": "Kategorie",
   "dashboard.link.tags": "Schlagwörter",
+  "dashboard.link.domain": "Domain",
   "dashboard.link.note": "Notiz",
 
   "status.default": "Gemerkt",
@@ -63,6 +64,7 @@
   "filters.categoryAll": "Alle Kategorien",
   "filters.categoryNone": "Ohne Kategorie",
   "filters.statusAll": "Beliebiger Status",
+  "filters.domainAll": "Alle Domains",
   "filters.reset": "Filter zurücksetzen",
 
   "data.heading": "Deine Daten",

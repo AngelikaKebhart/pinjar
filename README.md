@@ -19,9 +19,9 @@ can be switched at any time in the Dashboard.
 Early development, but feature-complete against the concept. Saving a page from the toolbar icon is
 a single click and nothing else. The Popup lists what you saved on the site you are on, and every
 link there carries an Edit button that opens category, tags, status and note right in the Popup. The
-Dashboard manages everything: search, filters for category, tags and status, the same editing,
-export and import, and deleting all your data at once. The interface comes in light and dark: it
-follows the browser by default, and the Dashboard settings can pin it either way.
+Dashboard manages everything: search, filters for category, tags, status and domain, the same
+editing, export and import, and deleting all your data at once. The interface comes in light and
+dark: it follows the browser by default, and the Dashboard settings can pin it either way.
 
 See [`docs/concept.md`](docs/concept.md) for the full product concept, feature list, and data model
 (written in German).

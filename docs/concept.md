@@ -65,6 +65,7 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
   - Filter nach Kategorie
   - Filter nach Tag(s)
   - Filter nach Status
+  - Filter nach Domain
   - Volltextsuche (durchsucht Titel und Notiz)
   - Filter kombinierbar
 - Möglichkeit, Links direkt im Dashboard zu bearbeiten (Kategorie, Tags, Status, Notiz, Titel) und zu löschen

@@ -20,9 +20,13 @@ async function renderDashboard(): Promise<void> {
   );
 
   // The heading is there immediately, the list only once storage has answered.
-  // The count is the first thing that shows it has, in either language.
+  // The visible count is the first thing that shows it has, in either language.
+  //
+  // Deliberately not the announced count: that one is set by an effect a render
+  // later, so waiting for it means waiting past the render this helper is
+  // actually after. Whoever needs the announcement waits for it themselves.
   await waitFor(() => {
-    expect(document.querySelector('[aria-live="polite"]')?.textContent).toBeTruthy();
+    expect(shownCount()).toBeTruthy();
   });
 }
 
@@ -260,7 +264,7 @@ describe('accessibility', () => {
 
     await renderDashboard();
 
-    expect(announcedCount()).toBe('1 saved link');
+    await waitFor(() => expect(announcedCount()).toBe('1 saved link'));
   });
 
   // Read out once, not twice: the visible line says the same thing and is
@@ -270,7 +274,13 @@ describe('accessibility', () => {
 
     await renderDashboard();
 
-    expect(screen.getAllByText('1 saved link', { ignore: '[aria-hidden="true"]' })).toHaveLength(1);
+    // The one match left after ignoring the visible line is the live region,
+    // which fills a render after the count itself.
+    await waitFor(() =>
+      expect(screen.getAllByText('1 saved link', { ignore: '[aria-hidden="true"]' })).toHaveLength(
+        1,
+      ),
+    );
   });
 
   it('keeps the heading order intact', async () => {
@@ -565,6 +575,18 @@ describe('searching and filtering', () => {
     fireEvent.click(await within(filters()).findByLabelText('jersey'));
 
     expect(listedTitles()).toEqual(['Blue jersey']);
+  });
+
+  it('filters by domain', async () => {
+    await save({ url: 'https://shop.example/jersey', title: 'Blue jersey' });
+    await save({ url: 'https://blog.example/post', title: 'Sewing tutorial' });
+    await renderDashboard();
+
+    fireEvent.change(await within(filters()).findByLabelText('Domain'), {
+      target: { value: 'named:blog.example' },
+    });
+
+    expect(listedTitles()).toEqual(['Sewing tutorial']);
   });
 
   it('combines a filter with the search', async () => {
