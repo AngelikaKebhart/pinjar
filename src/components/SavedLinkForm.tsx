@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent, ReactNode } from 'react';
+import { Select } from '@/src/components/Select';
 import { useTranslation } from '@/src/i18n/context';
 import { DEFAULT_STATUS, type LinkStatus, type SavedLinkEdits } from '@/src/lib/saved-link';
 import { getCategories, getCustomStatuses, getTags } from '@/src/lib/storage';
@@ -161,13 +162,13 @@ export function SavedLinkForm({
         }}
       />
 
-      <fieldset className="flex flex-col gap-2 rounded-md border border-line p-3">
+      <fieldset className="flex flex-col gap-2 rounded-card border border-line p-4">
         {/*
           A fieldset with a legend, because the tick boxes and the field for
           new ones only make sense together — a screen reader announces the
           group name with every one of them.
         */}
-        <legend className="px-1 text-sm font-medium">{t('dashboard.link.tags')}</legend>
+        <legend className="px-1 text-sm font-bold">{t('dashboard.link.tags')}</legend>
 
         {knownTags.length === 0 ? (
           <p className="text-sm text-ink-muted">{t('editLink.tagsNone')}</p>
@@ -183,7 +184,7 @@ export function SavedLinkForm({
             <ul className="flex max-h-48 flex-wrap gap-2 overflow-y-auto">
               {offeredTags.map((tag) => (
                 <li key={tag}>
-                  <label className="flex cursor-pointer items-center gap-2 rounded-md border border-line px-2 py-1 text-sm break-words hover:bg-surface-hover">
+                  <label className="flex cursor-pointer items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-sm break-words hover:bg-surface-hover">
                     <input
                       type="checkbox"
                       checked={checkedTags.includes(tag)}
@@ -247,7 +248,7 @@ export function SavedLinkForm({
       <div className="flex flex-wrap gap-2">
         <button
           type="submit"
-          className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-on-accent hover:bg-accent-strong"
+          className="rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent hover:bg-accent-strong"
         >
           {t('editLink.save')}
         </button>
@@ -255,7 +256,7 @@ export function SavedLinkForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-md border border-line-strong px-3 py-1.5 text-sm font-medium hover:bg-surface-hover"
+          className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold hover:bg-surface-hover"
         >
           {t('editLink.cancel')}
         </button>
@@ -357,18 +358,17 @@ function ChoiceOrNewField({
 
   return (
     <Field label={label} htmlFor={id}>
-      <select
+      <Select
         ref={selectRef}
         id={id}
         value={value}
-        onChange={(event) => {
-          if (event.target.value === NEW_CHOICE) {
+        onChange={(choice) => {
+          if (choice === NEW_CHOICE) {
             setDraft('');
           } else {
-            onChange(event.target.value);
+            onChange(choice);
           }
         }}
-        className={INPUT_CLASSES}
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -377,7 +377,7 @@ function ChoiceOrNewField({
         ))}
 
         <option value={NEW_CHOICE}>{newOptionLabel}</option>
-      </select>
+      </Select>
     </Field>
   );
 }
@@ -404,7 +404,7 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={htmlFor} className="text-sm font-medium">
+      <label htmlFor={htmlFor} className="text-sm font-bold">
         {label}
       </label>
 
@@ -420,7 +420,7 @@ function Field({
 }
 
 const INPUT_CLASSES =
-  'w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm text-ink';
+  'w-full rounded-field border border-line-strong bg-surface px-3 py-2 text-sm text-ink';
 
 /**
  * A `<select>` can only carry a string, so the option values are prefixed to

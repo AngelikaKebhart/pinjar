@@ -15,11 +15,6 @@ export const LANGUAGE_NAMES: Record<Language, string> = {
   en: 'English',
 };
 
-/** Narrows a raw value — e.g. from a `<select>` — to a valid preference. */
-export function isLanguagePreference(value: string): value is LanguagePreference {
-  return value === 'auto' || LANGUAGES.some((language) => language === value);
-}
-
 /**
  * Determines the language to display in.
  *

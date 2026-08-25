@@ -291,21 +291,23 @@ describe('accessibility', () => {
     const levels = screen
       .getAllByRole('heading')
       .map((heading) => Number(heading.tagName.slice(1)));
-    // Title, filters, the list, one card, the data section, settings.
-    expect(levels).toEqual([1, 2, 2, 3, 2, 2]);
+    // The wordmark, filters, the list, one card. The data heading belongs to
+    // the dialog and is only there while that is open.
+    expect(levels).toEqual([1, 2, 2, 3]);
   });
 
   /*
-   * The data section is only shown once the links are known, and it is also
-   * what reports the deletion. An emptied store therefore has to arrive as
-   * "nothing saved" rather than as "not known yet", or the section would
-   * vanish at the very moment it has something to say.
+   * The data dialog is only shown once the links are known, and it is also what
+   * reports the deletion. An emptied store therefore has to arrive as "nothing
+   * saved" rather than as "not known yet", or the dialog would empty itself at
+   * the very moment it has something to say.
    */
   it('stays whole after everything was deleted', async () => {
     await save({ url: 'https://shop.example/jersey', title: 'Jersey fabric' });
     await renderDashboard();
 
-    fireEvent.click(screen.getByRole('button', { name: en['data.deleteAll.action'] }));
+    fireEvent.click(screen.getByRole('button', { name: en['data.heading'] }));
+    fireEvent.click(await screen.findByRole('button', { name: en['data.deleteAll.action'] }));
     fireEvent.click(screen.getByRole('button', { name: en['data.deleteAll.confirm'] }));
 
     await waitFor(() =>

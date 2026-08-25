@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isLanguagePreference, LANGUAGE_NAMES, resolveLanguage } from './language';
+import { LANGUAGE_NAMES, resolveLanguage } from './language';
 import { LANGUAGES } from './messages';
 import type { LanguagePreference } from './messages';
 
@@ -37,20 +37,6 @@ describe('resolveLanguage', () => {
 
     expect(resolveLanguage(unsupported, 'de-DE')).toBe('de');
     expect(resolveLanguage(unsupported, 'fr-FR')).toBe('en');
-  });
-});
-
-describe('isLanguagePreference', () => {
-  it('accepts the supported languages and auto', () => {
-    expect(isLanguagePreference('auto')).toBe(true);
-    expect(isLanguagePreference('de')).toBe(true);
-    expect(isLanguagePreference('en')).toBe(true);
-  });
-
-  it('rejects anything else', () => {
-    expect(isLanguagePreference('fr')).toBe(false);
-    expect(isLanguagePreference('')).toBe(false);
-    expect(isLanguagePreference('DE')).toBe(false);
   });
 });
 

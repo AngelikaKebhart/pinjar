@@ -50,9 +50,11 @@ const UI_PAIRS = [
   // The wordmark and the rule under the header are graphics, not text.
   ['brand', 'canvas'],
   ['brand', 'surface'],
-  // Edit and delete are drawn, so the glyph itself has to be made out.
+  // Edit and delete are drawn, so the glyph itself has to be made out — and
+  // they are icon buttons, so most of the time they are being hovered.
   ['glyph', 'surface'],
   ['glyph', 'surface-tint'],
+  ['glyph', 'surface-hover'],
   /*
    * A filled button has no border: its fill is the whole boundary, so it has
    * to stand off whatever it sits on. On a dark ground this is the pair that

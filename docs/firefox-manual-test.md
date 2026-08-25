@@ -116,7 +116,7 @@ The download is a blob and a synthetic link click. Firefox ignores a click on a 
 in the document, and cancels a download whose blob URL is revoked in the same turn — both are
 handled in `downloadJson`, and Firefox is the only browser that would notice if that regressed.
 
-**Do:** dashboard → **Export as a file**.
+**Do:** dashboard → the cog in the header (**Deine Daten**) → **Export as a file**.
 
 **Expect:** Firefox offers or saves `pinjar-YYYY-MM-DD.json`. Open it: valid JSON,
 every saved link present, umlauts intact (`Prüfschritte`, not `PrÃ¼fschritte`).
@@ -129,7 +129,7 @@ made it into the document.
 The picker is a hidden `<input type="file">` opened by a script. Firefox is stricter than Chrome
 about which gestures may open one.
 
-**Do:** dashboard → **Import a file** → pick the file from check 6.
+**Do:** dashboard → **Deine Daten** → **Import a file** → pick the file from check 6.
 
 **Expect:** the file dialog opens, and afterwards the message names how many links were added and
 how many were already on the list. Picking the **same file a second time** must produce a second
@@ -140,7 +140,8 @@ message, not silence.
 ## 8. The popup at its own size
 
 **Do:** open the popup on a domain with two or three saved links, switch the interface to German
-(dashboard → Settings), then open the popup again and press **Edit** on one link.
+(dashboard → the globe icon in the header → **Deutsch**), then open the popup again and press
+**Edit** on one link.
 
 **Expect:** the popup is about 384px wide, nothing is cut off, and the form — which is taller than
 the popup — scrolls inside it. The German labels wrap rather than clip.
@@ -148,22 +149,45 @@ the popup — scrolls inside it. The German labels wrap rather than clip.
 **If it fails:** Firefox caps popup dimensions differently than Chrome; the fix belongs in the
 popup's own layout, not in a fixed height.
 
-## 9. Dark mode, and the language of the document
+## 9. The data dialog is a real modal
+
+The three data actions sit in a native `<dialog>` opened with `showModal()`, which is what
+supplies the focus trap, Escape and the backdrop. jsdom implements none of those, so the unit
+tests cannot see them — this check is the only place they are verified.
+
+**Do:** dashboard → **Deine Daten**. Then press Tab several times, press Escape, and open it again
+and click the darkened area outside it.
+
+**Expect:** Tab cycles only through the controls inside the dialog and never reaches the page
+behind it; Escape closes it and puts focus back on the button that opened it; the click outside
+also closes it. The page behind is dimmed and cannot be scrolled or clicked.
+
+**If it fails:** Firefox has supported `showModal()` since 98, so a failure here means the dialog
+was opened by setting the `open` attribute instead — that shows the element without any of the
+modal behaviour.
+
+## 10. Dark mode, and the language of the document
 
 **Do:** set Firefox to a dark theme (`about:preferences` → Colors, or the OS setting) and open the
 dashboard. Then switch the interface language between Deutsch and English.
 
-**Expect:** the dark palette applies to the whole dashboard, including the `<select>` drop-downs
-and the scrollbar. In the Inspector, `<html lang>` reads `de` or `en` and **changes with the
+**Expect:** the dark palette applies to the whole dashboard, including the filter `<select>`
+fields and the scrollbar. In the Inspector, `<html lang>` reads `de` or `en` and **changes with the
 switch** — a screen reader picks its pronunciation from it (WCAG 2.2 AA, 3.1.1).
 
 **If it fails:** `color-scheme: light dark` is not reaching the page, or the language effect is
 not writing the attribute.
 
-**Not a failure:** on automatic, a dark dashboard next to a light popup. Firefox tells an
+**Not a failure:** the list a filter drop-down opens is drawn by Firefox itself, in its own
+colours, with the platform blue on the row under the pointer. Chromium gets ours, because
+`appearance: base-select` pulls that list into the page there; Firefox does not support it yet and
+the stylesheet asks for it behind `@supports`. Nothing to fix until Firefox ships it.
+
+**Not a failure either:** on automatic, a dark dashboard next to a light popup. Firefox tells an
 extension page in a tab what the browser theme is, and the popup what the operating system is — so
-the two disagree whenever those two settings do. Setting Appearance to Hell or Dunkel is what
-overrules both, and is worth checking here for exactly that reason.
+the two disagree whenever those two settings do. Setting **Erscheinungsbild** (the half-filled disc in the
+header) to Hell or Dunkel is what overrules both, and is worth checking here for exactly that
+reason.
 
 ---
 

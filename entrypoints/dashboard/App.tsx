@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { LanguageSwitcher } from '@/src/components/LanguageSwitcher';
-import { ThemeSwitcher } from '@/src/components/ThemeSwitcher';
 import { useTranslation } from '@/src/i18n/context';
 import { filterSavedLinks, isFiltering, NO_FILTER } from '@/src/lib/filter';
 import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
 import { getSavedLinks, removeSavedLink, savedLinks, updateSavedLink } from '@/src/lib/storage';
-import { DataSection } from './DataSection';
+import { DashboardHeader } from './DashboardHeader';
 import { LinkFilters } from './LinkFilters';
 import { SavedLinkCard } from './SavedLinkCard';
 
@@ -14,16 +12,13 @@ import { SavedLinkCard } from './SavedLinkCard';
  *
  * Scope (see docs/concept.md §3.5): list every saved link across all domains,
  * with search and filters for category, tags, status and domain, plus inline
- * editing.
- * Exporting everything as a file sits below the list (§3.6); reading such a
- * file back in is still to come.
+ * editing. Carrying the data in and out (§3.6) and the two settings live in
+ * the header, one icon button each.
  */
 function App() {
   const { t, plural } = useTranslation();
   const [links, setLinks] = useState<SavedLink[] | null>(null);
   const [criteria, setCriteria] = useState(NO_FILTER);
-  const settingsHeadingId = useId();
-  const dataHeadingId = useId();
   const savedLinksHeadingId = useId();
   const filtersHeadingId = useId();
 
@@ -93,10 +88,7 @@ function App() {
 
   return (
     <div className="mx-auto max-w-5xl p-4 sm:p-6">
-      <header>
-        <h1 className="text-2xl font-semibold">{t('dashboard.title')}</h1>
-        <p className="mt-1 text-sm text-ink-muted">{t('dashboard.subtitle')}</p>
-      </header>
+      <DashboardHeader />
 
       <section className="mt-8" aria-labelledby={filtersHeadingId}>
         <h2 id={filtersHeadingId} className="mb-3 text-lg font-medium">
@@ -155,36 +147,6 @@ function App() {
             </ul>
           ))}
       </main>
-
-      {/*
-        Without an accessible name a <section> is not exposed as a landmark, so
-        it would be missing from the region list a screen reader navigates by.
-        Pointing at the heading names it in whichever language is active.
-      */}
-      <section className="mt-10" aria-labelledby={dataHeadingId}>
-        <h2 id={dataHeadingId} className="text-lg font-medium">
-          {t('data.heading')}
-        </h2>
-        <div className="mt-3">
-          {/*
-            Reads what is stored for itself: which of its actions would do
-            anything depends on more than the links this list shows, since
-            categories and tags outlive the links that used them.
-          */}
-          <DataSection />
-        </div>
-      </section>
-
-      <section className="mt-10" aria-labelledby={settingsHeadingId}>
-        <h2 id={settingsHeadingId} className="text-lg font-medium">
-          {t('settings.heading')}
-        </h2>
-        {/* Side by side where there is room, stacked once there is not. */}
-        <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:gap-8">
-          <LanguageSwitcher />
-          <ThemeSwitcher />
-        </div>
-      </section>
     </div>
   );
 }

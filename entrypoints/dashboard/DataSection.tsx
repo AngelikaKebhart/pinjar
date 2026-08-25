@@ -72,7 +72,9 @@ export function DataSection() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
+      <section className="flex flex-col gap-2">
+        <h3 className="text-base font-semibold">{t('data.export.heading')}</h3>
+
         {/*
           With nothing saved, the warning about notes in the file describes a
           file that would hold none — so the empty case says what is actually
@@ -86,22 +88,25 @@ export function DataSection() {
           type="button"
           onClick={() => void handleExport()}
           disabled={!stored.hasLinks}
-          className={ACTION_BUTTON}
+          className={PRIMARY_BUTTON}
         >
           {t('data.export.action')}
         </button>
 
         <NoticeSlot notice={notice} shownFor="exported" />
-      </div>
+      </section>
 
-      <div className="flex flex-col gap-2">
+      <Divider />
+
+      <section className="flex flex-col gap-2">
+        <h3 className="text-base font-semibold">{t('data.import.heading')}</h3>
         <p className="text-sm text-ink-muted">{t('data.import.hint')}</p>
 
         {/*
           Never disabled, not even with an empty wishlist: an empty one is
           exactly when a file is most likely to be waiting.
         */}
-        <button type="button" onClick={() => pickerRef.current?.click()} className={ACTION_BUTTON}>
+        <button type="button" onClick={() => pickerRef.current?.click()} className={PRIMARY_BUTTON}>
           {t('data.import.action')}
         </button>
 
@@ -126,7 +131,9 @@ export function DataSection() {
         />
 
         <NoticeSlot notice={notice} shownFor="imported" />
-      </div>
+      </section>
+
+      <Divider />
 
       <DeleteEverything
         hasAnythingToDelete={stored.hasAnything}
@@ -137,9 +144,25 @@ export function DataSection() {
   );
 }
 
-/** Shared so the three actions cannot drift apart in looks or in target size. */
-const ACTION_BUTTON =
-  'w-fit rounded-md border border-line-strong px-3 py-2 text-sm font-medium enabled:hover:bg-surface-hover disabled:border-line disabled:text-ink-muted';
+/**
+ * Export and import are filled, deleting everything is not.
+ *
+ * The two that hand data around are what this dialog is for, and they are
+ * safe. The third is the one action in the extension that cannot be taken
+ * back, so it is left as an outline: it has to be findable, it must not be
+ * the thing the eye lands on first. Color cannot make that difference here —
+ * the whole palette is red — so weight does (WCAG 2.2 AA, 1.4.1).
+ */
+const PRIMARY_BUTTON =
+  'w-fit rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent enabled:hover:bg-accent-strong disabled:bg-disabled disabled:text-on-disabled';
+
+const OUTLINE_BUTTON =
+  'w-fit rounded-control border border-line-strong px-4 py-2 text-sm font-bold text-link enabled:hover:bg-surface-hover disabled:border-line disabled:text-ink-muted';
+
+/** Separates the three actions without giving any of them a box of its own. */
+function Divider() {
+  return <hr className="border-line" />;
+}
 
 /** What just happened, kept until the next thing does. */
 type Notice =
@@ -172,7 +195,7 @@ function NoticePanel({ notice }: { notice: Notice }) {
   return (
     <p
       className={
-        'mt-1 flex w-fit items-center gap-2 rounded-md border bg-surface px-3 py-2 text-sm font-medium ' +
+        'mt-1 flex w-fit items-center gap-2 rounded-control border bg-surface px-3 py-2 text-sm font-medium ' +
         (wentWrong ? 'border-danger' : 'border-accent')
       }
     >
@@ -267,19 +290,22 @@ function DeleteEverything({
 
   if (!isAsking) {
     return (
-      <div className="flex flex-col gap-2">
+      <section className="flex flex-col gap-2">
+        <h3 className="text-base font-semibold">{t('data.deleteAll.heading')}</h3>
+        <p className="text-sm text-ink-muted">{t('data.deleteAll.hint')}</p>
+
         <button
           ref={triggerRef}
           type="button"
           onClick={() => setIsAsking(true)}
           disabled={!hasAnythingToDelete}
-          className={ACTION_BUTTON}
+          className={OUTLINE_BUTTON}
         >
           {t('data.deleteAll.action')}
         </button>
 
         <NoticeSlot notice={notice} shownFor="deleted" />
-      </div>
+      </section>
     );
   }
 
@@ -289,7 +315,7 @@ function DeleteEverything({
       tabIndex={-1}
       role="group"
       aria-labelledby={warningId}
-      className="flex flex-col gap-3 rounded-lg border border-danger p-4"
+      className="flex flex-col gap-3 rounded-card border border-danger p-4"
     >
       <p id={warningId} className="text-sm">
         {t('data.deleteAll.warning')}
@@ -304,7 +330,7 @@ function DeleteEverything({
               onDeleted();
             });
           }}
-          className="rounded-md bg-danger px-3 py-2 text-sm font-medium text-on-danger hover:bg-danger-strong"
+          className="rounded-control bg-danger px-4 py-2 text-sm font-bold text-on-danger hover:bg-danger-strong"
         >
           {t('data.deleteAll.confirm')}
         </button>
@@ -312,7 +338,7 @@ function DeleteEverything({
         <button
           type="button"
           onClick={() => setIsAsking(false)}
-          className="rounded-md border border-line-strong px-3 py-2 text-sm font-medium hover:bg-surface-hover"
+          className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold hover:bg-surface-hover"
         >
           {t('data.deleteAll.cancel')}
         </button>

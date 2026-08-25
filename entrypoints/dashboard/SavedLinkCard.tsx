@@ -43,7 +43,7 @@ export function SavedLinkCard({
   };
 
   return (
-    <article className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-4 sm:flex-row">
+    <article className="flex flex-col gap-4 rounded-card border border-line bg-surface p-4 shadow-card sm:flex-row">
       <PreviewImage link={link} />
 
       <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -103,7 +103,7 @@ export function SavedLinkCard({
                     {link.tags.map((tag) => (
                       <li
                         key={tag}
-                        className="rounded-full bg-pill px-2 py-0.5 break-words text-pill-ink"
+                        className="rounded-full bg-pill px-3 py-1 text-xs font-bold break-words text-pill-ink"
                       >
                         {tag}
                       </li>
@@ -132,9 +132,14 @@ export function SavedLinkCard({
         icon, wraps inside this column instead of taking the room from the
         text. Below the breakpoint the card stacks and they end up under the
         content anyway, which at 320px is the only place they fit (1.4.10).
+
+        Right-aligned at every width, not only from the breakpoint up: the
+        delete button opens a panel anchored to its right edge, and a button
+        sitting at the left of a 320px card would have that panel hanging off
+        the side of the screen.
       */}
       {!isEditing && (
-        <div className="flex shrink-0 flex-wrap gap-2 sm:max-w-36 sm:justify-end">
+        <div className="flex shrink-0 flex-wrap justify-end gap-2 sm:max-w-36">
           <EditLinkButton
             ref={editButtonRef}
             title={link.title}
@@ -175,7 +180,7 @@ function PreviewImage({ link }: { link: SavedLink }) {
       referrerPolicy="no-referrer"
       loading="lazy"
       onError={() => setHasFailed(true)}
-      className="size-24 shrink-0 rounded-md border border-line object-cover"
+      className="size-24 shrink-0 rounded-control border border-line object-cover"
     />
   );
 }

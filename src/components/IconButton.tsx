@@ -16,17 +16,22 @@ import type { ReactNode, Ref } from 'react';
  * targets (2.5.8): the icon inside is smaller than the area that answers to
  * a click.
  *
- * Every one of them is drawn in `ink`, including the one that deletes. Red
- * would be saying "destructive" in color alone (1.4.1) — the shape and the
- * name already say it — and it is the pairing that fails 3:1 against a hovered
- * surface in the dark palette. The confirmation that follows is red, where the
- * question is in words and the color only underlines them.
+ * Every one of them is drawn in `glyph` — Crimson Violet, the deepest of the
+ * three reds — including the one that deletes. That is the design's tone for a
+ * drawn shape, and it is one tone for all of them on purpose: a red delete
+ * glyph among violet ones would be saying "destructive" in color alone
+ * (1.4.1), which the shape and the name already say in full. The confirmation
+ * that follows is the red one, where the question is in words and the color
+ * only underlines them.
  */
 export function IconButton({
   label,
   onClick,
   children,
   ref,
+  expanded,
+  controls,
+  hasPopup,
 }: {
   /** Names the button, and names what it acts on: "Delete “Blue jersey”". */
   label: string;
@@ -34,6 +39,12 @@ export function IconButton({
   /** The icon. */
   children: ReactNode;
   ref?: Ref<HTMLButtonElement>;
+  /** Set on a button that reveals something, to say whether it is showing. */
+  expanded?: boolean;
+  /** The id of what `expanded` refers to. */
+  controls?: string;
+  /** What opens when the button is pressed, where that is not obvious. */
+  hasPopup?: 'dialog';
 }) {
   return (
     <button
@@ -42,7 +53,10 @@ export function IconButton({
       onClick={onClick}
       aria-label={label}
       title={label}
-      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line-strong text-ink hover:bg-surface-hover"
+      aria-expanded={expanded}
+      aria-controls={controls}
+      aria-haspopup={hasPopup}
+      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-line-strong text-glyph hover:bg-surface-hover"
     >
       {children}
     </button>

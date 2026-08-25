@@ -68,11 +68,14 @@
   "filters.reset": "Reset filters",
 
   "data.heading": "Your data",
+  "data.close": "Close",
+  "data.export.heading": "Export all links",
   "data.export.action": "Export as a file",
   "data.export.nothingYet": "Nothing is saved yet, so there is nothing to export.",
   "data.export.hint": "Writes everything to a file you can carry to another browser. The file is not encrypted and may hold your notes — keep it somewhere you trust.",
   "data.export.done": "Export created — your browser is saving the file.",
 
+  "data.import.heading": "Import links",
   "data.import.action": "Import a file",
   "data.import.hint": "Adds what the file holds. Links you already saved stay as they are.",
   "data.import.added_one": "{count} link added.",
@@ -85,12 +88,13 @@
   "data.import.error.notOurFormat": "That file is not a PinJar export.",
   "data.import.error.tooNew": "That file was written by a newer version of this extension. Please update the extension first.",
 
+  "data.deleteAll.heading": "Delete all data",
+  "data.deleteAll.hint": "Removes everything this extension has stored in this browser.",
   "data.deleteAll.action": "Delete all data",
   "data.deleteAll.warning": "This removes every saved link, category, tag and status from this browser. It cannot be undone — export a file first if you want a copy.",
   "data.deleteAll.confirm": "Yes, delete everything",
   "data.deleteAll.cancel": "Cancel",
   "data.deleteAll.done": "All data deleted.",
-  "settings.heading": "Settings",
   "settings.language.label": "Interface language",
   "settings.language.auto": "Automatic (browser language)",
 

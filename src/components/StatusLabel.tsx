@@ -17,6 +17,8 @@ export function StatusLabel({ status }: { status: LinkStatus }) {
     // The status is carried by its text, never by color alone (WCAG 1.4.1) —
     // which is also why it shares the one pill tone with the tags rather than
     // having a shade of its own.
-    <span className="inline-block rounded-full bg-pill px-2 py-0.5 text-pill-ink">{label}</span>
+    <span className="inline-block rounded-full bg-pill px-3 py-1 text-xs font-bold text-pill-ink">
+      {label}
+    </span>
   );
 }
