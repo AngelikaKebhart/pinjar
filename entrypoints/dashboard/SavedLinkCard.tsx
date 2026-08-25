@@ -101,7 +101,10 @@ export function SavedLinkCard({
                 <dd>
                   <ul className="flex flex-wrap gap-1">
                     {link.tags.map((tag) => (
-                      <li key={tag} className="rounded bg-chip px-2 py-0.5 break-words">
+                      <li
+                        key={tag}
+                        className="rounded-full bg-pill px-2 py-0.5 break-words text-pill-ink"
+                      >
                         {tag}
                       </li>
                     ))}

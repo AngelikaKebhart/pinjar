@@ -24,10 +24,11 @@ const TEXT_PAIRS = [
   ['ink', 'canvas'],
   ['ink', 'surface'],
   ['ink', 'surface-hover'],
-  ['ink', 'chip'],
-  ['ink', 'chip-strong'],
+  ['ink', 'surface-tint'],
   ['ink-muted', 'canvas'],
   ['ink-muted', 'surface'],
+  ['ink-muted', 'surface-tint'],
+  ['pill-ink', 'pill'],
   ['link', 'canvas'],
   ['link', 'surface'],
   ['link-strong', 'canvas'],
@@ -42,8 +43,24 @@ const TEXT_PAIRS = [
 const UI_PAIRS = [
   ['line-strong', 'canvas'],
   ['line-strong', 'surface'],
+  ['line-strong', 'surface-tint'],
   ['focus', 'canvas'],
   ['focus', 'surface'],
+  ['focus', 'pill'],
+  // The wordmark and the rule under the header are graphics, not text.
+  ['brand', 'canvas'],
+  ['brand', 'surface'],
+  // Edit and delete are drawn, so the glyph itself has to be made out.
+  ['glyph', 'surface'],
+  ['glyph', 'surface-tint'],
+  /*
+   * A filled button has no border: its fill is the whole boundary, so it has
+   * to stand off whatever it sits on. On a dark ground this is the pair that
+   * fails first, and it did — the dark accent is lifted to clear it.
+   */
+  ['accent', 'surface'],
+  ['accent', 'canvas'],
+  ['danger', 'surface'],
 ] as const;
 
 /**
