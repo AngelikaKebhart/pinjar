@@ -15,7 +15,7 @@ import tailwindcss from '@tailwindcss/vite';
  */
 const firefoxSettings = {
   gecko: {
-    id: 'universal-wishlist@angelikakebhart.github.io',
+    id: 'pinjar@angelikakebhart.github.io',
     strict_min_version: '128.0',
     data_collection_permissions: {
       required: ['none'],

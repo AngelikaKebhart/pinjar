@@ -16,7 +16,7 @@ import {
  */
 
 /** Marks a file as ours, so any other JSON file can be told apart from it. */
-export const EXPORT_FORMAT = 'universal-wishlist';
+export const EXPORT_FORMAT = 'pinjar';
 
 /**
  * Raised only when a file stops being readable by older versions.
@@ -78,7 +78,7 @@ export function exportFileName(now = new Date()): string {
   const pad = (value: number): string => String(value).padStart(2, '0');
   const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 
-  return `universal-wishlist-${date}.json`;
+  return `pinjar-${date}.json`;
 }
 
 /**

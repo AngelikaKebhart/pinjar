@@ -95,7 +95,7 @@ describe('the tooltip', () => {
 
     await refreshBadgeForTab({ id: TAB_ID, url: 'https://shop.example/third' });
 
-    await expect(tooltipOf()).resolves.toBe('Universal Wishlist — 2 links saved on this site');
+    await expect(tooltipOf()).resolves.toBe('PinJar — 2 links saved on this site');
   });
 
   it('uses the singular for a single link', async () => {
@@ -103,13 +103,13 @@ describe('the tooltip', () => {
 
     await refreshBadgeForTab({ id: TAB_ID, url: 'https://shop.example/item' });
 
-    await expect(tooltipOf()).resolves.toBe('Universal Wishlist — 1 link saved on this site');
+    await expect(tooltipOf()).resolves.toBe('PinJar — 1 link saved on this site');
   });
 
   it('says so when there is nothing saved', async () => {
     await refreshBadgeForTab({ id: TAB_ID, url: 'https://shop.example/item' });
 
-    await expect(tooltipOf()).resolves.toBe('Universal Wishlist — nothing saved on this site');
+    await expect(tooltipOf()).resolves.toBe('PinJar — nothing saved on this site');
   });
 
   it('follows the chosen interface language', async () => {
@@ -118,9 +118,7 @@ describe('the tooltip', () => {
 
     await refreshBadgeForTab({ id: TAB_ID, url: 'https://shop.example/item' });
 
-    await expect(tooltipOf()).resolves.toBe(
-      'Universal Wishlist — 1 gemerkter Link auf dieser Seite',
-    );
+    await expect(tooltipOf()).resolves.toBe('PinJar — 1 gemerkter Link auf dieser Seite');
   });
 
   it('follows the browser language while the choice is automatic', async () => {
@@ -128,9 +126,7 @@ describe('the tooltip', () => {
 
     await refreshBadgeForTab({ id: TAB_ID, url: 'https://shop.example/item' });
 
-    await expect(tooltipOf()).resolves.toBe(
-      'Universal Wishlist — auf dieser Seite ist nichts gemerkt',
-    );
+    await expect(tooltipOf()).resolves.toBe('PinJar — auf dieser Seite ist nichts gemerkt');
   });
 });
 

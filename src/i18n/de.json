@@ -1,5 +1,5 @@
 {
-  "popup.title": "Universal Wishlist",
+  "popup.title": "PinJar",
   "popup.loading": "Wird geladen…",
   "popup.savePage": "Diese Seite merken",
   "popup.saving": "Wird gemerkt…",
@@ -15,12 +15,12 @@
   "popup.savedLinks.heading": "Gemerkt auf {domain}",
   "popup.savedLinks.empty": "Auf dieser Seite hast du noch nichts gemerkt.",
 
-  "badge.tooltip.none": "Universal Wishlist — auf dieser Seite ist nichts gemerkt",
-  "badge.tooltip.count_one": "Universal Wishlist — {count} gemerkter Link auf dieser Seite",
-  "badge.tooltip.count_other": "Universal Wishlist — {count} gemerkte Links auf dieser Seite",
+  "badge.tooltip.none": "PinJar — auf dieser Seite ist nichts gemerkt",
+  "badge.tooltip.count_one": "PinJar — {count} gemerkter Link auf dieser Seite",
+  "badge.tooltip.count_other": "PinJar — {count} gemerkte Links auf dieser Seite",
 
-  "dashboard.documentTitle": "Universal Wishlist — Dashboard",
-  "dashboard.title": "Universal Wishlist",
+  "dashboard.documentTitle": "PinJar — Dashboard",
+  "dashboard.title": "PinJar",
   "dashboard.subtitle": "Alle gemerkten Links, unabhängig vom Shop oder der Webseite, von der sie stammen.",
   "dashboard.savedLinks.heading": "Gemerkte Links",
   "dashboard.savedLinks.count_one": "{count} gemerkter Link",
@@ -82,7 +82,7 @@
   "data.import.unusable_one": "{count} Eintrag war nicht lesbar und wurde übersprungen.",
   "data.import.unusable_other": "{count} Einträge waren nicht lesbar und wurden übersprungen.",
   "data.import.error.notReadable": "Diese Datei konnte nicht gelesen werden. Bitte wähle die Datei, die diese Erweiterung geschrieben hat.",
-  "data.import.error.notOurFormat": "Diese Datei ist kein Export von Universal Wishlist.",
+  "data.import.error.notOurFormat": "Diese Datei ist kein Export von PinJar.",
   "data.import.error.tooNew": "Diese Datei stammt aus einer neueren Version. Bitte aktualisiere zuerst die Erweiterung.",
 
   "data.deleteAll.action": "Alle Daten löschen",

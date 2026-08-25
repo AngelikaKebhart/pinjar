@@ -1,5 +1,5 @@
 {
-  "name": "universal-wishlist",
+  "name": "pinjar",
   "description": "Universal, shop-independent wishlist: save any page with one click and organize saved links with categories, tags, status and notes.",
   "private": true,
   "version": "0.1.0",
@@ -13,6 +13,7 @@
     "dev:firefox": "wxt -b firefox",
     "dev:edge": "wxt -b edge",
     "build": "wxt build",
+    "build:icon": "node scripts/build-icon.mjs",
     "build:firefox": "wxt build -b firefox",
     "build:edge": "wxt build -b edge",
     "zip": "wxt zip",
