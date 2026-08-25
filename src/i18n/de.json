@@ -68,6 +68,7 @@
   "filters.reset": "Filter zurücksetzen",
 
   "data.heading": "Deine Daten",
+  "data.close": "Schließen",
   "data.export.action": "Als Datei exportieren",
   "data.export.nothingYet": "Es ist noch nichts gemerkt, also gibt es auch nichts zu exportieren.",
   "data.export.hint": "Schreibt alles in eine Datei, die du in einen anderen Browser mitnehmen kannst. Die Datei ist unverschlüsselt und enthält womöglich deine Notizen — bewahre sie entsprechend auf.",
@@ -90,7 +91,6 @@
   "data.deleteAll.confirm": "Ja, alles löschen",
   "data.deleteAll.cancel": "Abbrechen",
   "data.deleteAll.done": "Alle Daten gelöscht.",
-  "settings.heading": "Einstellungen",
   "settings.language.label": "Sprache der Oberfläche",
   "settings.language.auto": "Automatisch (Browsersprache)",
 

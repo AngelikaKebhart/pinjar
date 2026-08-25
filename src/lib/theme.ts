@@ -12,11 +12,6 @@ export const THEME_PREFERENCES = ['auto', 'light', 'dark'] as const;
 /** What the user picked; "auto" means "follow the browser". */
 export type ThemePreference = (typeof THEME_PREFERENCES)[number];
 
-/** Guards a value read back from storage or from a `<select>`. */
-export function isThemePreference(value: string): value is ThemePreference {
-  return (THEME_PREFERENCES as readonly string[]).includes(value);
-}
-
 /**
  * Puts the preference where the stylesheet looks for it.
  *

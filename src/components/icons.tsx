@@ -54,3 +54,51 @@ function Icon({ children }: { children: React.ReactNode }) {
     </svg>
   );
 }
+
+/** Globe, for the interface language. */
+export function LanguageIcon() {
+  return (
+    <Icon>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18" />
+      <path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18Z" />
+    </Icon>
+  );
+}
+
+/**
+ * A disc half filled in, for light and dark.
+ *
+ * The same shape whichever scheme is active: it names the setting, it does not
+ * report its value. A glyph that flipped between a sun and a moon would be
+ * telling the user something in a picture alone (WCAG 2.2 AA, 1.4.1), and the
+ * menu behind it already says which of the three is chosen, in words.
+ */
+export function ThemeIcon() {
+  return (
+    <Icon>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none" />
+    </Icon>
+  );
+}
+
+/** Stacked discs, for everything stored in this browser. */
+export function DataIcon() {
+  return (
+    <Icon>
+      <ellipse cx="12" cy="6" rx="7" ry="3" />
+      <path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6" />
+      <path d="M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3" />
+    </Icon>
+  );
+}
+
+/** Cross, for dismissing the data dialog. */
+export function CloseIcon() {
+  return (
+    <Icon>
+      <path d="M6 6l12 12M18 6L6 18" />
+    </Icon>
+  );
+}

@@ -1,46 +1,42 @@
-import { useId } from 'react';
+import { useMemo } from 'react';
+import { SettingMenu, type SettingOption } from '@/src/components/SettingMenu';
+import { LanguageIcon } from '@/src/components/icons';
 import { useTranslation } from '@/src/i18n/context';
-import { isLanguagePreference, LANGUAGE_NAMES } from '@/src/i18n/language';
-import { LANGUAGES } from '@/src/i18n/messages';
+import { LANGUAGE_NAMES } from '@/src/i18n/language';
+import { LANGUAGES, type LanguagePreference } from '@/src/i18n/messages';
 
 /**
  * Lets the user pick the interface language, or follow the browser.
  *
- * A plain labelled `<select>` on purpose: it is keyboard operable, announced
- * correctly and localized by the browser itself, none of which a custom
- * dropdown would provide for free.
+ * Three answers, not two: "automatic" is the documented default (docs/concept.md
+ * §3.7) and has to remain reachable, so this is a menu rather than a button
+ * that flips between German and English.
  */
 export function LanguageSwitcher() {
   const { t, preference, setPreference } = useTranslation();
-  const selectId = useId();
+
+  const options = useMemo<readonly SettingOption<LanguagePreference>[]>(
+    () => [
+      { value: 'auto', label: t('settings.language.auto') },
+      // Each language is named in itself, so it stays readable for a user who
+      // ended up in one they do not speak — and `lang` tells the screen reader
+      // to pronounce it that way (WCAG 3.1.2).
+      ...LANGUAGES.map((language) => ({
+        value: language,
+        label: LANGUAGE_NAMES[language],
+        lang: language,
+      })),
+    ],
+    [t],
+  );
 
   return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={selectId} className="text-sm font-medium">
-        {t('settings.language.label')}
-      </label>
-
-      <select
-        id={selectId}
-        value={preference}
-        onChange={(event) => {
-          if (isLanguagePreference(event.target.value)) {
-            setPreference(event.target.value);
-          }
-        }}
-        className="w-fit min-w-56 rounded-md border border-line-strong bg-surface px-3 py-2 text-sm"
-      >
-        <option value="auto">{t('settings.language.auto')}</option>
-
-        {LANGUAGES.map((language) => (
-          // lang= marks the option as being in another language than the page,
-          // so a screen reader pronounces "Deutsch" and "English" correctly
-          // (WCAG 3.1.2).
-          <option key={language} value={language} lang={language}>
-            {LANGUAGE_NAMES[language]}
-          </option>
-        ))}
-      </select>
-    </div>
+    <SettingMenu
+      icon={<LanguageIcon />}
+      label={t('settings.language.label')}
+      options={options}
+      value={preference}
+      onChange={setPreference}
+    />
   );
 }

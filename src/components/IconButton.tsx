@@ -27,6 +27,9 @@ export function IconButton({
   onClick,
   children,
   ref,
+  expanded,
+  controls,
+  hasPopup,
 }: {
   /** Names the button, and names what it acts on: "Delete “Blue jersey”". */
   label: string;
@@ -34,6 +37,12 @@ export function IconButton({
   /** The icon. */
   children: ReactNode;
   ref?: Ref<HTMLButtonElement>;
+  /** Set on a button that reveals something, to say whether it is showing. */
+  expanded?: boolean;
+  /** The id of what `expanded` refers to. */
+  controls?: string;
+  /** What opens when the button is pressed, where that is not obvious. */
+  hasPopup?: 'dialog';
 }) {
   return (
     <button
@@ -42,6 +51,9 @@ export function IconButton({
       onClick={onClick}
       aria-label={label}
       title={label}
+      aria-expanded={expanded}
+      aria-controls={controls}
+      aria-haspopup={hasPopup}
       className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line-strong text-ink hover:bg-surface-hover"
     >
       {children}

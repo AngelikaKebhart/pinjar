@@ -68,6 +68,7 @@
   "filters.reset": "Reset filters",
 
   "data.heading": "Your data",
+  "data.close": "Close",
   "data.export.action": "Export as a file",
   "data.export.nothingYet": "Nothing is saved yet, so there is nothing to export.",
   "data.export.hint": "Writes everything to a file you can carry to another browser. The file is not encrypted and may hold your notes — keep it somewhere you trust.",
@@ -90,7 +91,6 @@
   "data.deleteAll.confirm": "Yes, delete everything",
   "data.deleteAll.cancel": "Cancel",
   "data.deleteAll.done": "All data deleted.",
-  "settings.heading": "Settings",
   "settings.language.label": "Interface language",
   "settings.language.auto": "Automatic (browser language)",
 
