@@ -40,16 +40,17 @@ const ART = {
 };
 
 /*
- * Small sizes are not the large one scaled down. Below about 32px three dots
- * turn into a smudge and a hairline outline disappears, so the small variants
- * drop a dot and thicken the stroke — the same call the design board makes.
+ * Small sizes are not the large one scaled down: a hairline outline disappears
+ * below about 32px, so the small variants carry a thicker one. All three pins
+ * stay, at every size — they were dropped from the two smallest at first, on
+ * the assumption that they would smudge, and on screen at 16px they do not.
  */
 const SIZES = [
   { px: 128, stroke: 1.0, dots: 3 },
   { px: 96, stroke: 1.1, dots: 3 },
   { px: 48, stroke: 1.2, dots: 3 },
-  { px: 32, stroke: 1.5, dots: 2 },
-  { px: 16, stroke: 1.9, dots: 2 },
+  { px: 32, stroke: 1.5, dots: 3 },
+  { px: 16, stroke: 1.9, dots: 3 },
 ];
 
 /** Supersampling factor per axis; 4 means 16 samples a pixel. */

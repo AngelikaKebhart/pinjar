@@ -19,10 +19,16 @@ export function DashboardHeader() {
 
   return (
     <header>
-      <div className="flex items-center justify-between gap-4 border-b-2 border-brand pb-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <JarMark className="h-8 w-8 shrink-0" />
-          <h1 className="truncate text-2xl font-semibold text-brand">{t('dashboard.title')}</h1>
+      <div className="flex items-center justify-between gap-4 border-b-2 border-brand pb-4">
+        {/*
+          The lockup outweighs the controls next to it, rather than merely
+          fitting beside them: the mark is a head taller than the buttons and
+          the wordmark is set at heading size. Matched in size they read as
+          four buttons in a row, and the extension loses its name.
+        */}
+        <div className="flex min-w-0 items-center gap-3">
+          <JarMark className="h-11 w-11 shrink-0" />
+          <h1 className="truncate text-3xl font-semibold text-brand">{t('dashboard.title')}</h1>
         </div>
 
         {/* Ordered as they are reached for: often, rarely, hardly ever. */}

@@ -1,4 +1,5 @@
 import { useId, useMemo } from 'react';
+import { Select } from '@/src/components/Select';
 import { useTranslation } from '@/src/i18n/context';
 import {
   availableCategories,
@@ -75,9 +76,9 @@ export function LinkFilters({
   };
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4">
+    <div className="flex flex-col gap-4 rounded-card bg-surface-tint p-6 shadow-card">
       <div className="flex flex-col gap-1">
-        <label htmlFor={`${fieldId}-search`} className="text-sm font-medium">
+        <label htmlFor={`${fieldId}-search`} className="text-sm font-bold">
           {t('filters.search')}
         </label>
         <p id={`${fieldId}-search-hint`} className="text-sm text-ink-muted">
@@ -99,16 +100,13 @@ export function LinkFilters({
 
       <div className="flex flex-wrap gap-3">
         <div className="flex min-w-56 flex-1 flex-col gap-1">
-          <label htmlFor={`${fieldId}-category`} className="text-sm font-medium">
+          <label htmlFor={`${fieldId}-category`} className="text-sm font-bold">
             {t('dashboard.link.category')}
           </label>
-          <select
+          <Select
             id={`${fieldId}-category`}
             value={categoryToChoice(criteria.category)}
-            onChange={(event) =>
-              onChange({ ...criteria, category: choiceToCategory(event.target.value) })
-            }
-            className={CONTROL_CLASSES}
+            onChange={(choice) => onChange({ ...criteria, category: choiceToCategory(choice) })}
           >
             <option value={ALL}>{t('filters.categoryAll')}</option>
             {offeredCategories.uncategorised && (
@@ -120,23 +118,17 @@ export function LinkFilters({
                 {category}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <div className="flex min-w-56 flex-1 flex-col gap-1">
-          <label htmlFor={`${fieldId}-status`} className="text-sm font-medium">
+          <label htmlFor={`${fieldId}-status`} className="text-sm font-bold">
             {t('dashboard.link.status')}
           </label>
-          <select
+          <Select
             id={`${fieldId}-status`}
             value={criteria.status ?? ALL}
-            onChange={(event) =>
-              onChange({
-                ...criteria,
-                status: event.target.value === ALL ? null : event.target.value,
-              })
-            }
-            className={CONTROL_CLASSES}
+            onChange={(choice) => onChange({ ...criteria, status: choice === ALL ? null : choice })}
           >
             <option value={ALL}>{t('filters.statusAll')}</option>
 
@@ -145,20 +137,17 @@ export function LinkFilters({
                 {label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <div className="flex min-w-56 flex-1 flex-col gap-1">
-          <label htmlFor={`${fieldId}-domain`} className="text-sm font-medium">
+          <label htmlFor={`${fieldId}-domain`} className="text-sm font-bold">
             {t('dashboard.link.domain')}
           </label>
-          <select
+          <Select
             id={`${fieldId}-domain`}
             value={domainToChoice(criteria.domain)}
-            onChange={(event) =>
-              onChange({ ...criteria, domain: choiceToDomain(event.target.value) })
-            }
-            className={CONTROL_CLASSES}
+            onChange={(choice) => onChange({ ...criteria, domain: choiceToDomain(choice) })}
           >
             <option value={ALL}>{t('filters.domainAll')}</option>
 
@@ -167,18 +156,18 @@ export function LinkFilters({
                 {domain}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 
       {offeredTags.length > 0 && (
         <fieldset className="flex flex-col gap-2">
-          <legend className="text-sm font-medium">{t('dashboard.link.tags')}</legend>
+          <legend className="text-sm font-bold">{t('dashboard.link.tags')}</legend>
 
           <ul className="flex max-h-32 flex-wrap gap-2 overflow-y-auto">
             {offeredTags.map((tag) => (
               <li key={tag}>
-                <label className="flex cursor-pointer items-center gap-2 rounded-md border border-line px-2 py-1 text-sm break-words hover:bg-surface-hover">
+                <label className="flex cursor-pointer items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-sm break-words hover:bg-surface-hover">
                   <input
                     type="checkbox"
                     checked={criteria.tags.includes(tag)}
@@ -201,7 +190,7 @@ export function LinkFilters({
           <button
             type="button"
             onClick={() => onChange(NO_FILTER)}
-            className="rounded-md border border-line-strong px-3 py-1.5 text-sm font-medium hover:bg-surface-hover"
+            className="rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent hover:bg-accent-strong"
           >
             {t('filters.reset')}
           </button>
@@ -250,5 +239,6 @@ function choiceToDomain(choice: string): string | null {
   return choice === ALL ? null : choice.slice(NAMED_PREFIX.length);
 }
 
+/** The search field. The drop-downs bring their own, from `Select`. */
 const CONTROL_CLASSES =
-  'w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm text-ink';
+  'w-full rounded-field border border-line-strong bg-surface px-3 py-2 text-sm text-ink';

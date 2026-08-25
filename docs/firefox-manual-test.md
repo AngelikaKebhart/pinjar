@@ -116,7 +116,7 @@ The download is a blob and a synthetic link click. Firefox ignores a click on a 
 in the document, and cancels a download whose blob URL is revoked in the same turn — both are
 handled in `downloadJson`, and Firefox is the only browser that would notice if that regressed.
 
-**Do:** dashboard → the stacked-discs icon in the header (**Deine Daten**) → **Export as a file**.
+**Do:** dashboard → the cog in the header (**Deine Daten**) → **Export as a file**.
 
 **Expect:** Firefox offers or saves `pinjar-YYYY-MM-DD.json`. Open it: valid JSON,
 every saved link present, umlauts intact (`Prüfschritte`, not `PrÃ¼fschritte`).
@@ -172,13 +172,18 @@ modal behaviour.
 dashboard. Then switch the interface language between Deutsch and English.
 
 **Expect:** the dark palette applies to the whole dashboard, including the filter `<select>`
-drop-downs and the scrollbar. In the Inspector, `<html lang>` reads `de` or `en` and **changes with the
+fields and the scrollbar. In the Inspector, `<html lang>` reads `de` or `en` and **changes with the
 switch** — a screen reader picks its pronunciation from it (WCAG 2.2 AA, 3.1.1).
 
 **If it fails:** `color-scheme: light dark` is not reaching the page, or the language effect is
 not writing the attribute.
 
-**Not a failure:** on automatic, a dark dashboard next to a light popup. Firefox tells an
+**Not a failure:** the list a filter drop-down opens is drawn by Firefox itself, in its own
+colours, with the platform blue on the row under the pointer. Chromium gets ours, because
+`appearance: base-select` pulls that list into the page there; Firefox does not support it yet and
+the stylesheet asks for it behind `@supports`. Nothing to fix until Firefox ships it.
+
+**Not a failure either:** on automatic, a dark dashboard next to a light popup. Firefox tells an
 extension page in a tab what the browser theme is, and the popup what the operating system is — so
 the two disagree whenever those two settings do. Setting **Erscheinungsbild** (the half-filled disc in the
 header) to Hell or Dunkel is what overrules both, and is worth checking here for exactly that

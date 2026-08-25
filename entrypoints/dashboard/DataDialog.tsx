@@ -73,7 +73,7 @@ export function DataDialog() {
           a token would turn it into a pale wash over the dark interface, which
           reads as fog rather than as "this is switched off".
         */
-        className="m-auto w-[min(32rem,calc(100vw-2rem))] rounded-lg border border-line-strong bg-surface p-6 text-ink backdrop:bg-black/50"
+        className="m-auto w-[min(30rem,calc(100vw-2rem))] rounded-card border border-line bg-surface p-6 text-ink shadow-card backdrop:bg-black/50"
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <h2 id={headingId} className="text-lg font-medium">
