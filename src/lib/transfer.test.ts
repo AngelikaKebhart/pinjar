@@ -99,13 +99,11 @@ describe('the export file', () => {
 
 describe('the file name', () => {
   it('names the extension and the day', () => {
-    expect(exportFileName(new Date(2026, 7, 20, 14, 30))).toBe(
-      'universal-wishlist-2026-08-20.json',
-    );
+    expect(exportFileName(new Date(2026, 7, 20, 14, 30))).toBe('pinjar-2026-08-20.json');
   });
 
   it('pads month and day so the names sort by date', () => {
-    expect(exportFileName(new Date(2026, 0, 5, 14, 30))).toBe('universal-wishlist-2026-01-05.json');
+    expect(exportFileName(new Date(2026, 0, 5, 14, 30))).toBe('pinjar-2026-01-05.json');
   });
 });
 

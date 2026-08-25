@@ -36,7 +36,7 @@ page). Anything the add-on throws lands there.
 
 **Do:** load the temporary add-on as described above.
 
-**Expect:** it appears in the list with no warning, and `about:addons` → Universal Wishlist →
+**Expect:** it appears in the list with no warning, and `about:addons` → PinJar →
 Permissions and data shows exactly this:
 
 - under required permissions, **"Access browser tabs"** and nothing else. `storage`, `activeTab`
@@ -118,7 +118,7 @@ handled in `downloadJson`, and Firefox is the only browser that would notice if 
 
 **Do:** dashboard → **Export as a file**.
 
-**Expect:** Firefox offers or saves `universal-wishlist-YYYY-MM-DD.json`. Open it: valid JSON,
+**Expect:** Firefox offers or saves `pinjar-YYYY-MM-DD.json`. Open it: valid JSON,
 every saved link present, umlauts intact (`Prüfschritte`, not `PrÃ¼fschritte`).
 
 **If it fails:** an empty or missing download means the revoke ran too early, or the link never

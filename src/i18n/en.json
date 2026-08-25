@@ -1,5 +1,5 @@
 {
-  "popup.title": "Universal Wishlist",
+  "popup.title": "PinJar",
   "popup.loading": "Loading…",
   "popup.savePage": "Save this page",
   "popup.saving": "Saving…",
@@ -15,12 +15,12 @@
   "popup.savedLinks.heading": "Saved on {domain}",
   "popup.savedLinks.empty": "You have not saved anything on this site yet.",
 
-  "badge.tooltip.none": "Universal Wishlist — nothing saved on this site",
-  "badge.tooltip.count_one": "Universal Wishlist — {count} link saved on this site",
-  "badge.tooltip.count_other": "Universal Wishlist — {count} links saved on this site",
+  "badge.tooltip.none": "PinJar — nothing saved on this site",
+  "badge.tooltip.count_one": "PinJar — {count} link saved on this site",
+  "badge.tooltip.count_other": "PinJar — {count} links saved on this site",
 
-  "dashboard.documentTitle": "Universal Wishlist — Dashboard",
-  "dashboard.title": "Universal Wishlist",
+  "dashboard.documentTitle": "PinJar — Dashboard",
+  "dashboard.title": "PinJar",
   "dashboard.subtitle": "All your saved links, independent of the shop or website they came from.",
   "dashboard.savedLinks.heading": "Saved links",
   "dashboard.savedLinks.count_one": "{count} saved link",
@@ -82,7 +82,7 @@
   "data.import.unusable_one": "{count} entry could not be read and was skipped.",
   "data.import.unusable_other": "{count} entries could not be read and were skipped.",
   "data.import.error.notReadable": "That file could not be read. Please pick the file this extension wrote.",
-  "data.import.error.notOurFormat": "That file is not a Universal Wishlist export.",
+  "data.import.error.notOurFormat": "That file is not a PinJar export.",
   "data.import.error.tooNew": "That file was written by a newer version of this extension. Please update the extension first.",
 
   "data.deleteAll.action": "Delete all data",

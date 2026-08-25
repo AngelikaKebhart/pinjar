@@ -1,6 +1,42 @@
 @import 'tailwindcss';
 
 /*
+ * The two typefaces, shipped inside the extension.
+ *
+ * Not loaded from Google Fonts, and this is not a preference: Manifest V3
+ * blocks remote resources on extension pages, and the extension makes exactly
+ * one network request in its whole life — the preview images, on the dashboard
+ * (docs/concept.md §7.3). A font request would be a second one, to a third
+ * party, on every single page view.
+ *
+ * Both are SIL Open Font License 1.1. They live in public/ rather than being
+ * processed as assets so the license texts ship in the packaged extension
+ * beside the fonts themselves, which is what that license requires. Both are variable fonts, so one file
+ * covers every weight the interface uses, and both are subset to Latin —
+ * enough for German and English, and nothing else is shipped.
+ *
+ * `font-display: swap` is deliberate: the text appears immediately in the
+ * fallback and re-renders when the file is ready. Since the files are local
+ * that window is very short, and it is the difference between a slow first
+ * paint and none at all.
+ */
+@font-face {
+  font-family: 'Nunito';
+  src: url('/fonts/nunito-latin.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lora';
+  src: url('/fonts/lora-latin.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
  * Semantic color tokens.
  *
  * Components name the *role* a color plays ("bg-surface", "text-ink-muted"),
@@ -15,51 +51,90 @@
  * forgetting one of them.
  *
  * The dark values are not a mechanical inversion: pure black backgrounds and
- * pure white text read as harsh, so the darkest surface is a deep blue-grey
- * and the brightest text stops short of white.
+ * pure white text read as harsh, so the darkest surface is a deep plum that
+ * belongs to the palette, and the brightest text stops short of white.
  *
  * Adding a token means adding it here and to that test.
  */
 @theme {
+  /*
+   * PinJar — three reds on a neutral ground.
+   *
+   *   Flag Red       #c42021   the mark: wordmark, rule, borders, links
+   *   Night Bordeaux #6c0e23   the action: buttons, and links on hover
+   *   Crimson Violet #561643   the depth: pill text, glyphs, focus
+   *
+   * All three carry white text and all three stand on white, so there is no
+   * size or place where one of them may not be used. They sit in one hue
+   * family on purpose: the lightest carries the brand, and each step deeper is
+   * a step further in — which is also the hover direction.
+   *
+   * The ground is white and stays white. Only what belongs together is tinted:
+   * pills, the filter panel, thumbnails.
+   */
+
+  /*
+   * Nunito carries the interface, Lora the headings and the wordmark. The
+   * fallbacks matter more than usual here: they are what shows during the swap
+   * window, so each one is a metrically close system face rather than a
+   * generic default.
+   */
+  --font-sans: 'Nunito', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --font-serif: 'Lora', Georgia, 'Times New Roman', serif;
+
   /* Page background, and the panels sitting on it. */
-  --color-canvas: light-dark(#f8fafc, #0f172a);
-  --color-surface: light-dark(#ffffff, #1e293b);
+  --color-canvas: light-dark(#ffffff, #1b0f17);
+  --color-surface: light-dark(#ffffff, #261520);
   /* What a surface turns into while the pointer rests on it. */
-  --color-surface-hover: light-dark(#f1f5f9, #334155);
+  --color-surface-hover: light-dark(#f7f1f5, #4a3241);
+  /* The one tinted area: the filter panel, and thumbnail placeholders. */
+  --color-surface-tint: light-dark(#f7f1f5, #32202b);
 
   /* Text. "ink" carries content, "ink-muted" carries secondary information. */
-  --color-ink: light-dark(#0f172a, #e2e8f0);
-  --color-ink-muted: light-dark(#475569, #94a3b8);
+  --color-ink: light-dark(#2b1a26, #f5e8ef);
+  --color-ink-muted: light-dark(#6b5560, #c4a8b6);
 
   /* Borders. "line" is decorative, "line-strong" outlines a control the user
      has to be able to find, which is why only that one needs 3:1. */
-  --color-line: light-dark(#cbd5e1, #334155);
-  --color-line-strong: light-dark(#64748b, #94a3b8);
+  --color-line: light-dark(#f5d6d6, #43222f);
+  --color-line-strong: light-dark(#c42021, #e4595a);
 
-  /* The primary action. */
-  --color-accent: light-dark(#1d4ed8, #2563eb);
-  --color-accent-strong: light-dark(#1e3a8a, #1d4ed8);
+  /* The primary action. Deeper than the brand, so it does not compete with it.
+     On a dark ground the fill is the button's only boundary, which is why the
+     dark value is lifted until it clears 3:1 against a card. */
+  --color-accent: light-dark(#6c0e23, #ce2527);
+  --color-accent-strong: light-dark(#4f0a19, #a81b1c);
   --color-on-accent: light-dark(#ffffff, #ffffff);
 
+  /* The mark itself: wordmark, logo, and the rule under the header. */
+  --color-brand: light-dark(#c42021, #e4595a);
+
   /* Links inside text. */
-  --color-link: light-dark(#1e40af, #93c5fd);
-  --color-link-strong: light-dark(#1e3a8a, #bfdbfe);
+  --color-link: light-dark(#c42021, #f08c8c);
+  --color-link-strong: light-dark(#6c0e23, #f5b3b3);
 
-  /* Destructive actions. */
-  --color-danger: light-dark(#991b1b, #dc2626);
-  --color-danger-strong: light-dark(#7f1d1d, #b91c1c);
-  --color-on-danger: light-dark(#ffffff, #ffffff);
+  /* Destructive actions. Red cannot mark these on its own here — the whole
+     palette is red — so the wording carries the warning and this tone only
+     sets the confirmation apart from an ordinary button. */
+  --color-danger: light-dark(#a81b1c, #e4595a);
+  --color-danger-strong: light-dark(#8c1516, #f08c8c);
+  --color-on-danger: light-dark(#ffffff, #2b1a26);
 
-  /* Chips: tags are quiet, a status stands out a little more. */
-  --color-chip: light-dark(#f1f5f9, #334155);
-  --color-chip-strong: light-dark(#e2e8f0, #475569);
+  /* Pills: tags and status share one tone. A tag is a tag, and giving each its
+     own color made the row read as a status code. */
+  --color-pill: light-dark(#efe1eb, #3a2233);
+  --color-pill-ink: light-dark(#561643, #f5e8ef);
+
+  /* Icon glyphs — edit, delete, the thumbnail placeholder. */
+  --color-glyph: light-dark(#561643, #e0a8c4);
 
   /* A control that cannot be used right now. */
-  --color-disabled: light-dark(#64748b, #475569);
-  --color-on-disabled: light-dark(#ffffff, #e2e8f0);
+  --color-disabled: light-dark(#6b5560, #5a4450);
+  --color-on-disabled: light-dark(#ffffff, #f5e8ef);
 
-  /* The focus ring, applied globally below. */
-  --color-focus: light-dark(#1d4ed8, #93c5fd);
+  /* The focus ring, applied globally below. The deepest tone, so it stays
+     apart from the red borders it lands next to. */
+  --color-focus: light-dark(#561643, #e4595a);
 }
 
 @layer base {
@@ -95,6 +170,18 @@
   }
 
   /*
+   * Headings and the wordmark carry the serif; everything else is Nunito.
+   * Set here rather than per component so a new heading cannot be born in the
+   * wrong face — the one thing a type pairing cannot survive is being applied
+   * by hand each time.
+   */
+  h1,
+  h2,
+  h3 {
+    @apply font-serif;
+  }
+
+  /*
    * A visible focus indicator is a hard requirement (WCAG 2.2 AA, 2.4.7).
    * Keyboard users must always be able to see where they are. Declared once
    * here rather than per component, so no element can forget it.
@@ -102,4 +189,21 @@
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-focus;
   }
+}
+
+/*
+ * Deliberately outside `@layer base`.
+ *
+ * Chrome puts its own author-level stylesheet on extension pages, and it sets
+ * `body { font-family: "Segoe UI", Tahoma, sans-serif }`. Unlayered author
+ * rules beat layered ones no matter the order, so the identical declaration
+ * inside `@layer base` loses without a word: `html` and the headings would
+ * render in Nunito and Lora while every paragraph quietly fell back to the
+ * system font — and the font file is then never even requested, which is what
+ * makes this so easy to miss.
+ *
+ * Unlayered here, so it wins on equal terms.
+ */
+body {
+  font-family: var(--font-sans);
 }

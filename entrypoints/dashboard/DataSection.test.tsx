@@ -154,7 +154,7 @@ describe('exporting', () => {
     fireEvent.click(exportButton());
 
     await waitFor(() => expect(downloaded).not.toBeNull());
-    expect(downloaded?.fileName).toMatch(/^universal-wishlist-\d{4}-\d{2}-\d{2}\.json$/);
+    expect(downloaded?.fileName).toMatch(/^pinjar-\d{4}-\d{2}-\d{2}\.json$/);
   });
 
   it('writes every saved link into it', async () => {
@@ -261,7 +261,7 @@ describe('importing', () => {
   // A wrong file is a normal mistake, so the message has to say what to do.
   it.each([
     ['a file that is not JSON', 'not a file', 'That file could not be read'],
-    ['JSON from somewhere else', '{"bookmarks":[]}', 'not a Universal Wishlist export'],
+    ['JSON from somewhere else', '{"bookmarks":[]}', 'not a PinJar export'],
   ])('explains %s', async (_case, contents, expected) => {
     await renderSection();
 

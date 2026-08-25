@@ -1,6 +1,6 @@
-# Universal Wishlist
+# PinJar
 
-[![CI](https://github.com/AngelikaKebhart/universal-wishlist/actions/workflows/ci.yml/badge.svg)](https://github.com/AngelikaKebhart/universal-wishlist/actions/workflows/ci.yml)
+[![CI](https://github.com/AngelikaKebhart/pinjar/actions/workflows/ci.yml/badge.svg)](https://github.com/AngelikaKebhart/pinjar/actions/workflows/ci.yml)
 
 A cross-browser extension (Chrome, Firefox, Edge) that acts as a universal, shop-independent wishlist.
 
