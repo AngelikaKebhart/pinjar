@@ -36,5 +36,8 @@
       "mcp__chrome-devtools__handle_dialog",
       "mcp__chrome-devtools__uninstall_extension"
     ]
-  }
+  },
+  "disabledMcpjsonServers": [
+    "chrome-devtools"
+  ]
 }

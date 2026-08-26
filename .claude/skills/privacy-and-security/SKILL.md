@@ -1,6 +1,7 @@
 ---
 name: privacy-and-security
 description: Encodes this project's privacy (GDPR/DSGVO) and security requirements — data minimization, no transfer of data to third parties, minimal browser permissions, no dynamically loaded or remote code, safe handling of untrusted data extracted from visited webpages (XSS prevention), dependency hygiene, and full user control over their stored data (including delete-all). Apply this skill whenever writing or reviewing code that touches user data, browser storage, extension permissions (manifest.json / wxt.config.ts), extraction of page metadata from the visited tab, the export/import feature, or adds/updates a dependency — even if privacy or security aren't explicitly mentioned in the request.
+effort: high
 ---
 
 # Privacy (GDPR/DSGVO) and Security

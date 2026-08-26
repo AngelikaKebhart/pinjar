@@ -50,25 +50,14 @@ The extension ships a fully bilingual UI (see `docs/concept.md` §3.7 and §6.3)
 
 ## 3. Project structure (WXT convention)
 
-Follow this structure; place new code in the matching location rather than inventing new top-level folders:
+**Before creating, moving or renaming a file or folder, read `references/project-structure.md`
+in this skill directory** and place the code where it says. Two rules are absolute enough to
+repeat here:
 
-```
-entrypoints/
-  popup/        UI entrypoint — quick view of links saved for the current domain
-  dashboard/    UI entrypoint — full management view (all links, filters, search)
-  background.ts Service worker — badge count logic, cross-part messaging
-src/
-  lib/          Shared logic: storage access, data model, filtering/search, URL/domain parsing
-                incl. page-metadata.ts — the extraction function injected into the active tab
-  components/   Reusable React components shared by popup and dashboard
-  i18n/         Message catalogs (de.json, en.json), translation context and useTranslation hook
-public/
-  _locales/     Native manifest translations (extension name and description) per locale
-```
-
-- **There is deliberately no content script entrypoint.** Page metadata is read by a function injected into the active tab with `scripting.executeScript()` when the user saves, because a declarative content script would require `<all_urls>` host permissions. Do not add `entrypoints/content.ts` — see `docs/concept.md` §6.4 before proposing one.
-- Storage access always goes through a shared module in `src/lib` (e.g., `src/lib/storage.ts`) — never call `storage.local` directly from a React component.
-- New shared types (e.g., the saved-item data model) live in `src/lib` and are imported wherever needed, not redefined per file.
+- **There is deliberately no content script entrypoint.** Do not add `entrypoints/content.ts` —
+  it would require `<all_urls>` host permissions. See `docs/concept.md` §6.4 first.
+- **Storage access goes through a shared module in `src/lib`**, never `storage.local` called
+  directly from a React component.
 
 ## 4. When reviewing or refactoring
 
@@ -76,14 +65,15 @@ When asked to review, refactor, or clean up code in this project, check specific
 
 ## 5. After any larger change: audit the tests
 
-**Whenever a change reshapes how something works — a rewritten component, a changed interaction, a moved responsibility, a new abstraction that replaces old ones — go back over the tests around it before calling the work done.** A green suite is not evidence that the tests are still the right tests. This is a required step, not an optional tidy-up, and it belongs in the same commit or an adjacent one, never "later".
+**Whenever a change reshapes how something works — a rewritten component, a changed
+interaction, a moved responsibility, a new abstraction that replaces old ones — read
+`references/test-audit.md` in this skill directory and work through it before calling the
+change done.** This is a required step, not an optional tidy-up, and it belongs in the same
+commit or an adjacent one, never "later".
 
-Tests that contradict the new behaviour fail loudly and get fixed on their own. The ones worth hunting are those that still pass:
+A green suite is not evidence that the tests are still the right tests. The tests that
+contradict the new behaviour fail loudly and fix themselves; the ones the audit is for are
+those that still pass while asserting the wrong thing, duplicating a better test, sitting at
+the wrong level, or leaving unused translation keys and helpers behind.
 
-- **Tests that now assert the wrong thing.** A test kept alive by editing selectors and values until it went green again may no longer describe behaviour anyone wants. Ask what would break in the product if this test failed — if the answer is "nothing a user would notice", it is testing the implementation.
-- **Tests made redundant by a better one.** After adding a test that plays a workflow through, older tests that poked at one intermediate step of it are often dead weight. Prefer the test that covers the user-visible consequence, and keep the cheap unit test underneath it; drop what sits in between.
-- **Tests at the wrong level.** Reaching through the full UI to assert a storage key, or rendering a component to check a pure function, is the most expensive way to learn the least. If a unit test already covers the mechanism and an integration test covers the visible result, the one in the middle can go.
-- **Tests that now enshrine sloppiness.** If a test had to be updated to expect something odd — an empty string in a list, a value that is trimmed elsewhere — decide whether the odd value is genuinely the contract, and say so in a comment, or fix the code instead of the expectation.
-- **What the change left behind.** Unused translation keys, helpers, fixtures and test utilities that nothing calls any more. Unused catalog keys are easy to miss because the key-parity test only compares `de.json` against `en.json`; it never asks whether anything uses a key. Check them against the non-test sources.
 
-Report what was removed and why, and say explicitly which near-duplicates were kept and what distinguishes them — a deletion nobody can second-guess is a deletion nobody can catch when it was wrong.

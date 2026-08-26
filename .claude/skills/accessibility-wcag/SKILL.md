@@ -1,6 +1,7 @@
 ---
 name: accessibility-wcag
 description: Ensures all UI in this project (Popup and Dashboard, React components) meets WCAG 2.2 Level AA — color contrast, full keyboard operability, minimum target sizes, semantic HTML and ARIA, image alt text, and correct page-language declaration for the bilingual German/English interface. Apply this skill whenever creating or modifying ANY UI component, layout, form, button, list, filter control, translated string, or other visual/interactive element in this project, even if accessibility is not explicitly mentioned in the request. This is a mandatory, non-negotiable project requirement, not an optional nice-to-have.
+effort: high
 ---
 
 # Accessibility (WCAG 2.2 Level AA)
