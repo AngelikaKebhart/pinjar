@@ -8,6 +8,10 @@ node_modules/
 # Local web-ext (browser launch) configuration, not shared
 web-ext.config.ts
 
+# Per-developer Claude Code settings: model choice and personally granted
+# permissions. The shared .claude/settings.json is versioned, this one is not.
+.claude/settings.local.json
+
 # Test and build artifacts
 coverage/
 dist/
