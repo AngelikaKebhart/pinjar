@@ -1,24 +1,41 @@
 import { forwardRef } from 'react';
 import type { ReactNode } from 'react';
 
-type ButtonVariant = 'primary' | 'danger' | 'outline' | 'outline-danger';
-
 /**
- * Consolidated button component with semantic variants.
+ * A button in one of the four treatments the interface uses.
  *
- * All buttons across the extension use one of four styles:
- * - primary: Accent-colored button for main actions (export, save, etc.)
- * - danger: Red button for destructive actions (delete, clear all)
- * - outline: Secondary action (cancel, keep, reset filters)
- * - outline-danger: Outline button with danger text (delete, danger confirmation)
+ * `primary` is filled and carries the main action of whatever it sits in;
+ * `danger` is filled and confirms something irreversible. The two outlines are
+ * both secondary, and the difference between them is which red they are drawn
+ * in rather than how loud they are:
  *
- * The component handles all state variations (disabled, active) via props,
- * eliminating className duplication and ensuring consistency.
+ * - `outline` is ink, for the way out of something — Cancel, Keep, Reset.
+ * - `outline-strong` is the palette's red, for an action that has to be
+ *   findable without being the first thing the eye lands on. Deleting
+ *   everything is the one that needs it: the whole palette is red, so colour
+ *   cannot mark it out — its weight does (WCAG 2.2 AA, 1.4.1).
+ *
+ * `outline-strong` deliberately uses `text-link` and not `text-danger`, which
+ * would say "destructive" more directly: `danger` on `surface-hover` comes to
+ * 3.22:1 in the dark palette, so the label would fail 1.4.3 the moment the
+ * pointer touched it. `link` clears it in both palettes.
  *
  * Forwards its ref to the underlying `<button>` — some callers move focus to
  * a button programmatically (e.g. returning focus after a cancelled
  * confirmation, WCAG 2.2 AA 2.4.3) and need the DOM node for that.
  */
+type ButtonVariant = 'primary' | 'danger' | 'outline' | 'outline-strong';
+
+const VARIANT_CLASSES: Record<ButtonVariant, string> = {
+  primary:
+    'bg-accent text-on-accent enabled:hover:bg-accent-strong disabled:bg-disabled disabled:text-on-disabled',
+  danger: 'bg-danger text-on-danger enabled:hover:bg-danger-strong',
+  outline:
+    'border border-line-strong text-ink enabled:hover:bg-surface-hover disabled:border-line disabled:text-ink-muted',
+  'outline-strong':
+    'border border-line-strong text-link enabled:hover:bg-surface-hover disabled:border-line disabled:text-ink-muted',
+};
+
 export const Button = forwardRef<
   HTMLButtonElement,
   {
@@ -26,7 +43,6 @@ export const Button = forwardRef<
     variant?: ButtonVariant;
     type?: 'button' | 'submit' | 'reset';
     disabled?: boolean;
-    active?: boolean;
     onClick?: () => void | Promise<void>;
     className?: string;
     title?: string;
@@ -38,7 +54,6 @@ export const Button = forwardRef<
     variant = 'primary',
     type = 'button',
     disabled = false,
-    active = false,
     onClick,
     className = '',
     title,
@@ -46,17 +61,6 @@ export const Button = forwardRef<
   },
   ref,
 ) {
-  const baseClasses = 'rounded-control px-4 py-2 text-sm font-bold cursor-pointer';
-
-  const variantClasses: Record<ButtonVariant, string> = {
-    primary:
-      'bg-accent text-on-accent enabled:hover:bg-accent-strong disabled:bg-disabled disabled:text-on-disabled',
-    danger: `bg-danger text-on-danger enabled:hover:bg-danger-strong ${active ? 'active:bg-danger-strong' : ''}`,
-    outline:
-      'border border-line-strong text-ink enabled:hover:bg-surface-hover disabled:border-line disabled:text-ink-muted',
-    'outline-danger': 'border border-line-strong text-danger enabled:hover:bg-surface-hover',
-  };
-
   return (
     <button
       ref={ref}
@@ -65,7 +69,7 @@ export const Button = forwardRef<
       onClick={() => void onClick?.()}
       title={title}
       aria-label={ariaLabel}
-      className={`${baseClasses} ${variantClasses[variant]} ${className}`.trim()}
+      className={`rounded-control px-4 py-2 text-sm font-bold ${VARIANT_CLASSES[variant]} ${className}`.trim()}
     >
       {children}
     </button>

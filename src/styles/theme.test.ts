@@ -31,6 +31,9 @@ const TEXT_PAIRS = [
   ['pill-ink', 'pill'],
   ['link', 'canvas'],
   ['link', 'surface'],
+  // The red outline button (`outline-strong`) fills with surface-hover under
+  // the pointer, and its label has to survive that.
+  ['link', 'surface-hover'],
   ['link-strong', 'canvas'],
   ['link-strong', 'surface'],
   ['on-accent', 'accent'],
