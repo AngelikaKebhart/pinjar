@@ -22,8 +22,13 @@ import { extractDomain } from './url';
 /** Above this the badge would be cut off; the exact number is in the popup. */
 const MAX_DISPLAYED_COUNT = 99;
 
-/** White text on this reaches 6.7:1, above the 4.5:1 of WCAG 2.2 AA. */
-const BADGE_BACKGROUND_COLOR = '#1d4ed8';
+/**
+ * The deep violet of the design's `--color-glyph`, rather than the red of the
+ * icon the badge sits on top of. White text on it reaches 13.2:1, well above
+ * the 4.5:1 of WCAG 2.2 AA, and it holds up against a light and a dark toolbar
+ * alike — the browser gives no way to tell the two apart.
+ */
+const BADGE_BACKGROUND_COLOR = '#561643';
 const BADGE_TEXT_COLOR = '#ffffff';
 
 /** Firefox is built as MV2, where the toolbar button is still `browserAction`. */
