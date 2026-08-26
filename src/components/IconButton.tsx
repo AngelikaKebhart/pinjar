@@ -40,7 +40,6 @@ export function IconButton({
   ref,
   expanded,
   controls,
-  hasPopup,
 }: {
   /** Names the button, and names what it acts on: "Delete “Blue jersey”". */
   label: string;
@@ -51,8 +50,6 @@ export function IconButton({
   expanded?: boolean;
   /** The id of what `expanded` refers to. */
   controls?: string;
-  /** What opens when the button is pressed, where that is not obvious. */
-  hasPopup?: 'dialog';
 }) {
   return (
     <button
@@ -63,7 +60,6 @@ export function IconButton({
       title={label}
       aria-expanded={expanded}
       aria-controls={controls}
-      aria-haspopup={hasPopup}
       className={`inline-flex h-[var(--control-size,2.25rem)] w-[var(--control-size,2.25rem)] shrink-0 items-center justify-center rounded-control border border-line-strong text-glyph hover:bg-surface-hover ${
         expanded === true ? 'bg-pill' : ''
       }`}

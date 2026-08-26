@@ -68,7 +68,9 @@
   "filters.domainAll": "All domains",
   "filters.reset": "Reset filters",
 
-  "data.heading": "Your data",
+  "manage.heading": "Manage",
+
+  "data.heading": "Data & backup",
   "data.close": "Close",
   "data.export.heading": "Export all links",
   "data.export.action": "Export as a file",

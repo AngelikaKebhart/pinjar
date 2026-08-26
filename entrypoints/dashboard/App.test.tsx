@@ -374,8 +374,8 @@ describe('accessibility', () => {
     const levels = screen
       .getAllByRole('heading')
       .map((heading) => Number(heading.tagName.slice(1)));
-    // The wordmark, filters, the list, one card. The data heading belongs to
-    // the dialog and is only there while that is open.
+    // The wordmark, filters, the list, one card. The manage menu and the data
+    // dialog carry headings of their own, and only while they are open.
     expect(levels).toEqual([1, 2, 2, 3]);
   });
 
@@ -389,6 +389,7 @@ describe('accessibility', () => {
     await save({ url: 'https://shop.example/jersey', title: 'Jersey fabric' });
     await renderDashboard();
 
+    fireEvent.click(screen.getByRole('button', { name: en['manage.heading'] }));
     fireEvent.click(screen.getByRole('button', { name: en['data.heading'] }));
     fireEvent.click(await screen.findByRole('button', { name: en['data.deleteAll.action'] }));
     fireEvent.click(screen.getByRole('button', { name: en['data.deleteAll.confirm'] }));
