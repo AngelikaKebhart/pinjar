@@ -1,17 +1,17 @@
 /**
- * ESLint rule: detect repeated className patterns
+ * ESLint rule: detect repeated className patterns across files
  *
- * Warns when the same or very similar Tailwind className combinations
- * appear multiple times across the codebase. This helps identify
- * candidates for component consolidation or constant extraction.
+ * Warns when the SAME exact Tailwind className appears in 3+ different files.
+ * This indicates a strong consolidation candidate — the pattern is duplicated
+ * across the codebase and could become a shared constant or component.
  *
- * Matches when:
- * - Same exact className appears 3+ times
- * - Very similar patterns (differing by 1-2 tokens) appear 4+ times
+ * Deliberately ignores:
+ * - Patterns repeated only within the same file (local issue, not consolidation)
+ * - Similar patterns (only exact matches count as true duplication)
  *
  * Reports as 'warn' not 'error' because it's a quality suggestion,
  * not a correctness issue. The dev should evaluate if consolidation
- * is worth it.
+ * is actually worth it (sometimes duplication is intentional).
  */
 
 export default {
@@ -28,7 +28,9 @@ export default {
     },
   },
   create(context) {
-    const classNameMap = new Map(); // Map of normalized classname -> { original, locations }
+    const sourceCode = context.sourceCode;
+    // Map of exact className string -> { files (Set), locations (array of {file, node}) }
+    const classNameMap = new Map();
 
     return {
       JSXAttribute(node) {
@@ -55,41 +57,39 @@ export default {
           if (!classNameString) return;
         }
 
-        if (!classNameString || classNameString.length < 10) {
+        if (!classNameString || classNameString.length < 15) {
           return; // Ignore very short classNames, too generic
         }
 
-        // Normalize: split into tokens and sort (order-independent matching)
-        const tokens = classNameString
-          .split(/\s+/)
-          .filter((t) => t.length > 0)
-          .sort();
-        const normalized = tokens.join('|');
+        // Use exact string, no normalization (order matters for intentional differences)
+        const key = classNameString;
+        const filePath = sourceCode.filename || 'unknown';
 
-        if (!classNameMap.has(normalized)) {
-          classNameMap.set(normalized, {
-            original: classNameString,
-            count: 1,
-            locations: [node],
+        if (!classNameMap.has(key)) {
+          classNameMap.set(key, {
+            files: new Set([filePath]),
+            locations: [{ file: filePath, node }],
           });
         } else {
-          const entry = classNameMap.get(normalized);
-          entry.count += 1;
-          entry.locations.push(node);
+          const entry = classNameMap.get(key);
+          entry.files.add(filePath);
+          entry.locations.push({ file: filePath, node });
         }
       },
 
       'Program:exit'() {
-        // After visiting all nodes, check for repeated patterns
-        classNameMap.forEach((entry) => {
-          if (entry.count >= 3) {
-            // Report on all but the first occurrence
-            entry.locations.slice(1).forEach((node) => {
-              context.report({
-                node,
-                messageId: 'repeatedExact',
-                data: { count: entry.count },
-              });
+        // Report only patterns that appear in 3+ different files
+        classNameMap.forEach((entry, className) => {
+          if (entry.files.size >= 3) {
+            // Only report locations from 2nd+ file (1st location is the definition)
+            entry.locations.forEach(({ node, file }, idx) => {
+              if (idx > 0 || file !== [...entry.files][0]) {
+                context.report({
+                  node,
+                  messageId: 'repeatedExact',
+                  data: { count: entry.files.size },
+                });
+              }
             });
           }
         });
