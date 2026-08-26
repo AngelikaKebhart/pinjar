@@ -12,9 +12,20 @@ import type { ReactNode, Ref } from 'react';
  * screen reader that reads descriptions out then has nothing new to add,
  * where a shorter tooltip would have it say a second, different thing.
  *
- * The box is 36×36 CSS px, comfortably past the 24×24 minimum for pointer
- * targets (2.5.8): the icon inside is smaller than the area that answers to
- * a click.
+ * The box is 36×36 CSS px by default, comfortably past the 24×24 minimum for
+ * pointer targets (2.5.8): the icon inside is smaller than the area that
+ * answers to a click.
+ *
+ * A caller that is short of room can set `--control-size` on any ancestor to
+ * shrink it — the popup's header does, at 32px. Deliberately a custom property
+ * rather than a prop: this button is four components deep behind
+ * `PopoverButton` and `SettingMenu`, and threading a size through all of them
+ * would give three components a prop that means nothing to them.
+ *
+ * **24px is the floor and it is not negotiable.** Below it the target fails
+ * 2.5.8 outright, unless it earns the spacing exception — which is a separate
+ * calculation nobody will redo when the layout next moves. Keep whatever is
+ * set here at 24px or above, and prefer some headroom over the exact minimum.
  *
  * A button that has something open right now is drawn filled, in the same tone
  * the tags are set in. That is the sighted counterpart to `aria-expanded`, and
@@ -64,7 +75,7 @@ export function IconButton({
       aria-expanded={expanded}
       aria-controls={controls}
       aria-haspopup={hasPopup}
-      className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-line-strong text-glyph hover:bg-surface-hover ${
+      className={`inline-flex h-[var(--control-size,2.25rem)] w-[var(--control-size,2.25rem)] shrink-0 items-center justify-center rounded-control border border-line-strong text-glyph hover:bg-surface-hover ${
         expanded === true ? 'bg-pill' : ''
       }`}
     >

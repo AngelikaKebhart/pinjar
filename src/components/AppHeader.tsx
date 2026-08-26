@@ -15,18 +15,40 @@ export type AppHeaderSize = 'full' | 'compact';
 /**
  * What changes between the two, and nothing else does.
  *
- * The mark stays taller than the 36px icon buttons in both sizes. That gap is
- * the whole reason the lockup reads as a lockup: matched in size it becomes
- * one more button in the row, and the extension loses its name. Compact keeps
- * 4px of it rather than the full size's 8px — enough at this scale, and it
- * lets the wordmark come down a step without the mark towering over it.
+ * The mark is drawn taller than the buttons beside it in both sizes — 8px in
+ * the full one, 4px when compact. That gap is why the lockup reads as a
+ * lockup: matched in size it becomes one more button in the row, and the
+ * extension loses its name. Keeping it is what forced the buttons down as well
+ * as the mark, rather than only the mark.
+ *
+ * Compact takes every part of it down one step, because a bar that carries a
+ * name is right at the top of a page and loud at the top of a 384px bubble,
+ * where the tallest thing under it is a button of 14px text.
+ *
+ * `--control-size` is read by `IconButton`, four components down. **32px is a
+ * deliberate stop short of the 24px floor** that WCAG 2.2 AA sets for pointer
+ * targets (2.5.8), so the row keeps headroom rather than sitting on the
+ * minimum. Do not take it lower to win a few more pixels.
  *
  * The divider sits closer to the row when compact, because the popup adds its
  * own `gap-4` underneath: at `pb-4` the line would float in 32px of nothing.
  */
-const SIZES: Record<AppHeaderSize, { mark: string; title: string; divider: string }> = {
-  full: { mark: 'h-11 w-11', title: 'text-3xl', divider: 'pb-4' },
-  compact: { mark: 'h-10 w-10', title: 'text-2xl', divider: 'pb-3' },
+const SIZES: Record<
+  AppHeaderSize,
+  { mark: string; title: string; divider: string; controls: string }
+> = {
+  full: {
+    mark: 'h-11 w-11',
+    title: 'text-3xl',
+    divider: 'pb-4',
+    controls: '[--control-size:2.25rem]',
+  },
+  compact: {
+    mark: 'h-9 w-9',
+    title: 'text-xl',
+    divider: 'pb-2',
+    controls: '[--control-size:2rem]',
+  },
 };
 
 /**
@@ -66,7 +88,7 @@ export function AppHeader({
         </div>
 
         {/* Ordered as they are reached for: often, rarely, hardly ever. */}
-        <div className="flex shrink-0 items-center gap-2">
+        <div className={`flex shrink-0 items-center gap-2 ${sizes.controls}`}>
           <LanguageSwitcher />
           <ThemeSwitcher />
           {children}
