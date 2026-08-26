@@ -43,6 +43,31 @@ Do not duplicate these rules here — consult the skills, they stay up to date i
 
 ## Driving the extension in a real browser
 
+### Who does the testing — Angelika, by default
+
+**Do not open the browser after a code change just to confirm the change works.**
+Angelika tests the extension herself. Finish the work, run what does not need a
+browser — `pnpm lint`, `pnpm typecheck`, `pnpm test`, and a build where that is in
+doubt — and hand it over saying plainly which parts nothing has verified yet.
+
+Two things put the browser back in Claude's hands:
+
+- **She reports that something looks or behaves wrong.** Then go and look at it
+  rather than reasoning about it from the source — she has already established
+  that the code and the result disagree, which is exactly the case reading the
+  code cannot settle.
+- **She asks for a full pass**, usually after a large change.
+
+If a change genuinely cannot be judged without a browser, say so and ask. Do not
+open one on your own initiative, and do not leave the doubt unmentioned either.
+
+This is not a claim that browser checks are wasteful — the ones this file
+describes below have caught real defects. It is that she is faster at noticing
+what is wrong with her own product, and a run that only re-confirms what the unit
+tests already cover spends the session watching a browser start up.
+
+### How, once it is called for
+
 Claude Code can load and operate the extension itself through the `chrome-devtools`
 MCP server configured in `.mcp.json`. The server has to be approved once per machine
 (`/mcp`, or the prompt shown when a session starts); until then none of its tools exist.
