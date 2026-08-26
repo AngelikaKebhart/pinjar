@@ -5,6 +5,7 @@ import { languagePreference } from './settings';
 import {
   savedLinks,
   addSavedLink,
+  categories,
   countSavedLinksForDomain,
   deleteAllSavedData,
   findSavedLinkByUrl,
@@ -12,8 +13,11 @@ import {
   getCustomStatuses,
   getSavedLinks,
   getSavedLinksForDomain,
+  deleteOrganizationValue,
+  getOrganizationValues,
   getTags,
   removeSavedLink,
+  renameOrganizationValue,
   updateSavedLink,
 } from './storage';
 
@@ -230,5 +234,112 @@ describe('deleting all data', () => {
     await deleteAllSavedData();
 
     await expect(languagePreference.getValue()).resolves.toBe('de');
+  });
+});
+
+describe('editing the values links are organized by', () => {
+  beforeEach(() => {
+    fakeBrowser.reset();
+  });
+
+  it('lists what is remembered, with how many links carry it', async () => {
+    await save('https://shop.example/one', { category: 'Fabrics' });
+    await save('https://shop.example/two', { category: 'Fabrics' });
+    await save('https://shop.example/three', { category: 'Recipes' });
+
+    await expect(getOrganizationValues('category')).resolves.toEqual([
+      { value: 'Fabrics', usage: 2 },
+      { value: 'Recipes', usage: 1 },
+    ]);
+  });
+
+  it('lists a value nothing carries any more', async () => {
+    const link = await save('https://shop.example/one', { tags: ['Sale'] });
+
+    await removeSavedLink(link.id);
+
+    await expect(getOrganizationValues('tag')).resolves.toEqual([{ value: 'Sale', usage: 0 }]);
+  });
+
+  // Otherwise it could be neither renamed nor deleted, and would sit on the
+  // links for good.
+  it('lists a value the remembered list has lost', async () => {
+    await save('https://shop.example/one', { category: 'Fabrics' });
+    await categories.setValue([]);
+
+    await expect(getOrganizationValues('category')).resolves.toEqual([
+      { value: 'Fabrics', usage: 1 },
+    ]);
+  });
+
+  it('renames a value on the links and in what is remembered', async () => {
+    const link = await save('https://shop.example/one', { category: 'Fabric' });
+
+    const outcome = await renameOrganizationValue('category', 'Fabric', 'Fabrics');
+
+    expect(outcome).toEqual({ affected: 1, merged: false });
+    await expect(getCategories()).resolves.toEqual(['Fabrics']);
+    expect((await getSavedLinks()).find((each) => each.id === link.id)?.category).toBe('Fabrics');
+  });
+
+  it('trims the new name, as saving a link would', async () => {
+    await save('https://shop.example/one', { category: 'Fabric' });
+
+    await renameOrganizationValue('category', 'Fabric', '  Fabrics  ');
+
+    await expect(getCategories()).resolves.toEqual(['Fabrics']);
+  });
+
+  /*
+   * Renaming onto a name already in use merges the two — usually the same thing
+   * typed twice, once with a slip. The outcome says so, because that is more
+   * than the user asked for and they should be told.
+   */
+  it('merges into an existing value and says that it did', async () => {
+    await save('https://shop.example/one', { tags: ['sale'] });
+    await save('https://shop.example/two', { tags: ['Sale'] });
+
+    const outcome = await renameOrganizationValue('tag', 'sale', 'Sale');
+
+    expect(outcome).toEqual({ affected: 1, merged: true });
+    await expect(getTags()).resolves.toEqual(['Sale']);
+  });
+
+  it('refuses a blank name, an unchanged one, and a value it does not know', async () => {
+    await save('https://shop.example/one', { category: 'Fabrics' });
+
+    await expect(renameOrganizationValue('category', 'Fabrics', '   ')).resolves.toBeNull();
+    await expect(renameOrganizationValue('category', 'Fabrics', 'Fabrics')).resolves.toBeNull();
+    await expect(renameOrganizationValue('category', 'Recipes', 'Cooking')).resolves.toBeNull();
+    await expect(getCategories()).resolves.toEqual(['Fabrics']);
+  });
+
+  it('deletes a value from the links and from what is remembered', async () => {
+    await save('https://shop.example/one', { tags: ['Sale', 'Wool'] });
+
+    await expect(deleteOrganizationValue('tag', 'Sale')).resolves.toBe(1);
+
+    await expect(getTags()).resolves.toEqual(['Wool']);
+    expect((await getSavedLinks())[0]?.tags).toEqual(['Wool']);
+  });
+
+  // Deleting a category is not a way to delete what was filed under it.
+  it('keeps every link when a value goes', async () => {
+    await save('https://shop.example/one', { category: 'Fabrics' });
+
+    await deleteOrganizationValue('category', 'Fabrics');
+
+    const links = await getSavedLinks();
+    expect(links).toHaveLength(1);
+    expect(links[0]?.category).toBeNull();
+  });
+
+  it('deletes a value nothing carries any more', async () => {
+    await save('https://shop.example/one', { category: 'Fabrics' });
+    await categories.setValue(['Fabrics', 'Recipes']);
+
+    await expect(deleteOrganizationValue('category', 'Recipes')).resolves.toBe(0);
+
+    await expect(getCategories()).resolves.toEqual(['Fabrics']);
   });
 });

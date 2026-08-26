@@ -1,5 +1,12 @@
 import { storage } from 'wxt/utils/storage';
 import {
+  countUsage,
+  countUsageOf,
+  removeValueFromLinks,
+  renameValueInLinks,
+  type OrganizationKind,
+} from './organization';
+import {
   applyEdits,
   createSavedLink,
   type SavedLink,
@@ -208,6 +215,109 @@ export function getTags(): Promise<string[]> {
 
 export function getCustomStatuses(): Promise<string[]> {
   return customStatuses.getValue();
+}
+
+/**
+ * The remembered lists by kind: what `OrganizationKind` names on the link side
+ * is one of these on the stored side.
+ */
+const ORGANIZATION_LISTS: Record<OrganizationKind, StoredList<string>> = {
+  category: categories,
+  tag: tags,
+  status: customStatuses,
+};
+
+/** One remembered value, with what still hangs on it. */
+export interface OrganizationValue {
+  value: string;
+  /** How many saved links carry it; zero for one nothing uses any more. */
+  usage: number;
+}
+
+/**
+ * Every remembered value of one kind, in the order they were first used, each
+ * with the number of links carrying it.
+ *
+ * A value some link carries but the list has lost is listed too, rather than
+ * hidden: what cannot be seen cannot be renamed or deleted either, and a value
+ * out of reach of the one screen for reaching it would be stuck for good.
+ */
+export async function getOrganizationValues(kind: OrganizationKind): Promise<OrganizationValue[]> {
+  const [known, links] = await Promise.all([ORGANIZATION_LISTS[kind].getValue(), getSavedLinks()]);
+  const usage = countUsage(links, kind);
+  const forgotten = [...usage.keys()].filter((value) => !known.includes(value));
+
+  return [...known, ...forgotten].map((value) => ({ value, usage: usage.get(value) ?? 0 }));
+}
+
+/** What a rename did, so the interface can say it in words. */
+export interface RenameOutcome {
+  /** How many links were rewritten. */
+  affected: number;
+  /** Whether the new name was already in use, so that two became one. */
+  merged: boolean;
+}
+
+/**
+ * Renames one value everywhere: in the remembered list, and on every link
+ * carrying it. Returns `null` — a regular return value, because the caller is
+ * expected to tell the user — when the new name is blank, unchanged, or the
+ * old one is not known here.
+ *
+ * A name that already exists merges the two rather than being refused. That is
+ * what a rename means when it collides: the same thing was typed twice, once
+ * with a slip, and refusing would leave the user to delete one by hand.
+ */
+export async function renameOrganizationValue(
+  kind: OrganizationKind,
+  from: string,
+  to: string,
+): Promise<RenameOutcome | null> {
+  const name = to.trim();
+  const list = ORGANIZATION_LISTS[kind];
+  const [known, links] = await Promise.all([list.getValue(), getSavedLinks()]);
+  const usage = countUsage(links, kind);
+
+  if (name === '' || name === from || !(known.includes(from) || usage.has(from))) {
+    return null;
+  }
+
+  const renamed = known.includes(from)
+    ? known.map((value) => (value === from ? name : value))
+    : [...known, name];
+
+  await list.setValue([...new Set(renamed)]);
+
+  // Left alone when nothing carries the value: writing every link back
+  // unchanged would wake every watcher for a list that has not moved.
+  const affected = usage.get(from) ?? 0;
+  if (affected > 0) {
+    await savedLinks.setValue(renameValueInLinks(links, kind, from, name));
+  }
+
+  return { affected, merged: known.includes(name) || usage.has(name) };
+}
+
+/**
+ * Forgets one value and takes it off every link that carried it, and says how
+ * many those were. The links themselves stay: deleting a category is not a way
+ * to delete what was filed under it.
+ */
+export async function deleteOrganizationValue(
+  kind: OrganizationKind,
+  value: string,
+): Promise<number> {
+  const list = ORGANIZATION_LISTS[kind];
+  const [known, links] = await Promise.all([list.getValue(), getSavedLinks()]);
+
+  await list.setValue(known.filter((each) => each !== value));
+
+  const affected = countUsageOf(links, kind, value);
+  if (affected > 0) {
+    await savedLinks.setValue(removeValueFromLinks(links, kind, value));
+  }
+
+  return affected;
 }
 
 /** Keeps the suggestion lists up to date with what a link actually uses. */
