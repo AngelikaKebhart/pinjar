@@ -14,11 +14,15 @@ import type { SavedLink } from '@/src/lib/saved-link';
  * held its own copy could not know what the row above it was showing, which is
  * how the popup ended up with two forms open at once.
  *
- * The form and the delete question are tracked apart, because they are two
- * disclosures rather than one three-way switch. A single "which panel is open"
- * value made every close touch both: dismissing a question on one link closed
- * the form on another, and answering "no" to a question raised from inside a
- * form threw the form and everything typed into it away.
+ * On one link the two are exclusive: opening either takes the other away, so
+ * that the highlighted button is always the one whose panel is showing and a
+ * form never sits forgotten behind a question. Across links they are not —
+ * dismissing a question on one link leaves an open form on another alone,
+ * because the user never asked for it to go and would not see it happen.
+ *
+ * They are still two values rather than one "which panel is open" switch.
+ * With a single value every close reached both, which is what made cancelling
+ * a question on one link close the form on a different one.
  */
 export interface LinkPanels {
   /** The link whose form is open, if any. Only ever one. */
@@ -70,6 +74,11 @@ export function useLinkPanels(emptyListFocusRef: RefObject<HTMLElement | null>):
 
       if (isClosing) {
         editButtons.current.get(id)?.focus();
+      } else {
+        // This link had its question up; the form takes its place. Written as
+        // an update rather than read from the render above, so it holds even
+        // if two presses land without a render between them.
+        setDeletingId((current) => (current === id ? null : current));
       }
     },
     [editingId, editButtons],
@@ -83,6 +92,10 @@ export function useLinkPanels(emptyListFocusRef: RefObject<HTMLElement | null>):
 
       if (isClosing) {
         deleteButtons.current.get(id)?.focus();
+      } else {
+        // Only this link's form. One on another link is not in the way, and
+        // taking it down would be closing something the user is still using.
+        setEditingId((current) => (current === id ? null : current));
       }
     },
     [deletingId, deleteButtons],

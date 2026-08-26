@@ -91,8 +91,8 @@ export function SavedLinkRow({
       )}
 
       {/*
-        Below the form rather than instead of it: answering "no" to the
-        question must not take away what the user has typed above it.
+        Never alongside the form: opening either of the two closes the other,
+        so the filled button is always the one whose panel is showing.
       */}
       {isAsking && (
         <DeletePanel

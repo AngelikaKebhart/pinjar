@@ -62,6 +62,16 @@ function messageAbout(key: string, title: string): string {
   return interpolate(en[key] ?? '', { title });
 }
 
+/**
+ * The delete question, found by its own name.
+ *
+ * Not simply by role: the form carries a fieldset for the tags, which is a
+ * group too, so an unqualified query matches whichever happens to be there.
+ */
+function deleteQuestion(title: string): HTMLElement | null {
+  return screen.queryByRole('group', { name: messageAbout('deleteLink.question', title) });
+}
+
 beforeEach(() => {
   fakeBrowser.reset();
   vi.restoreAllMocks();
@@ -429,13 +439,30 @@ describe('one panel at a time', () => {
     expect(screen.getByRole('form', { name: 'Edit “Jersey fabric”' })).toBeTruthy();
   });
 
+  it('shows the form and the question one at a time on a link', async () => {
+    await listWith('Jersey fabric');
+
+    fireEvent.click(editButton('Jersey fabric'));
+    fireEvent.click(deleteButton('Jersey fabric'));
+
+    expect(screen.queryByRole('form')).toBeNull();
+    expect(editButton('Jersey fabric').getAttribute('aria-expanded')).toBe('false');
+    expect(deleteButton('Jersey fabric').getAttribute('aria-expanded')).toBe('true');
+
+    fireEvent.click(editButton('Jersey fabric'));
+
+    expect(deleteQuestion('Jersey fabric')).toBeNull();
+    expect(screen.getByRole('form')).toBeTruthy();
+    expect(deleteButton('Jersey fabric').getAttribute('aria-expanded')).toBe('false');
+  });
+
   it('dismisses the question with Escape', async () => {
     await listWith('Jersey fabric');
 
     fireEvent.click(deleteButton('Jersey fabric'));
-    fireEvent.keyDown(screen.getByRole('group'), { key: 'Escape' });
+    fireEvent.keyDown(deleteQuestion('Jersey fabric') as HTMLElement, { key: 'Escape' });
 
-    expect(screen.queryByRole('group')).toBeNull();
+    expect(deleteQuestion('Jersey fabric')).toBeNull();
     expect(document.activeElement).toBe(deleteButton('Jersey fabric'));
   });
 });

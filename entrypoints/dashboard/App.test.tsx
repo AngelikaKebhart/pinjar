@@ -74,6 +74,16 @@ function cardOf(title: string): HTMLElement {
   return card;
 }
 
+/**
+ * The delete question, found by its own name.
+ *
+ * Not simply by role: the form carries a fieldset for the tags, which is a
+ * group too, so an unqualified query matches whichever happens to be there.
+ */
+function deleteQuestion(title: string): HTMLElement | null {
+  return screen.queryByRole('group', { name: messageAbout('deleteLink.question', title) });
+}
+
 beforeEach(() => {
   fakeBrowser.reset();
   vi.restoreAllMocks();
@@ -991,33 +1001,42 @@ describe('the form and the delete question side by side', () => {
   });
 
   /*
-   * The question opens below the form rather than in its place. Asked from an
-   * open form, it used to replace it — so answering "no" handed the user back
-   * a card with everything they had typed gone, which is the one thing a
-   * confirmation must never do.
+   * One panel per link at a time. The pencil and the basket are each drawn
+   * filled while their own panel is up, so two filled buttons over a single
+   * card would be saying that both are showing when only one can be.
    */
-  it('keeps the form and what was typed into it while the question shows', async () => {
+  it('closes the form when the question is opened on the same link', async () => {
     await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
     await renderDashboard();
 
     await startEditing('Jersey fabric');
-    const title = screen.getByLabelText(en['dashboard.link.title'] ?? '');
-    fireEvent.change(title, { target: { value: 'Jersey fabric, blue' } });
+    const card = cardOf('Jersey fabric');
+    fireEvent.click(within(card).getByRole('button', { name: 'Delete “Jersey fabric”' }));
 
-    fireEvent.click(within(cardOf('Jersey fabric')).getByRole('button', { name: /^Delete/ }));
+    expect(screen.queryByRole('form')).toBeNull();
+    expect(deleteQuestion('Jersey fabric')).toBeTruthy();
+    expect(
+      within(card)
+        .getByRole('button', { name: 'Edit “Jersey fabric”' })
+        .getAttribute('aria-expanded'),
+    ).toBe('false');
+  });
 
+  it('closes the question when the form is opened on the same link', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    const card = cardOf('Jersey fabric');
+    fireEvent.click(within(card).getByRole('button', { name: 'Delete “Jersey fabric”' }));
+    await startEditing('Jersey fabric');
+
+    expect(deleteQuestion('Jersey fabric')).toBeNull();
     expect(screen.getByRole('form')).toBeTruthy();
-    expect(screen.getByLabelText(en['dashboard.link.title'] ?? '')).toHaveProperty(
-      'value',
-      'Jersey fabric, blue',
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'Keep “Jersey fabric”' }));
-
-    expect(screen.getByLabelText(en['dashboard.link.title'] ?? '')).toHaveProperty(
-      'value',
-      'Jersey fabric, blue',
-    );
+    expect(
+      within(card)
+        .getByRole('button', { name: 'Delete “Jersey fabric”' })
+        .getAttribute('aria-expanded'),
+    ).toBe('false');
   });
 
   // The same key that closes the form, so there is one way out to learn.
@@ -1030,9 +1049,9 @@ describe('the form and the delete question side by side', () => {
     });
     fireEvent.click(button);
 
-    fireEvent.keyDown(screen.getByRole('group'), { key: 'Escape' });
+    fireEvent.keyDown(deleteQuestion('Jersey fabric') as HTMLElement, { key: 'Escape' });
 
-    expect(screen.queryByRole('group')).toBeNull();
+    expect(deleteQuestion('Jersey fabric')).toBeNull();
     expect(document.activeElement).toBe(button);
   });
 
@@ -1055,7 +1074,7 @@ describe('the form and the delete question side by side', () => {
 
     expect(button().getAttribute('aria-expanded')).toBe('true');
     expect(document.getElementById(button().getAttribute('aria-controls') ?? '')).toBe(
-      screen.getByRole('group'),
+      deleteQuestion('Jersey fabric'),
     );
   });
 
@@ -1070,6 +1089,6 @@ describe('the form and the delete question side by side', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Delete “Jersey fabric”' }));
 
-    expect(screen.getByRole('group').getAttribute('tabindex')).toBe('-1');
+    expect(deleteQuestion('Jersey fabric')?.getAttribute('tabindex')).toBe('-1');
   });
 });

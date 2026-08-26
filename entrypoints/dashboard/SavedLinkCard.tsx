@@ -145,10 +145,9 @@ export function SavedLinkCard({
         )}
 
         {/*
-          Below whatever is already there rather than instead of it. Asked from
-          an open form, the question used to replace the form — so answering
-          "no" left the user back at the card with everything they had typed
-          gone.
+          The form and the question take the same place, one at a time: opening
+          either closes the other, so the filled button is always the one whose
+          panel is showing.
         */}
         {isAsking && (
           <DeletePanel
