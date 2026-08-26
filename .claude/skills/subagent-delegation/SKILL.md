@@ -1,6 +1,6 @@
 ---
 name: subagent-delegation
-description: Defines how work is delegated to subagents in this project — delegation is opt-in and never happens unasked because a subagent costs budget rather than saving it, delegated work runs on sonnet (never haiku, never opus), and every result that comes back is verified before it is used or reported. Apply this skill whenever spawning an agent, choosing a model for delegated work, planning to split a task across agents, or relaying what a subagent reported.
+description: Defines how work is delegated to subagents in this project — delegation is opt-in and never happens unasked, because a subagent buys wall-clock time rather than budget; delegated work runs on sonnet, with nothing cheaper below it and judgement work kept inline rather than sent to opus; and every result that comes back is verified before it is used or reported. Apply this skill whenever spawning an agent, choosing a model for delegated work, planning to split a task across agents, or relaying what a subagent reported.
 ---
 
 # Subagent Delegation
@@ -34,13 +34,31 @@ finding a file, listing occurrences of a symbol, running a known command — is 
 call that belongs inline rather than in a subagent, and what would be left for it are bulk
 sweeps across many files, which is exactly where a missed hit stays silent.
 
-**`opus` is not delegated either.** Work that needs Opus-grade judgement — architecture
-decisions, accessibility, extension permissions and privacy, the i18n catalogs, subtle bug
-hunts, hard trade-offs — is work to do inline, where the context already exists, rather than
-paying a second Opus to acquire it first. Delegate to `opus` only if Angelika explicitly asks.
+| Model | Use for |
+| --- | --- |
+| `sonnet` | Everything that gets delegated: building components against a clear spec, tracing how existing features work, moderate refactors, drafting tests for settled behaviour, writing code, testing in browser, applying design decisions, and mechanical sweeps across many files. |
 
-If a task splits into a hard part and a mechanical part, keep the hard part here and delegate
-only the mechanical half, on `sonnet`.
+**There is deliberately no cheaper tier than `sonnet` here.** The work a cheap
+model would be safe on — locating a file, listing occurrences of a symbol,
+running a known command and reporting its output — is a single Glob, Grep or
+Bash call that the section above already says to do inline rather than
+delegate. What would actually be left for it is bulk mechanical work across
+many files, and that is precisely where a miss is silent: "no other
+occurrences" is the confident, plausible, wrong answer, and it costs more to
+re-verify than the model saved. The line between mechanical and judgement is
+blurry in this codebase anyway, because the conventions reach everywhere — a
+straightforward rename runs into the message catalogs soon enough.
+
+**And deliberately no more expensive one.** Genuinely hard work — architecture
+decisions, design plans, interaction flows, cross-cutting refactors, subtle bug
+hunts, code review, hard trade-off analysis, and anything touching
+accessibility, extension permissions/privacy or the i18n catalogs — is work to
+keep inline, where the context already exists, rather than paying a second
+`opus` to acquire it first. That is the case where delegation most clearly
+costs more than it saves. Delegate to `opus` only if Angelika explicitly asks.
+
+If a task splits into a hard part and an ordinary one, keep the hard part here
+and delegate only the ordinary half.
 
 ## Verify what comes back
 
@@ -52,8 +70,7 @@ A subagent's report is a claim, not a result. Before building on it or repeating
   hardcoded user-facing strings, both message catalogs in sync, no new permission in the
   manifest.
 
-The cheaper the model, the more this matters. If verification fails, correct it here rather
-than sending the task back around — a second round trip costs more than the fix.
+This holds for `opus` as much as for `sonnet` — a subagent of any model reports on work you did not watch, and a confident summary is the easiest thing in the world to write. If verification fails, correct it here rather than sending the task back around; a second round trip costs more than the fix.
 
 ## Reporting
 
