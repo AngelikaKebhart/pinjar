@@ -1,6 +1,6 @@
 ---
 name: subagent-delegation
-description: Defines how work is delegated to subagents in this project — delegation is opt-in and never happens unasked because a subagent costs budget rather than saving it, delegated work runs on a cheap model (never opus), and every result that comes back is verified before it is used or reported. Apply this skill whenever spawning an agent, choosing a model for delegated work, planning to split a task across agents, or relaying what a subagent reported.
+description: Defines how work is delegated to subagents in this project — delegation is opt-in and never happens unasked because a subagent costs budget rather than saving it, delegated work runs on sonnet (never haiku, never opus), and every result that comes back is verified before it is used or reported. Apply this skill whenever spawning an agent, choosing a model for delegated work, planning to split a task across agents, or relaying what a subagent reported.
 ---
 
 # Subagent Delegation
@@ -28,21 +28,19 @@ searches, or a task merely described as "thorough" or "multi-part".
 
 ## Choose the model explicitly, per task
 
-Never let a delegated task inherit the model by default. Pass `model` on every `Agent` call:
+Never let a delegated task inherit the model by default. Pass `model` on every `Agent` call.
+**Delegated work runs on `sonnet`.** There is no cheap tier: the work `haiku` would cover —
+finding a file, listing occurrences of a symbol, running a known command — is a single tool
+call that belongs inline rather than in a subagent, and what would be left for it are bulk
+sweeps across many files, which is exactly where a missed hit stays silent.
 
-| Model | Use for |
-| --- | --- |
-| `haiku` | Mechanical, fully specified work: locating files, listing occurrences of a symbol, straightforward renames, collecting facts, running a known command and reporting its output. |
-| `sonnet` | Everything else that gets delegated: implementation against a clear spec, tracing how an existing feature works, moderate refactors, drafting tests for settled behaviour, browser testing. |
+**`opus` is not delegated either.** Work that needs Opus-grade judgement — architecture
+decisions, accessibility, extension permissions and privacy, the i18n catalogs, subtle bug
+hunts, hard trade-offs — is work to do inline, where the context already exists, rather than
+paying a second Opus to acquire it first. Delegate to `opus` only if Angelika explicitly asks.
 
-**`opus` is deliberately absent from this table.** Work that needs Opus-grade judgement —
-architecture decisions, accessibility, extension permissions and privacy, the i18n catalogs,
-subtle bug hunts, hard trade-offs — is work to do inline, where the context already exists,
-rather than paying a second Opus to acquire it first. Delegate to `opus` only if Angelika
-explicitly asks for it.
-
-If a task splits into a hard part and a mechanical part, keep the hard part here and
-delegate only the mechanical half.
+If a task splits into a hard part and a mechanical part, keep the hard part here and delegate
+only the mechanical half, on `sonnet`.
 
 ## Verify what comes back
 
