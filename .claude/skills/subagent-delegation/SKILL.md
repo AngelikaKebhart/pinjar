@@ -1,13 +1,22 @@
 ---
 name: subagent-delegation
-description: Defines how work is delegated to subagents in this project — a subagent is only spawned when the user asks for one, the model is chosen explicitly per task (cheap model for mechanical work, strong model for work that needs judgement), and every result that comes back is verified before it is used or reported. Apply this skill whenever spawning an agent, choosing a model for delegated work, planning to split a task across agents, or relaying what a subagent reported.
+description: Defines how work is delegated to subagents in this project — spawn subagents proactively when a task benefits from parallel work or specialized investigation, always choose the model explicitly per task (cheap model for mechanical work, strong model for work that needs judgement), and every result that comes back is verified before it is used or reported. Apply this skill whenever spawning an agent, choosing a model for delegated work, planning to split a task across agents, or relaying what a subagent reported.
 ---
 
 # Subagent Delegation
 
 ## When to delegate at all
 
-Only when the user asks for it — by naming a subagent, saying "use a subagent", or invoking a skill that runs in one. A task with several parts, or one described as "thorough", is not a request to delegate; do it inline. Every spawn starts cold and re-derives context that is already present here.
+Spawn a subagent when:
+- The user explicitly asks for delegation (naming a subagent, saying "use a subagent", or invoking a skill that runs in one)
+- A task naturally splits into independent work streams that can run in parallel (e.g., multiple files to audit, multiple searches to run)
+- A task requires specialized expertise that another agent type offers (e.g., code-reviewer, explorer)
+- The task is large enough that a fresh context (subagent starting cold) pays for itself in clean work rather than carrying forward context
+
+Do NOT delegate:
+- Work you can do faster inline (single files, single searches, one-shot analysis)
+- Tasks described as "thorough" or "several parts" without natural parallelism — do it inline instead
+- Work where you already have the full context and spawning would be wasteful
 
 ## Choose the model explicitly, per task
 
