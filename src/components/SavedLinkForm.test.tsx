@@ -33,7 +33,7 @@ async function renderForm(link: EditableLink = aLink()) {
 
   render(
     <TranslationProvider>
-      <SavedLinkForm link={link} onSave={onSave} onCancel={onCancel} />
+      <SavedLinkForm id="edit-form" link={link} onSave={onSave} onCancel={onCancel} />
     </TranslationProvider>,
   );
 
@@ -114,6 +114,21 @@ describe('the plain fields', () => {
   });
 });
 
+describe('leaving the form', () => {
+  /*
+   * The same key that dismisses the delete question beside it. The form is
+   * deliberately the only one of the two that a press outside does not close:
+   * there is typed text in here to lose.
+   */
+  it('closes on Escape', async () => {
+    const { onCancel } = await renderForm();
+
+    fireEvent.keyDown(screen.getByRole('form'), { key: 'Escape' });
+
+    expect(onCancel).toHaveBeenCalled();
+  });
+});
+
 describe('adding something new in place', () => {
   it('turns the dropdown into a field instead of opening one below it', async () => {
     await renderForm();
@@ -153,8 +168,13 @@ describe('adding something new in place', () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
-  it('abandons the entry on Escape', async () => {
-    const { onSave } = await renderForm(aLink({ category: 'Fabrics' }));
+  /*
+   * And only the entry. Escape closes the whole form from anywhere else, so
+   * the field has to claim the press for itself — otherwise one key would drop
+   * the name being typed and everything else along with it.
+   */
+  it('abandons the entry on Escape without closing the form', async () => {
+    const { onSave, onCancel } = await renderForm(aLink({ category: 'Fabrics' }));
 
     choose('Category', 'new');
     type('Category', 'Patterns');
@@ -163,6 +183,7 @@ describe('adding something new in place', () => {
 
     expect(screen.getByLabelText('Category').tagName).toBe('SELECT');
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ category: 'Fabrics' }));
+    expect(onCancel).not.toHaveBeenCalled();
   });
 
   // Typing a name and clicking elsewhere must not silently discard it.
@@ -496,7 +517,7 @@ describe('accessibility', () => {
 
     render(
       <TranslationProvider>
-        <SavedLinkForm link={aLink()} onSave={vi.fn()} onCancel={vi.fn()} />
+        <SavedLinkForm id="edit-form" link={aLink()} onSave={vi.fn()} onCancel={vi.fn()} />
       </TranslationProvider>,
     );
 

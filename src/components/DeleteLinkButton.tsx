@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useId, useRef } from 'react';
 import { DeleteIcon } from '@/src/components/icons';
 import { PopoverButton } from '@/src/components/PopoverButton';
 import { useTranslation } from '@/src/i18n/context';
@@ -17,6 +17,10 @@ import { useTranslation } from '@/src/i18n/context';
  * crushed against the edge of the card — and pressing the button again was no
  * way back out, because by then there was no button.
  *
+ * The question names the link in words, not only in the buttons' labels: with
+ * three cards that look alike, "Delete?" on its own leaves everyone but a
+ * screen reader user guessing which one is about to go.
+ *
  * Only the way in is an icon. The question and its two answers stay words:
  * an icon is a good enough hint for something the user can undo by not
  * pressing it, and no hint at all for a decision that is final.
@@ -30,32 +34,48 @@ export function DeleteLinkButton({
   onDelete: () => void | Promise<void>;
 }) {
   const { t } = useTranslation();
+  const questionId = useId();
 
   /*
-   * Opening puts focus on the answer rather than leaving it on the button:
-   * the question is what has just appeared, and a keyboard user must not have
-   * to hunt for it. Both ways back — Escape and pressing the button again —
-   * return focus to the button, which `PopoverButton` handles.
+   * Opening puts focus on the question rather than on either answer: what has
+   * just appeared is a question, and a keyboard user must not have to hunt for
+   * it. Deliberately not on "Yes, delete" — a held or repeated Enter, which is
+   * what opened the panel in the first place, would then delete the link
+   * without a second decision ever being made, and a confirmation nobody had
+   * to answer is no confirmation.
+   *
+   * Both ways back — Escape and pressing the button again — return focus to
+   * the button, which `PopoverButton` handles.
    *
    * Confirming is the one case with nowhere to hand focus: the link is gone
-   * and this component with it. What happened is announced by the count in the
-   * list, which is a live region.
+   * and this component with it. Where the focus goes next is the list's
+   * business, since only the list knows what is left.
    */
-  const confirmRef = useRef<HTMLButtonElement>(null);
+  const questionRef = useRef<HTMLDivElement>(null);
 
   return (
     <PopoverButton
       label={t('deleteLink.actionLabel', { title })}
       icon={<DeleteIcon />}
-      initialFocusRef={confirmRef}
+      initialFocusRef={questionRef}
     >
       {(close) => (
-        <div className="flex flex-col gap-3">
-          <p className="text-sm font-bold">{t('deleteLink.question')}</p>
+        // A group rather than a dialog: the page behind stays usable, and the
+        // two answers would otherwise sit in the tab order with nothing saying
+        // what they answer.
+        <div
+          ref={questionRef}
+          tabIndex={-1}
+          role="group"
+          aria-labelledby={questionId}
+          className="flex flex-col gap-3"
+        >
+          <p id={questionId} className="text-sm font-bold break-words">
+            {t('deleteLink.question', { title })}
+          </p>
 
           <div className="flex flex-wrap gap-2">
             <button
-              ref={confirmRef}
               type="button"
               onClick={() => void onDelete()}
               aria-label={t('deleteLink.confirmLabel', { title })}

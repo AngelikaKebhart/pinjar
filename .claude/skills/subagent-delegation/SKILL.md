@@ -36,3 +36,12 @@ The cheaper the model, the more this matters. If verification fails, correct it 
 ## Reporting
 
 Relay what the delegated work actually produced, including what it got wrong and what you had to fix. Never present an unverified subagent claim as a finished result.
+
+## Your model choice for this project's work
+
+When working directly in this project (not delegating), select your model per phase to optimize token efficiency:
+
+- **`opus`** – for conceptual and judgement work: architecture decisions, design plans, interaction flows, approach recommendations, UX/accessibility considerations, hard trade-off analysis, and code review
+- **`sonnet`** – for implementation: writing code, testing in the browser, refactoring, debugging, applying design decisions
+
+This split prevents wasting expensive compute on mechanical work while ensuring judgement calls have the full picture.

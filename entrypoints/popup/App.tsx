@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { ActionFeedback, type FeedbackMessage } from '@/src/components/ActionFeedback';
+import { useLinkEditing } from '@/src/components/useLinkEditing';
 import { useTranslation } from '@/src/i18n/context';
-import type { MessageKey } from '@/src/i18n/messages';
 import { getCurrentPage, saveCurrentPage, type CurrentPage } from '@/src/lib/current-page';
 import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
 import { getSavedLinksForDomain, removeSavedLink, updateSavedLink } from '@/src/lib/storage';
@@ -22,8 +23,13 @@ function App() {
   const [links, setLinks] = useState<SavedLink[] | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   // The one line of feedback under the button; null while nothing happened.
-  const [statusKey, setStatusKey] = useState<MessageKey | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
   const savedLinksHeadingId = useId();
+
+  // Where the focus lands when the last link on the list is deleted: there is
+  // no neighbouring button left to take it.
+  const savedLinksHeadingRef = useRef<HTMLHeadingElement>(null);
+  const editing = useLinkEditing(savedLinksHeadingRef);
 
   const loadLinks = useCallback(async (domain: string | null) => {
     setLinks(domain === null ? [] : await getSavedLinksForDomain(domain));
@@ -37,7 +43,7 @@ function App() {
       // disabled button that gives no reason is a dead end. Said here rather
       // than on click, which is exactly what the button no longer allows.
       if ((current?.domain ?? null) === null) {
-        setStatusKey('popup.status.unsupportedPage');
+        setFeedback({ key: 'popup.status.unsupportedPage' });
       }
 
       await loadLinks(current?.domain ?? null);
@@ -53,19 +59,24 @@ function App() {
     const outcome = await saveCurrentPage(page);
     setIsSaving(false);
 
-    setStatusKey(`popup.status.${outcome.status}`);
+    setFeedback({ key: `popup.status.${outcome.status}` });
     await loadLinks(page.domain);
   };
 
   const handleEdit = async (link: SavedLink, edits: SavedLinkEdits) => {
     await updateSavedLink(link.id, edits);
-    setStatusKey('popup.status.detailsSaved');
+    setFeedback({ key: 'linkFeedback.detailsSaved' });
     await loadLinks(page?.domain ?? null);
   };
 
   const handleRemove = async (link: SavedLink) => {
     await removeSavedLink(link.id);
-    setStatusKey('popup.status.removed');
+    setFeedback({ key: 'linkFeedback.removed', params: { title: link.title } });
+
+    // Before the list is reloaded, while it still says who stood next to the
+    // link that just went.
+    editing.moveFocusAfterRemoving(links ?? [], link.id);
+
     await loadLinks(page?.domain ?? null);
   };
 
@@ -98,13 +109,11 @@ function App() {
         </button>
 
         {/*
-          Announced rather than only shown: saving gives no other feedback, and
-          the message stays until the next action instead of disappearing on a
-          timer the user cannot outrun (WCAG 2.2 AA).
+          Saving, editing and deleting all report here. It is the only feedback
+          saving gives at all, and after a deletion it is the only thing left to
+          notice: the row that could have said so is gone.
         */}
-        <p aria-live="polite" className="min-h-5 text-sm text-ink-muted">
-          {statusKey === null ? '' : t(statusKey)}
-        </p>
+        <ActionFeedback message={feedback} />
       </div>
 
       {/*
@@ -115,7 +124,12 @@ function App() {
       */}
       {canSave && (
         <section aria-labelledby={savedLinksHeadingId} className="flex flex-col gap-2">
-          <h2 id={savedLinksHeadingId} className="text-sm font-medium">
+          <h2
+            id={savedLinksHeadingId}
+            ref={savedLinksHeadingRef}
+            tabIndex={-1}
+            className="text-sm font-medium"
+          >
             {t('popup.savedLinks.heading', { domain: currentDomain })}
           </h2>
 
@@ -127,6 +141,11 @@ function App() {
                 <li key={link.id}>
                   <SavedLinkRow
                     link={link}
+                    isEditing={editing.editingId === link.id}
+                    onEditingChange={(isEditing) => editing.setEditing(link.id, isEditing)}
+                    editButtonRef={(button) => {
+                      editing.rememberEditButton(link.id, button);
+                    }}
                     onDelete={() => handleRemove(link)}
                     onEdit={(edits) => handleEdit(link, edits)}
                   />

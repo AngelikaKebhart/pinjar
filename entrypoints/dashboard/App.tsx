@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { ActionFeedback, type FeedbackMessage } from '@/src/components/ActionFeedback';
+import { useLinkEditing } from '@/src/components/useLinkEditing';
 import { useTranslation } from '@/src/i18n/context';
 import { filterSavedLinks, isFiltering, NO_FILTER } from '@/src/lib/filter';
 import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
@@ -19,8 +21,15 @@ function App() {
   const { t, plural } = useTranslation();
   const [links, setLinks] = useState<SavedLink[] | null>(null);
   const [criteria, setCriteria] = useState(NO_FILTER);
+  // What just happened to a link; null until something has.
+  const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
   const savedLinksHeadingId = useId();
   const filtersHeadingId = useId();
+
+  // Where the focus lands when the last card is deleted: there is no
+  // neighbouring button left to take it.
+  const savedLinksHeadingRef = useRef<HTMLHeadingElement>(null);
+  const editing = useLinkEditing(savedLinksHeadingRef);
 
   const shown = useMemo(
     () => (links === null ? [] : filterSavedLinks(links, criteria)),
@@ -35,13 +44,19 @@ function App() {
     return savedLinks.watch(setLinks);
   }, []);
 
-  const handleDelete = useCallback(async (id: string) => {
-    await removeSavedLink(id);
-  }, []);
+  const handleDelete = async (link: SavedLink) => {
+    await removeSavedLink(link.id);
+    setFeedback({ key: 'linkFeedback.removed', params: { title: link.title } });
 
-  const handleEdit = useCallback(async (id: string, edits: SavedLinkEdits) => {
-    await updateSavedLink(id, edits);
-  }, []);
+    // `shown` is still the list as it was drawn, which is what says who stood
+    // next to the card that just went.
+    editing.moveFocusAfterRemoving(shown, link.id);
+  };
+
+  const handleEdit = async (link: SavedLink, edits: SavedLinkEdits) => {
+    await updateSavedLink(link.id, edits);
+    setFeedback({ key: 'linkFeedback.detailsSaved' });
+  };
 
   // The tab title is user-facing text and has to follow the language switch,
   // so it cannot stay in the static HTML.
@@ -98,7 +113,12 @@ function App() {
       </section>
 
       <main className="mt-8" aria-labelledby={savedLinksHeadingId}>
-        <h2 id={savedLinksHeadingId} className="text-lg font-medium">
+        <h2
+          id={savedLinksHeadingId}
+          ref={savedLinksHeadingRef}
+          tabIndex={-1}
+          className="text-lg font-medium"
+        >
           {t('dashboard.savedLinks.heading')}
         </h2>
 
@@ -114,12 +134,18 @@ function App() {
 
         {/*
           Carries the count for anyone who cannot see it, and announces every
-          change to it. Deleting a link relies on this too: once the card is
-          gone there is nothing else to notice.
+          change to it.
         */}
         <p aria-live="polite" className="sr-only">
           {announcement}
         </p>
+
+        {/*
+          What was done to a link, as against how many are left. Saving an edit
+          changes a card that may be off screen and moves no count at all, and
+          a deleted card cannot report its own disappearance.
+        */}
+        <ActionFeedback message={feedback} />
 
         {links !== null &&
           (shown.length === 0 ? (
@@ -139,8 +165,13 @@ function App() {
                 <li key={link.id}>
                   <SavedLinkCard
                     link={link}
-                    onDelete={() => handleDelete(link.id)}
-                    onEdit={(edits) => handleEdit(link.id, edits)}
+                    isEditing={editing.editingId === link.id}
+                    onEditingChange={(isEditing) => editing.setEditing(link.id, isEditing)}
+                    editButtonRef={(button) => {
+                      editing.rememberEditButton(link.id, button);
+                    }}
+                    onDelete={() => handleDelete(link)}
+                    onEdit={(edits) => handleEdit(link, edits)}
                   />
                 </li>
               ))}

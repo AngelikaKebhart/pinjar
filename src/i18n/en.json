@@ -9,8 +9,6 @@
   "popup.status.alreadySaved": "This page is already on your list.",
   "popup.status.unsupportedPage": "This page cannot be saved. Only regular web pages using http or https work.",
   "popup.status.failed": "Saving did not work. Please try again.",
-  "popup.status.removed": "Removed.",
-  "popup.status.detailsSaved": "Details saved.",
 
   "popup.savedLinks.heading": "Saved on {domain}",
   "popup.savedLinks.empty": "You have not saved anything on this site yet.",
@@ -50,13 +48,17 @@
   "editLink.statusNew": "Add a new status…",
   "editLink.save": "Save",
   "editLink.cancel": "Cancel",
+  "editLink.delete": "Delete",
 
   "deleteLink.actionLabel": "Delete “{title}”",
-  "deleteLink.question": "Delete?",
+  "deleteLink.question": "Delete “{title}”?",
   "deleteLink.confirm": "Yes, delete",
   "deleteLink.confirmLabel": "Yes, delete “{title}”",
   "deleteLink.cancel": "Cancel",
   "deleteLink.cancelLabel": "Keep “{title}”",
+
+  "linkFeedback.detailsSaved": "Details saved.",
+  "linkFeedback.removed": "“{title}” was deleted.",
 
   "filters.heading": "Search and filters",
   "filters.search": "Search",

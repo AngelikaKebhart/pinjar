@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
 import { ThemeProvider } from '@/src/components/ThemeProvider';
+import { interpolate } from '@/src/i18n/format';
 import { TranslationProvider } from '@/src/i18n/TranslationProvider';
 import { CATALOGS } from '@/src/i18n/messages';
 import { addSavedLink, getSavedLinks } from '@/src/lib/storage';
@@ -37,7 +38,12 @@ function shownCount(): string {
 
 /** The count as announced to assistive technology, which lags behind on purpose. */
 function announcedCount(): string {
-  return document.querySelector('[aria-live="polite"]')?.textContent ?? '';
+  return document.querySelector('.sr-only[aria-live="polite"]')?.textContent ?? '';
+}
+
+/** An English message with its placeholders filled in, as a card shows it. */
+function messageAbout(key: string, title: string): string {
+  return interpolate(en[key] ?? '', { title });
 }
 
 /** The edit form, to tell its fields apart from the filter bar's. */
@@ -255,11 +261,73 @@ describe('deleting', () => {
     expect(screen.getByRole('button', { name: 'Delete “A recipe”' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Delete “Jersey fabric”' })).toBeTruthy();
   });
+
+  /*
+   * In the buttons' labels alone, the question is readable to a screen reader
+   * and to nobody else — and three cards that look alike leave everyone else
+   * guessing which one is about to go.
+   */
+  it('names the link in the question itself', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete “Jersey fabric”' }));
+
+    expect(screen.getByText(messageAbout('deleteLink.question', 'Jersey fabric'))).toBeTruthy();
+  });
+
+  /*
+   * The deleted card cannot report its own disappearance, and the count that
+   * follows says how many are left rather than what just happened.
+   */
+  it('says which link was deleted', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete “Jersey fabric”' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, delete “Jersey fabric”' }));
+
+    expect(
+      await screen.findByText(messageAbout('linkFeedback.removed', 'Jersey fabric')),
+    ).toBeTruthy();
+  });
+
+  /*
+   * Deleting a card takes the focus with it unless it is handed on. Left
+   * behind, it falls to the document and the next Tab starts again at the top
+   * of a page that may be very long.
+   */
+  it('hands focus to the link left behind', async () => {
+    await save({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await save({ url: 'https://shop.example/second', title: 'A recipe' });
+    await renderDashboard();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete “Jersey fabric”' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, delete “Jersey fabric”' }));
+
+    await waitFor(() =>
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Edit “A recipe”' })),
+    );
+  });
+
+  // With nothing left to hand it to, the heading above the list takes it.
+  it('hands focus to the heading when the last link goes', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete “Jersey fabric”' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, delete “Jersey fabric”' }));
+
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole('heading', { name: en['dashboard.savedLinks.heading'] ?? '' }),
+      ),
+    );
+  });
 });
 
 describe('accessibility', () => {
-  // Once the card is gone there is no other sign that anything happened.
-  it('announces the count so a deletion does not pass silently', async () => {
+  it('announces how many links are listed', async () => {
     await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
 
     await renderDashboard();
@@ -427,6 +495,80 @@ describe('editing a link', () => {
     await startEditing('Jersey fabric');
 
     expect(screen.getAllByRole('form')).toHaveLength(1);
+  });
+
+  /*
+   * One form at a time, and the list is what enforces it. While each card kept
+   * its own state, a long list could end up with a screenful of open forms and
+   * nothing saying where one ended and the next began.
+   */
+  it('closes the open form when another card is opened', async () => {
+    await save({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await save({ url: 'https://shop.example/second', title: 'Cotton fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    await startEditing('Cotton fabric');
+
+    expect(screen.getAllByRole('form')).toHaveLength(1);
+    expect(screen.getByRole('form', { name: 'Edit “Cotton fabric”' })).toBeTruthy();
+  });
+
+  /*
+   * The buttons used to be taken away while the form was open, which left the
+   * way out at the foot of the form and made deleting a link one had just
+   * looked at a two-step job.
+   */
+  it('keeps both buttons in reach while the form is open', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+
+    const card = cardOf('Jersey fabric');
+    expect(within(card).getByRole('button', { name: 'Edit “Jersey fabric”' })).toBeTruthy();
+    expect(within(card).getByRole('button', { name: 'Delete “Jersey fabric”' })).toBeTruthy();
+  });
+
+  // The pencil and the waste bin are both disclosures now; this is what tells
+  // a screen reader which of them has something open.
+  it('says on the button whether the form is open', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    const button = () =>
+      within(cardOf('Jersey fabric')).getByRole('button', { name: 'Edit “Jersey fabric”' });
+
+    expect(button().getAttribute('aria-expanded')).toBe('false');
+
+    await startEditing('Jersey fabric');
+
+    expect(button().getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('closes the form when the same button is pressed again', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    const button = within(cardOf('Jersey fabric')).getByRole('button', {
+      name: 'Edit “Jersey fabric”',
+    });
+    fireEvent.click(button);
+
+    expect(screen.queryByRole('form')).toBeNull();
+    expect(document.activeElement).toBe(button);
+  });
+
+  // The same key that dismisses the delete question beside it.
+  it('closes the form on Escape', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    fireEvent.keyDown(editForm(), { key: 'Escape' });
+
+    await waitFor(() => expect(screen.queryByRole('form')).toBeNull());
   });
 });
 
