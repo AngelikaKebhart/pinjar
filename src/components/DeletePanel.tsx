@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/no-noninteractive-tabindex */
 import { useEffect, useId, useRef } from 'react';
+import { Button } from '@/src/components/Button';
 import { useTranslation } from '@/src/i18n/context';
 
 export function DeletePanel({
@@ -34,23 +35,24 @@ export function DeletePanel({
       </p>
 
       <div className="flex flex-wrap gap-2">
-        <button
+        <Button
           type="button"
+          variant="danger"
+          active
           onClick={() => void onConfirm()}
           aria-label={t('deleteLink.confirmLabel', { title })}
-          className="rounded-control bg-danger px-4 py-2 text-sm font-bold text-on-danger hover:bg-danger-strong active:bg-danger-strong cursor-pointer"
         >
           {t('deleteLink.confirm')}
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="button"
+          variant="outline"
           onClick={onCancel}
           aria-label={t('deleteLink.cancelLabel', { title })}
-          className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold text-ink hover:border-line hover:bg-surface-hover active:bg-surface cursor-pointer"
         >
           {t('deleteLink.cancel')}
-        </button>
+        </Button>
       </div>
     </div>
   );

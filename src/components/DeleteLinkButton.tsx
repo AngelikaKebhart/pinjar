@@ -1,4 +1,5 @@
 import { useId, useRef } from 'react';
+import { Button } from '@/src/components/Button';
 import { DeleteIcon } from '@/src/components/icons';
 import { PopoverButton } from '@/src/components/PopoverButton';
 import { useTranslation } from '@/src/i18n/context';
@@ -75,23 +76,23 @@ export function DeleteLinkButton({
           </p>
 
           <div className="flex flex-wrap gap-2">
-            <button
+            <Button
               type="button"
+              variant="danger"
               onClick={() => void onDelete()}
               aria-label={t('deleteLink.confirmLabel', { title })}
-              className="rounded-control bg-danger px-4 py-2 text-sm font-bold text-on-danger hover:bg-danger-strong cursor-pointer"
             >
               {t('deleteLink.confirm')}
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={close}
               aria-label={t('deleteLink.cancelLabel', { title })}
-              className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold text-ink hover:bg-surface-hover cursor-pointer"
             >
               {t('deleteLink.cancel')}
-            </button>
+            </Button>
           </div>
         </div>
       )}
