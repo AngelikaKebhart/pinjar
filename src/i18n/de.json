@@ -9,8 +9,6 @@
   "popup.status.alreadySaved": "Diese Seite steht schon auf deiner Liste.",
   "popup.status.unsupportedPage": "Diese Seite lässt sich nicht merken. Es funktionieren nur normale Webseiten über http oder https.",
   "popup.status.failed": "Das Merken hat nicht geklappt. Bitte versuche es noch einmal.",
-  "popup.status.removed": "Entfernt.",
-  "popup.status.detailsSaved": "Details gespeichert.",
 
   "popup.savedLinks.heading": "Gemerkt auf {domain}",
   "popup.savedLinks.empty": "Auf dieser Seite hast du noch nichts gemerkt.",
@@ -50,13 +48,17 @@
   "editLink.statusNew": "Neuen Status anlegen…",
   "editLink.save": "Speichern",
   "editLink.cancel": "Abbrechen",
+  "editLink.delete": "Löschen",
 
   "deleteLink.actionLabel": "„{title}“ löschen",
-  "deleteLink.question": "Löschen?",
+  "deleteLink.question": "„{title}“ löschen?",
   "deleteLink.confirm": "Ja, löschen",
   "deleteLink.confirmLabel": "„{title}“ wirklich löschen",
   "deleteLink.cancel": "Abbrechen",
   "deleteLink.cancelLabel": "„{title}“ behalten",
+
+  "linkFeedback.detailsSaved": "Details gespeichert.",
+  "linkFeedback.removed": "„{title}“ wurde gelöscht.",
 
   "filters.heading": "Suche und Filter",
   "filters.search": "Suchen",

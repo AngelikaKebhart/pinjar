@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
+import { interpolate } from '@/src/i18n/format';
 import { TranslationProvider } from '@/src/i18n/TranslationProvider';
 import { CATALOGS } from '@/src/i18n/messages';
 import { addSavedLink, getSavedLinks } from '@/src/lib/storage';
@@ -49,6 +50,16 @@ function detailsSaveButton(): HTMLElement {
 
 function detailsCancelButton(): HTMLElement {
   return screen.getByRole('button', { name: en['editLink.cancel'] ?? '' });
+}
+
+/** The button that opens the delete question on one link in the list. */
+function deleteButton(title: string): HTMLElement {
+  return screen.getByRole('button', { name: `Delete “${title}”` });
+}
+
+/** An English message with its placeholders filled in, as the popup shows it. */
+function messageAbout(key: string, title: string): string {
+  return interpolate(en[key] ?? '', { title });
 }
 
 beforeEach(() => {
@@ -138,7 +149,7 @@ describe('editing a link from the list', () => {
     fireEvent.change(screen.getByLabelText('New tags'), { target: { value: 'jersey, blue' } });
     fireEvent.click(detailsSaveButton());
 
-    expect(await screen.findByText(en['popup.status.detailsSaved'] ?? '')).toBeTruthy();
+    expect(await screen.findByText(en['linkFeedback.detailsSaved'] ?? '')).toBeTruthy();
     await expect(getSavedLinks()).resolves.toMatchObject([
       { note: 'Size M', tags: ['jersey', 'blue'] },
     ]);
@@ -154,6 +165,62 @@ describe('editing a link from the list', () => {
 
     expect(await screen.findByText(en['popup.status.saved'] ?? '')).toBeTruthy();
     expect(screen.queryByRole('form')).toBeNull();
+  });
+
+  /*
+   * The way out has to stay where the way in was. While the form replaced the
+   * whole row, closing it again meant finding Cancel at the foot of a form
+   * several screens long, and deleting a link one had just looked at meant
+   * closing the form first.
+   */
+  it('keeps both buttons in reach while the form is open', async () => {
+    await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await givenTabOn('https://shop.example/second');
+    await renderPopup();
+
+    fireEvent.click(editButton('Jersey fabric'));
+
+    expect(editButton('Jersey fabric')).toBeTruthy();
+    expect(deleteButton('Jersey fabric')).toBeTruthy();
+  });
+
+  // Two buttons that look alike and now behave alike. This is the only thing
+  // that tells a screen reader which of them has something open.
+  it('says on the button whether the form is open', async () => {
+    await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await givenTabOn('https://shop.example/second');
+    await renderPopup();
+
+    expect(editButton('Jersey fabric').getAttribute('aria-expanded')).toBe('false');
+
+    fireEvent.click(editButton('Jersey fabric'));
+
+    expect(editButton('Jersey fabric').getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('closes the form when the same button is pressed again', async () => {
+    await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await givenTabOn('https://shop.example/second');
+    await renderPopup();
+
+    fireEvent.click(editButton('Jersey fabric'));
+    fireEvent.click(editButton('Jersey fabric'));
+
+    expect(screen.queryByRole('form')).toBeNull();
+    await waitFor(() => expect(document.activeElement).toBe(editButton('Jersey fabric')));
+  });
+
+  // The same key that dismisses the delete question beside it.
+  it('closes the form on Escape', async () => {
+    await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await givenTabOn('https://shop.example/second');
+    await renderPopup();
+
+    fireEvent.click(editButton('Jersey fabric'));
+    fireEvent.keyDown(detailsForm('Jersey fabric'), { key: 'Escape' });
+
+    await waitFor(() => expect(screen.queryByRole('form')).toBeNull());
+    expect(document.activeElement).toBe(editButton('Jersey fabric'));
   });
 
   // Otherwise focus falls to the document, and a keyboard user starts over at
@@ -228,11 +295,13 @@ describe('the links of this site', () => {
     await givenTabOn('https://shop.example/second');
     await renderPopup();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete “Jersey fabric”' }));
+    fireEvent.click(deleteButton('Jersey fabric'));
     // Deleting asks once before it happens.
     fireEvent.click(screen.getByRole('button', { name: 'Yes, delete “Jersey fabric”' }));
 
-    expect(await screen.findByText(en['popup.status.removed'] ?? '')).toBeTruthy();
+    expect(
+      await screen.findByText(messageAbout('linkFeedback.removed', 'Jersey fabric')),
+    ).toBeTruthy();
     expect(screen.queryByRole('link', { name: 'Jersey fabric' })).toBeNull();
   });
 });
@@ -273,24 +342,45 @@ describe('accessibility', () => {
   });
 
   /*
-   * The question replaces the button that asked it and the button comes back
-   * in its place, so focus has to travel both ways. Left behind, it falls to
-   * the document and the next Tab starts over at the top of the popup.
+   * The question opens under the button that asked it, so focus has to travel
+   * there and come back. It lands on the question itself rather than on "Yes,
+   * delete": a held or repeated Enter — the very key that opened the panel —
+   * would otherwise answer it, and a confirmation nobody had to give is none.
    */
   it('carries focus into the delete question and back out of it', async () => {
     await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
     await givenTabOn('https://shop.example/second');
     await renderPopup();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete “Jersey fabric”' }));
+    fireEvent.click(deleteButton('Jersey fabric'));
     expect(document.activeElement).toBe(
-      screen.getByRole('button', { name: 'Yes, delete “Jersey fabric”' }),
+      screen.getByRole('group', {
+        name: messageAbout('deleteLink.question', 'Jersey fabric'),
+      }),
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Keep “Jersey fabric”' }));
 
-    expect(document.activeElement).toBe(
-      screen.getByRole('button', { name: 'Delete “Jersey fabric”' }),
+    expect(document.activeElement).toBe(deleteButton('Jersey fabric'));
+  });
+
+  /*
+   * Deleting the last link takes the button that focus would have gone to with
+   * it. With nowhere to send it, focus falls to the document and the next Tab
+   * starts over at the top of the popup.
+   */
+  it('moves focus to the heading when the last link is deleted', async () => {
+    await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await givenTabOn('https://shop.example/second');
+    await renderPopup();
+
+    fireEvent.click(deleteButton('Jersey fabric'));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, delete “Jersey fabric”' }));
+
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole('heading', { name: 'Saved on shop.example' }),
+      ),
     );
   });
 

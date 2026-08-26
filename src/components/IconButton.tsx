@@ -16,6 +16,14 @@ import type { ReactNode, Ref } from 'react';
  * targets (2.5.8): the icon inside is smaller than the area that answers to
  * a click.
  *
+ * A button that has something open right now is drawn filled, in the same tone
+ * the tags are set in. That is the sighted counterpart to `aria-expanded`, and
+ * it is deliberately not the only one: whatever the button opened is sitting
+ * right underneath it, so the state is never carried by the fill alone (1.4.1).
+ * Not `surface-tint`, which in the light palette is the hover tone to the
+ * letter — an open button would then be indistinguishable from one the pointer
+ * happens to be resting on.
+ *
  * Every one of them is drawn in `glyph` — Crimson Violet, the deepest of the
  * three reds — including the one that deletes. That is the design's tone for a
  * drawn shape, and it is one tone for all of them on purpose: a red delete
@@ -56,7 +64,9 @@ export function IconButton({
       aria-expanded={expanded}
       aria-controls={controls}
       aria-haspopup={hasPopup}
-      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-line-strong text-glyph hover:bg-surface-hover"
+      className={`inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-control border border-line-strong text-glyph hover:bg-surface-hover ${
+        expanded === true ? 'bg-pill' : ''
+      }`}
     >
       {children}
     </button>

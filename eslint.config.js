@@ -5,6 +5,7 @@ import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import prettierConfig from 'eslint-config-prettier';
+import requireCursorPointer from './.eslint-rules/require-cursor-pointer.js';
 
 export default tseslint.config(
   {
@@ -34,6 +35,11 @@ export default tseslint.config(
       react,
       'react-hooks': reactHooks,
       'jsx-a11y': jsxA11y,
+      'cursor-pointer': {
+        rules: {
+          'require-cursor-pointer': requireCursorPointer,
+        },
+      },
     },
     rules: {
       ...react.configs.flat.recommended.rules,
@@ -45,6 +51,8 @@ export default tseslint.config(
       // Accessibility is a hard project requirement, not a suggestion
       // (see .claude/skills/accessibility-wcag).
       'jsx-a11y/no-autofocus': 'error',
+      // Ensure consistent UX feedback via cursor styles on interactive elements
+      'cursor-pointer/require-cursor-pointer': 'error',
 
       // Data extracted from visited pages is untrusted; rendering raw HTML is
       // forbidden (see .claude/skills/privacy-and-security).

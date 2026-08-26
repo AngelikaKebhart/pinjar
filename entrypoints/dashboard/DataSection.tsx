@@ -154,10 +154,10 @@ export function DataSection() {
  * the whole palette is red — so weight does (WCAG 2.2 AA, 1.4.1).
  */
 const PRIMARY_BUTTON =
-  'w-fit rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent enabled:hover:bg-accent-strong disabled:bg-disabled disabled:text-on-disabled';
+  'w-fit rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent enabled:hover:bg-accent-strong disabled:bg-disabled disabled:text-on-disabled cursor-pointer';
 
 const OUTLINE_BUTTON =
-  'w-fit rounded-control border border-line-strong px-4 py-2 text-sm font-bold text-link enabled:hover:bg-surface-hover disabled:border-line disabled:text-ink-muted';
+  'w-fit rounded-control border border-line-strong px-4 py-2 text-sm font-bold text-link enabled:hover:bg-surface-hover disabled:border-line disabled:text-ink-muted cursor-pointer';
 
 /** Separates the three actions without giving any of them a box of its own. */
 function Divider() {
@@ -330,7 +330,7 @@ function DeleteEverything({
               onDeleted();
             });
           }}
-          className="rounded-control bg-danger px-4 py-2 text-sm font-bold text-on-danger hover:bg-danger-strong"
+          className="rounded-control bg-danger px-4 py-2 text-sm font-bold text-on-danger hover:bg-danger-strong cursor-pointer"
         >
           {t('data.deleteAll.confirm')}
         </button>
@@ -338,7 +338,7 @@ function DeleteEverything({
         <button
           type="button"
           onClick={() => setIsAsking(false)}
-          className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold hover:bg-surface-hover"
+          className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold hover:bg-surface-hover cursor-pointer"
         >
           {t('data.deleteAll.cancel')}
         </button>

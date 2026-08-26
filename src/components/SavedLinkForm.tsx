@@ -27,10 +27,14 @@ import { getCategories, getCustomStatuses, getTags } from '@/src/lib/storage';
  * the browser's own localization, and would almost certainly earn less.
  */
 export function SavedLinkForm({
+  id,
   link,
   onSave,
   onCancel,
+  onDelete,
 }: {
+  /** Names the form, so the button that opened it can point at it. */
+  id: string;
   link: {
     title: string;
     category: string | null;
@@ -40,6 +44,7 @@ export function SavedLinkForm({
   };
   onSave: (edits: SavedLinkEdits) => void | Promise<void>;
   onCancel: () => void;
+  onDelete?: () => void;
 }) {
   const { t, compareNames } = useTranslation();
   const fieldId = useId();
@@ -78,8 +83,9 @@ export function SavedLinkForm({
     return options.sort((one, other) => compareNames(one.label, other.label));
   }, [knownStatuses, compareNames, t]);
 
-  // Opening the form moves focus into it; otherwise the keyboard user is left
-  // behind on a button that no longer exists.
+  // Opening the form moves focus into it. The button that opened it stays
+  // where it was, so this is a step forward into what just appeared rather
+  // than a rescue from a control that vanished underneath the user.
   useEffect(() => {
     titleRef.current?.focus();
   }, []);
@@ -115,6 +121,27 @@ export function SavedLinkForm({
     setNewTags('');
   };
 
+  /*
+   * Escape closes the form — the same key that dismisses the delete question
+   * beside it, so there is one way out to learn rather than two.
+   *
+   * Only when nothing nearer has already claimed it: the fields for a new
+   * category, status or tag use Escape to abandon what is being typed into
+   * them, and they mark the event handled. Without that check a single press
+   * would drop the entry and the whole form with it.
+   *
+   * A press outside the form deliberately does not close it. There is typed
+   * text in here, and a stray click on the page behind must not be able to
+   * throw it away — that is the one place where this form and the delete
+   * question are allowed to behave differently.
+   */
+  const handleKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
+    if (event.key === 'Escape' && !event.defaultPrevented) {
+      event.preventDefault();
+      onCancel();
+    }
+  };
+
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
 
@@ -130,8 +157,11 @@ export function SavedLinkForm({
   };
 
   return (
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- the rule guards against a plain element made clickable; this one only listens for Escape, and everything inside it is a real control
     <form
+      id={id}
       onSubmit={handleSubmit}
+      onKeyDown={handleKeyDown}
       aria-label={t('editLink.formLabel', { title: link.title })}
       className="flex flex-col gap-3"
     >
@@ -248,7 +278,7 @@ export function SavedLinkForm({
       <div className="flex flex-wrap gap-2">
         <button
           type="submit"
-          className="rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent hover:bg-accent-strong"
+          className="rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent hover:bg-accent-strong cursor-pointer"
         >
           {t('editLink.save')}
         </button>
@@ -256,10 +286,20 @@ export function SavedLinkForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold hover:bg-surface-hover"
+          className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold hover:bg-surface-hover cursor-pointer"
         >
           {t('editLink.cancel')}
         </button>
+
+        {onDelete && (
+          <button
+            type="button"
+            onClick={onDelete}
+            className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold text-danger hover:bg-surface-hover cursor-pointer"
+          >
+            {t('editLink.delete')}
+          </button>
+        )}
       </div>
     </form>
   );
