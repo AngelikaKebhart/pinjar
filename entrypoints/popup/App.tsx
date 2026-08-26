@@ -103,7 +103,7 @@ function App() {
           type="button"
           onClick={() => void handleSave()}
           disabled={!canSave || isSaving}
-          className="rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent hover:bg-accent-strong disabled:bg-disabled disabled:text-on-disabled"
+          className="rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent hover:bg-accent-strong disabled:bg-disabled disabled:text-on-disabled cursor-pointer"
         >
           {isSaving ? t('popup.saving') : t('popup.savePage')}
         </button>
@@ -161,7 +161,7 @@ function App() {
         onClick={() => {
           void browser.tabs.create({ url: browser.runtime.getURL('/dashboard.html') });
         }}
-        className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold hover:bg-surface-hover"
+        className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold hover:bg-surface-hover cursor-pointer"
       >
         {t('popup.openDashboard')}
       </button>

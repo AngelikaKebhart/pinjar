@@ -35,7 +35,7 @@ export function DeletePanel({
           type="button"
           onClick={() => void onConfirm()}
           aria-label={t('deleteLink.confirmLabel', { title })}
-          className="cursor-pointer rounded-control bg-danger px-4 py-2 text-sm font-bold text-on-danger hover:bg-danger-strong active:bg-danger-strong"
+          className="rounded-control bg-danger px-4 py-2 text-sm font-bold text-on-danger hover:bg-danger-strong active:bg-danger-strong cursor-pointer"
         >
           {t('deleteLink.confirm')}
         </button>
@@ -44,7 +44,7 @@ export function DeletePanel({
           type="button"
           onClick={onCancel}
           aria-label={t('deleteLink.cancelLabel', { title })}
-          className="cursor-pointer rounded-control border border-line-strong px-4 py-2 text-sm font-bold text-ink hover:border-line hover:bg-surface-hover active:bg-surface"
+          className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold text-ink hover:border-line hover:bg-surface-hover active:bg-surface cursor-pointer"
         >
           {t('deleteLink.cancel')}
         </button>

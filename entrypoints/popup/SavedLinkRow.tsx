@@ -77,7 +77,7 @@ export function SavedLinkRow({
           href={link.url}
           target="_blank"
           rel="noreferrer"
-          className="min-w-40 flex-1 break-words rounded-sm py-1 text-sm text-link underline hover:text-link-strong"
+          className="min-w-40 flex-1 break-words rounded-sm py-1 text-sm text-link underline hover:text-link-strong cursor-pointer"
         >
           {link.title}
         </a>

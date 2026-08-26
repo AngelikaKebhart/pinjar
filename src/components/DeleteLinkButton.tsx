@@ -79,7 +79,7 @@ export function DeleteLinkButton({
               type="button"
               onClick={() => void onDelete()}
               aria-label={t('deleteLink.confirmLabel', { title })}
-              className="rounded-control bg-danger px-4 py-2 text-sm font-bold text-on-danger hover:bg-danger-strong"
+              className="rounded-control bg-danger px-4 py-2 text-sm font-bold text-on-danger hover:bg-danger-strong cursor-pointer"
             >
               {t('deleteLink.confirm')}
             </button>
@@ -88,7 +88,7 @@ export function DeleteLinkButton({
               type="button"
               onClick={close}
               aria-label={t('deleteLink.cancelLabel', { title })}
-              className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold text-ink hover:bg-surface-hover"
+              className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold text-ink hover:bg-surface-hover cursor-pointer"
             >
               {t('deleteLink.cancel')}
             </button>

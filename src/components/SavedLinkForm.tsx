@@ -278,7 +278,7 @@ export function SavedLinkForm({
       <div className="flex flex-wrap gap-2">
         <button
           type="submit"
-          className="rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent hover:bg-accent-strong"
+          className="rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent hover:bg-accent-strong cursor-pointer"
         >
           {t('editLink.save')}
         </button>
@@ -286,7 +286,7 @@ export function SavedLinkForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold hover:bg-surface-hover"
+          className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold hover:bg-surface-hover cursor-pointer"
         >
           {t('editLink.cancel')}
         </button>
@@ -295,7 +295,7 @@ export function SavedLinkForm({
           <button
             type="button"
             onClick={onDelete}
-            className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold text-danger hover:bg-surface-hover"
+            className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold text-danger hover:bg-surface-hover cursor-pointer"
           >
             {t('editLink.delete')}
           </button>

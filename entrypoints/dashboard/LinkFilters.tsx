@@ -190,7 +190,7 @@ export function LinkFilters({
           <button
             type="button"
             onClick={() => onChange(NO_FILTER)}
-            className="rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent hover:bg-accent-strong"
+            className="rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent hover:bg-accent-strong cursor-pointer"
           >
             {t('filters.reset')}
           </button>

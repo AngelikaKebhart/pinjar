@@ -87,7 +87,7 @@ export function SavedLinkCard({
               href={link.url}
               target="_blank"
               rel="noreferrer"
-              className="break-words text-link underline hover:text-link-strong"
+              className="break-words text-link underline hover:text-link-strong cursor-pointer"
             >
               {link.title}
             </a>
