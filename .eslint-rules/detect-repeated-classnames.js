@@ -19,14 +19,11 @@ export default {
     type: 'suggestion',
     docs: {
       description: 'Warn about repeated className patterns that might benefit from consolidation',
-      category: 'Best Practices',
       recommended: false,
     },
     messages: {
       repeatedExact:
         'className appears {{ count }} times — consider extracting to a constant or component',
-      repeatedSimilar:
-        'similar className patterns appear {{ count }} times — consider consolidating',
     },
   },
   create(context) {

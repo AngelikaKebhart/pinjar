@@ -198,6 +198,26 @@
   }
 
   /*
+   * Buttons and links answer to the pointer.
+   *
+   * Browsers draw a <button> with the arrow cursor, which reads as "not
+   * clickable" beside every link on the page. Declared once here rather than
+   * as a utility class on each control: it was previously a `cursor-pointer`
+   * repeated on eight elements, kept honest by a custom ESLint rule that could
+   * only ever check the controls already carrying a className — a button
+   * written without one passed silently, which is the case most likely to have
+   * forgotten it.
+   *
+   * Layered, so a component that genuinely needs a different cursor can still
+   * say so with a utility class. A disabled button keeps the arrow: it does
+   * nothing, and must not invite the click.
+   */
+  button:not(:disabled),
+  a[href] {
+    cursor: pointer;
+  }
+
+  /*
    * Headings and the wordmark carry the serif; everything else is Nunito.
    * Set here rather than per component so a new heading cannot be born in the
    * wrong face — the one thing a type pairing cannot survive is being applied

@@ -62,6 +62,16 @@ function messageAbout(key: string, title: string): string {
   return interpolate(en[key] ?? '', { title });
 }
 
+/**
+ * The delete question, found by its own name.
+ *
+ * Not simply by role: the form carries a fieldset for the tags, which is a
+ * group too, so an unqualified query matches whichever happens to be there.
+ */
+function deleteQuestion(title: string): HTMLElement | null {
+  return screen.queryByRole('group', { name: messageAbout('deleteLink.question', title) });
+}
+
 beforeEach(() => {
   fakeBrowser.reset();
   vi.restoreAllMocks();
@@ -391,5 +401,68 @@ describe('accessibility', () => {
     await renderPopup();
 
     expect(screen.getByRole('button', { name: 'Diese Seite merken' })).toBeTruthy();
+  });
+});
+
+/*
+ * The popup and the dashboard share one hook for this, and these are the
+ * dashboard's rules asked of the popup. They were not, and the popup quietly
+ * answered differently: it kept its own state per row, so opening a second
+ * form left the first one standing.
+ */
+describe('one panel at a time', () => {
+  async function listWith(...titles: string[]): Promise<void> {
+    for (const [index, title] of titles.entries()) {
+      await addSavedLink({ url: `https://shop.example/${index}`, title });
+    }
+    await givenTabOn('https://shop.example/current');
+    await renderPopup();
+  }
+
+  it('closes the open form when another link is opened', async () => {
+    await listWith('Jersey fabric', 'Cotton fabric');
+
+    fireEvent.click(editButton('Jersey fabric'));
+    fireEvent.click(editButton('Cotton fabric'));
+
+    expect(screen.getAllByRole('form')).toHaveLength(1);
+    expect(screen.getByRole('form', { name: 'Edit “Cotton fabric”' })).toBeTruthy();
+  });
+
+  it('leaves another link’s form alone when a question is dismissed', async () => {
+    await listWith('Jersey fabric', 'Cotton fabric');
+
+    fireEvent.click(editButton('Jersey fabric'));
+    fireEvent.click(deleteButton('Cotton fabric'));
+    fireEvent.click(screen.getByRole('button', { name: 'Keep “Cotton fabric”' }));
+
+    expect(screen.getByRole('form', { name: 'Edit “Jersey fabric”' })).toBeTruthy();
+  });
+
+  it('shows the form and the question one at a time on a link', async () => {
+    await listWith('Jersey fabric');
+
+    fireEvent.click(editButton('Jersey fabric'));
+    fireEvent.click(deleteButton('Jersey fabric'));
+
+    expect(screen.queryByRole('form')).toBeNull();
+    expect(editButton('Jersey fabric').getAttribute('aria-expanded')).toBe('false');
+    expect(deleteButton('Jersey fabric').getAttribute('aria-expanded')).toBe('true');
+
+    fireEvent.click(editButton('Jersey fabric'));
+
+    expect(deleteQuestion('Jersey fabric')).toBeNull();
+    expect(screen.getByRole('form')).toBeTruthy();
+    expect(deleteButton('Jersey fabric').getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('dismisses the question with Escape', async () => {
+    await listWith('Jersey fabric');
+
+    fireEvent.click(deleteButton('Jersey fabric'));
+    fireEvent.keyDown(deleteQuestion('Jersey fabric') as HTMLElement, { key: 'Escape' });
+
+    expect(deleteQuestion('Jersey fabric')).toBeNull();
+    expect(document.activeElement).toBe(deleteButton('Jersey fabric'));
   });
 });

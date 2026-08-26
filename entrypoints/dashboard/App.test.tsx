@@ -60,12 +60,28 @@ async function save(draft: Parameters<typeof addSavedLink>[0]) {
   return link;
 }
 
+/** Opens one card's form the way a user does, and waits for it to be there. */
+async function startEditing(title: string): Promise<void> {
+  fireEvent.click(within(cardOf(title)).getByRole('button', { name: `Edit “${title}”` }));
+  await screen.findByLabelText(en['dashboard.link.title'] ?? '');
+}
+
 function cardOf(title: string): HTMLElement {
   const card = screen.getByRole('link', { name: title }).closest('article');
   if (card === null) {
     throw new Error(`No card found for ${title}`);
   }
   return card;
+}
+
+/**
+ * The delete question, found by its own name.
+ *
+ * Not simply by role: the form carries a fieldset for the tags, which is a
+ * group too, so an unqualified query matches whichever happens to be there.
+ */
+function deleteQuestion(title: string): HTMLElement | null {
+  return screen.queryByRole('group', { name: messageAbout('deleteLink.question', title) });
 }
 
 beforeEach(() => {
@@ -415,11 +431,6 @@ describe('accessibility', () => {
 
 describe('editing a link', () => {
   /** Opens the form on the card of the given link. */
-  async function startEditing(title: string): Promise<void> {
-    fireEvent.click(within(cardOf(title)).getByRole('button', { name: `Edit “${title}”` }));
-    await screen.findByLabelText(en['dashboard.link.title'] ?? '');
-  }
-
   /**
    * Adds a category the way a first one is made: pick "add a new one", type
    * into the field that takes the dropdown's place, confirm with Enter.
@@ -581,11 +592,6 @@ describe('reusing what was entered before', () => {
     fireEvent.change(field(), { target: { value: 'new' } });
     fireEvent.change(field(), { target: { value: name } });
     fireEvent.keyDown(field(), { key: 'Enter' });
-  }
-
-  async function startEditing(title: string): Promise<void> {
-    fireEvent.click(within(cardOf(title)).getByRole('button', { name: `Edit “${title}”` }));
-    await screen.findByLabelText(en['dashboard.link.title'] ?? '');
   }
 
   it('offers a category on the next link once it exists', async () => {
@@ -813,11 +819,6 @@ describe('the filters and an open edit form', () => {
     return section;
   }
 
-  async function startEditing(title: string): Promise<void> {
-    fireEvent.click(within(cardOf(title)).getByRole('button', { name: `Edit “${title}”` }));
-    await screen.findByLabelText(en['dashboard.link.title'] ?? '');
-  }
-
   function enterInForm(label: string, value: string): void {
     fireEvent.change(within(editForm()).getByLabelText(label), { target: { value } });
   }
@@ -975,5 +976,119 @@ describe('the filters narrowing each other', () => {
     await within(filters()).findByRole('option', { name: 'Asked about it' });
 
     expect(offeredStatuses()).toEqual(['Asked about it', 'Saved', 'Zebra print ordered']);
+  });
+});
+
+/*
+ * The form and the delete question are two separate disclosures, and every
+ * test here exists because they were once a single "which panel is open"
+ * value that could only ever show one of them. That made closing either one
+ * reach further than it should.
+ */
+describe('the form and the delete question side by side', () => {
+  // Dismissing a question on one card used to clear the whole list's editing
+  // state, which took an unrelated card's open form with it.
+  it('leaves another card’s form alone when a question is dismissed', async () => {
+    await save({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await save({ url: 'https://shop.example/second', title: 'Cotton fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    fireEvent.click(screen.getByRole('button', { name: 'Delete “Cotton fabric”' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Keep “Cotton fabric”' }));
+
+    expect(screen.getByRole('form', { name: 'Edit “Jersey fabric”' })).toBeTruthy();
+  });
+
+  /*
+   * One panel per link at a time. The pencil and the basket are each drawn
+   * filled while their own panel is up, so two filled buttons over a single
+   * card would be saying that both are showing when only one can be.
+   */
+  it('closes the form when the question is opened on the same link', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    const card = cardOf('Jersey fabric');
+    fireEvent.click(within(card).getByRole('button', { name: 'Delete “Jersey fabric”' }));
+
+    expect(screen.queryByRole('form')).toBeNull();
+    expect(deleteQuestion('Jersey fabric')).toBeTruthy();
+    expect(
+      within(card)
+        .getByRole('button', { name: 'Edit “Jersey fabric”' })
+        .getAttribute('aria-expanded'),
+    ).toBe('false');
+  });
+
+  it('closes the question when the form is opened on the same link', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    const card = cardOf('Jersey fabric');
+    fireEvent.click(within(card).getByRole('button', { name: 'Delete “Jersey fabric”' }));
+    await startEditing('Jersey fabric');
+
+    expect(deleteQuestion('Jersey fabric')).toBeNull();
+    expect(screen.getByRole('form')).toBeTruthy();
+    expect(
+      within(card)
+        .getByRole('button', { name: 'Delete “Jersey fabric”' })
+        .getAttribute('aria-expanded'),
+    ).toBe('false');
+  });
+
+  // The same key that closes the form, so there is one way out to learn.
+  it('dismisses the question with Escape and hands focus back', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    const button = within(cardOf('Jersey fabric')).getByRole('button', {
+      name: 'Delete “Jersey fabric”',
+    });
+    fireEvent.click(button);
+
+    fireEvent.keyDown(deleteQuestion('Jersey fabric') as HTMLElement, { key: 'Escape' });
+
+    expect(deleteQuestion('Jersey fabric')).toBeNull();
+    expect(document.activeElement).toBe(button);
+  });
+
+  /*
+   * Both buttons report the same way, because both are the same component.
+   * The delete button used to say `aria-pressed` — "this control is switched
+   * on" — for something that is a disclosure like the pencil beside it.
+   */
+  it('says on the delete button whether the question is open', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    const button = () =>
+      within(cardOf('Jersey fabric')).getByRole('button', { name: 'Delete “Jersey fabric”' });
+
+    expect(button().getAttribute('aria-expanded')).toBe('false');
+    expect(button().getAttribute('aria-controls')).toBeTruthy();
+
+    fireEvent.click(button());
+
+    expect(button().getAttribute('aria-expanded')).toBe('true');
+    expect(document.getElementById(button().getAttribute('aria-controls') ?? '')).toBe(
+      deleteQuestion('Jersey fabric'),
+    );
+  });
+
+  /*
+   * Focus is moved into the question when it opens, which needs the group to
+   * be focusable — but only programmatically. At tabIndex 0 it became a stop
+   * on the way through the page that answered to Tab and then did nothing.
+   */
+  it('keeps the question out of the tab order', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete “Jersey fabric”' }));
+
+    expect(deleteQuestion('Jersey fabric')?.getAttribute('tabindex')).toBe('-1');
   });
 });

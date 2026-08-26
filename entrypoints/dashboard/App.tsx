@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ActionFeedback, type FeedbackMessage } from '@/src/components/ActionFeedback';
-import { useLinkEditing } from '@/src/components/useLinkEditing';
+import { useLinkPanels } from '@/src/components/useLinkPanels';
 import { useTranslation } from '@/src/i18n/context';
 import { filterSavedLinks, isFiltering, NO_FILTER } from '@/src/lib/filter';
 import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
@@ -29,7 +29,7 @@ function App() {
   // Where the focus lands when the last card is deleted: there is no
   // neighbouring button left to take it.
   const savedLinksHeadingRef = useRef<HTMLHeadingElement>(null);
-  const editing = useLinkEditing(savedLinksHeadingRef);
+  const panels = useLinkPanels(savedLinksHeadingRef);
 
   const shown = useMemo(
     () => (links === null ? [] : filterSavedLinks(links, criteria)),
@@ -50,7 +50,7 @@ function App() {
 
     // `shown` is still the list as it was drawn, which is what says who stood
     // next to the card that just went.
-    editing.moveFocusAfterRemoving(shown, link.id);
+    panels.moveFocusAfterRemoving(shown, link.id);
   };
 
   const handleEdit = async (link: SavedLink, edits: SavedLinkEdits) => {
@@ -165,11 +165,7 @@ function App() {
                 <li key={link.id}>
                   <SavedLinkCard
                     link={link}
-                    isEditing={editing.editingId === link.id}
-                    onEditingChange={(isEditing) => editing.setEditing(link.id, isEditing)}
-                    editButtonRef={(button) => {
-                      editing.rememberEditButton(link.id, button);
-                    }}
+                    panels={panels}
                     onDelete={() => handleDelete(link)}
                     onEdit={(edits) => handleEdit(link, edits)}
                   />

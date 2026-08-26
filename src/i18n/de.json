@@ -48,7 +48,6 @@
   "editLink.statusNew": "Neuen Status anlegen…",
   "editLink.save": "Speichern",
   "editLink.cancel": "Abbrechen",
-  "editLink.delete": "Löschen",
 
   "deleteLink.actionLabel": "„{title}“ löschen",
   "deleteLink.question": "„{title}“ löschen?",

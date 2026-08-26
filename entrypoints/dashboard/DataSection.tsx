@@ -243,15 +243,6 @@ function describeNotice(
  * list: categories, tags and status values outlive the links that used them,
  * and clearing those is part of the same right (§7.3).
  */
-/**
- * Export and import are filled, deleting everything is not.
- *
- * The two that hand data around are what this dialog is for, and they are
- * safe. The third is the one action in the extension that cannot be taken
- * back, so it is left as an outline: it has to be findable, it must not be
- * the thing the eye lands on first. Color cannot make that difference here —
- * the whole palette is red — so weight does (WCAG 2.2 AA, 1.4.1).
- */
 function DeleteEverything({
   hasAnythingToDelete,
   notice,
@@ -298,7 +289,7 @@ function DeleteEverything({
         <Button
           ref={triggerRef}
           type="button"
-          variant="outline"
+          variant="outline-strong"
           onClick={() => setIsAsking(true)}
           disabled={!hasAnythingToDelete}
           className="w-fit"

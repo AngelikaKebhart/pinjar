@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ActionFeedback, type FeedbackMessage } from '@/src/components/ActionFeedback';
 import { Button } from '@/src/components/Button';
-import { useLinkEditing } from '@/src/components/useLinkEditing';
+import { useLinkPanels } from '@/src/components/useLinkPanels';
 import { useTranslation } from '@/src/i18n/context';
 import { getCurrentPage, saveCurrentPage, type CurrentPage } from '@/src/lib/current-page';
 import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
@@ -30,7 +30,7 @@ function App() {
   // Where the focus lands when the last link on the list is deleted: there is
   // no neighbouring button left to take it.
   const savedLinksHeadingRef = useRef<HTMLHeadingElement>(null);
-  const editing = useLinkEditing(savedLinksHeadingRef);
+  const panels = useLinkPanels(savedLinksHeadingRef);
 
   const loadLinks = useCallback(async (domain: string | null) => {
     setLinks(domain === null ? [] : await getSavedLinksForDomain(domain));
@@ -76,7 +76,7 @@ function App() {
 
     // Before the list is reloaded, while it still says who stood next to the
     // link that just went.
-    editing.moveFocusAfterRemoving(links ?? [], link.id);
+    panels.moveFocusAfterRemoving(links ?? [], link.id);
 
     await loadLinks(page?.domain ?? null);
   };
@@ -142,11 +142,7 @@ function App() {
                 <li key={link.id}>
                   <SavedLinkRow
                     link={link}
-                    isEditing={editing.editingId === link.id}
-                    onEditingChange={(isEditing) => editing.setEditing(link.id, isEditing)}
-                    editButtonRef={(button) => {
-                      editing.rememberEditButton(link.id, button);
-                    }}
+                    panels={panels}
                     onDelete={() => handleRemove(link)}
                     onEdit={(edits) => handleEdit(link, edits)}
                   />

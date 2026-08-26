@@ -32,7 +32,6 @@ export function SavedLinkForm({
   link,
   onSave,
   onCancel,
-  onDelete,
 }: {
   /** Names the form, so the button that opened it can point at it. */
   id: string;
@@ -45,7 +44,6 @@ export function SavedLinkForm({
   };
   onSave: (edits: SavedLinkEdits) => void | Promise<void>;
   onCancel: () => void;
-  onDelete?: () => void;
 }) {
   const { t, compareNames } = useTranslation();
   const fieldId = useId();
@@ -215,7 +213,7 @@ export function SavedLinkForm({
             <ul className="flex max-h-48 flex-wrap gap-2 overflow-y-auto">
               {offeredTags.map((tag) => (
                 <li key={tag}>
-                  <label className="flex cursor-pointer items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-sm break-words hover:bg-surface-hover">
+                  <label className="flex items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-sm break-words hover:bg-surface-hover">
                     <input
                       type="checkbox"
                       checked={checkedTags.includes(tag)}
@@ -284,12 +282,6 @@ export function SavedLinkForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           {t('editLink.cancel')}
         </Button>
-
-        {onDelete && (
-          <Button type="button" variant="outline-danger" onClick={onDelete}>
-            {t('editLink.delete')}
-          </Button>
-        )}
       </div>
     </form>
   );

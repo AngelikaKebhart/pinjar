@@ -5,7 +5,6 @@ import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import prettierConfig from 'eslint-config-prettier';
-import requireCursorPointer from './.eslint-rules/require-cursor-pointer.js';
 import detectRepeatedClassnames from './.eslint-rules/detect-repeated-classnames.js';
 
 export default tseslint.config(
@@ -36,11 +35,6 @@ export default tseslint.config(
       react,
       'react-hooks': reactHooks,
       'jsx-a11y': jsxA11y,
-      'cursor-pointer': {
-        rules: {
-          'require-cursor-pointer': requireCursorPointer,
-        },
-      },
       'classname-patterns': {
         rules: {
           'detect-repeated': detectRepeatedClassnames,
@@ -57,9 +51,8 @@ export default tseslint.config(
       // Accessibility is a hard project requirement, not a suggestion
       // (see .claude/skills/accessibility-wcag).
       'jsx-a11y/no-autofocus': 'error',
-      // Ensure consistent UX feedback via cursor styles on interactive elements
-      'cursor-pointer/require-cursor-pointer': 'error',
-      // Warn about repeated className patterns — suggests consolidation candidates
+      // A className repeated across three or more files is a consolidation
+      // candidate; a warning, because sometimes the repetition is the point.
       'classname-patterns/detect-repeated': 'warn',
 
       // Data extracted from visited pages is untrusted; rendering raw HTML is

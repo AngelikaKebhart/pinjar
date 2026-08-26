@@ -168,7 +168,7 @@ export function LinkFilters({
           <ul className="flex max-h-32 flex-wrap gap-2 overflow-y-auto">
             {offeredTags.map((tag) => (
               <li key={tag}>
-                <label className="flex cursor-pointer items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-sm break-words hover:bg-surface-hover">
+                <label className="flex items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-sm break-words hover:bg-surface-hover">
                   <input
                     type="checkbox"
                     checked={criteria.tags.includes(tag)}
