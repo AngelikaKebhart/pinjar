@@ -54,8 +54,7 @@ export const Button = forwardRef<
     danger: `bg-danger text-on-danger enabled:hover:bg-danger-strong ${active ? 'active:bg-danger-strong' : ''}`,
     outline:
       'border border-line-strong text-ink enabled:hover:bg-surface-hover disabled:border-line disabled:text-ink-muted',
-    'outline-danger':
-      'border border-line-strong text-danger enabled:hover:bg-surface-hover',
+    'outline-danger': 'border border-line-strong text-danger enabled:hover:bg-surface-hover',
   };
 
   return (

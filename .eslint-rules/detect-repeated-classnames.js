@@ -23,8 +23,10 @@ export default {
       recommended: false,
     },
     messages: {
-      repeatedExact: 'className appears {{ count }} times — consider extracting to a constant or component',
-      repeatedSimilar: 'similar className patterns appear {{ count }} times — consider consolidating',
+      repeatedExact:
+        'className appears {{ count }} times — consider extracting to a constant or component',
+      repeatedSimilar:
+        'similar className patterns appear {{ count }} times — consider consolidating',
     },
   },
   create(context) {
@@ -79,7 +81,8 @@ export default {
 
       'Program:exit'() {
         // Report only patterns that appear in 3+ different files
-        classNameMap.forEach((entry, className) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        classNameMap.forEach((entry, _className) => {
           if (entry.files.size >= 3) {
             // Only report locations from 2nd+ file (1st location is the definition)
             entry.locations.forEach(({ node, file }, idx) => {
