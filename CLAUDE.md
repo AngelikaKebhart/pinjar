@@ -8,8 +8,21 @@ A cross-browser extension (Chrome, Firefox, Edge) that acts as a universal, shop
 
 The user interface is offered in **German and English**. It starts in the browser's language and can be switched manually in either surface — Popup and Dashboard share one header carrying the language and appearance settings. Note the split this creates: the code stays English-only, while every user-facing string lives in a translation catalog — see the `coding-conventions` skill.
 
-Full product concept, feature list, data model, and rationale:
-@docs/concept.md
+Full product concept, feature list, data model, and rationale live in `docs/concept.md`
+(written in German). It is deliberately **not** imported into this file: it is 30 KB of
+reference material that would sit in the context of every session, while any given task
+needs a section of it at most. Read the section a task actually touches:
+
+| Section | Covers |
+| --- | --- |
+| §3 | Core features — saving, the domain badge, categories/tags/status, popup, dashboard, export/import, bilingual UI |
+| §4 | Data model, and why status is a tagged union rather than a plain string |
+| §5 | Design and UX, including what bilingual text does to layouts |
+| §6.2–6.4 | Project structure, i18n mechanics, and why there is no content script |
+| §7.2 | WCAG 2.2 AA requirements |
+| §7.3–7.4 | GDPR and security rules, including the permission set and its rationale |
+| §9 | Local testing and debugging steps |
+| §11 | Deliberately deferred ideas — check here before "adding" one |
 
 ## Tech stack
 
@@ -30,9 +43,45 @@ Detailed conventions are encoded as project skills under `.claude/skills/` and a
 - **`accessibility-wcag`** — all UI must meet WCAG 2.2 Level AA, including a correct `<html lang>` for the active language and layouts that survive longer German text
 - **`privacy-and-security`** — GDPR/DSGVO-friendly data handling (local-only, minimal data, full user control) and security rules (untrusted webpage data, minimal permissions, no remote code, dependency hygiene)
 - **`git-workflow`** — Conventional Commits in English, trunk-based branching, GitHub Actions CI, Semantic Versioning
-- **`subagent-delegation`** — delegate proactively where work splits into parallel streams or needs a cold context, but never for what is faster inline; name the model on every call — `opus` for judgement calls and anything touching accessibility, permissions or the i18n catalogs, `sonnet` for everything else, and nothing cheaper; treat every result as a claim to verify, not a finished one
+- **`subagent-delegation`** — delegate only when asked, since a subagent buys wall-clock time rather than budget; name the model on every call, and it is always `sonnet` — nothing cheaper below it, and judgement work stays inline instead of going to `opus`; treat every result as a claim to verify, not a finished one
 
 Do not duplicate these rules here — consult the skills, they stay up to date independently of this file.
+
+## Working economically
+
+Usage limits are a real constraint on this project. The rules below exist so the budget is
+spent on thinking rather than on re-reading, re-running and re-explaining. None of them is
+licence to do the work less carefully — where one of them would cost correctness, ignore it
+there and say why.
+
+- **Read what you need.** Grep, or read the relevant range, rather than pulling in whole
+  files above a few hundred lines. Never re-read a file just written to confirm the write
+  landed — a failed edit reports itself.
+- **Edit rather than rewrite.** An edit emits the changed hunk; rewriting a file emits the
+  whole file as output. Rewrite only when most of the file genuinely changes.
+- **Verify once, at the end.** Run `pnpm check` — lint, typecheck and tests in one command —
+  when the change is complete, not after every step. While chasing a single failure re-run
+  that one test file, and the full gate once it passes.
+- **Do what was asked.** No neighbouring refactors, no extra tests, no summary documents
+  nobody requested. Raise the idea in a sentence and let Angelika decide.
+- **Hand over briefly.** A few lines on what changed, what was verified, and what nothing has
+  verified yet. Not a report.
+- **Batch independent tool calls** into one message instead of one per turn.
+- **Say when a fresh session would be cheaper.** Every message re-sends the whole
+  conversation, so an unrelated question at the end of a long session pays for all of it.
+  When the topic changes, mention that `/clear` costs nothing.
+
+### Effort levels
+
+The session default is `medium` (`effortLevel` in `~/.claude/settings.json`). The two skills
+whose mistakes are expensive and quiet — `accessibility-wcag` and `privacy-and-security` —
+raise themselves to `high` through their `effort` frontmatter, so the hard domains stay
+covered without anyone having to remember.
+
+For other work that genuinely warrants deeper reasoning — an architecture decision, a subtle
+bug, a cross-cutting refactor — say so rather than quietly making do. Angelika can raise the
+level with `/effort high`, or add `ultrathink` to a single prompt, which asks for deeper
+reasoning on that turn alone without changing the session setting.
 
 ## Quick reference
 
@@ -69,8 +118,14 @@ tests already cover spends the session watching a browser start up.
 ### How, once it is called for
 
 Claude Code can load and operate the extension itself through the `chrome-devtools`
-MCP server configured in `.mcp.json`. The server has to be approved once per machine
-(`/mcp`, or the prompt shown when a session starts); until then none of its tools exist.
+MCP server configured in `.mcp.json`. **It is switched off by default** via
+`disabledMcpjsonServers` in `.claude/settings.json`, because its tool definitions occupy
+context in every session and, per the rule above, most sessions never drive a browser.
+
+To turn it back on for a full pass, remove `"chrome-devtools"` from that list and restart the
+session; the server also has to be approved once per machine (`/mcp`, or the prompt shown at
+session start). Ask for that when a browser is genuinely needed — do not work around the
+absence of the tools by guessing at what the UI does.
 
 The workflow is always:
 
