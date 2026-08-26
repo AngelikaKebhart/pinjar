@@ -6,6 +6,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import prettierConfig from 'eslint-config-prettier';
 import requireCursorPointer from './.eslint-rules/require-cursor-pointer.js';
+import detectRepeatedClassnames from './.eslint-rules/detect-repeated-classnames.js';
 
 export default tseslint.config(
   {
@@ -40,6 +41,11 @@ export default tseslint.config(
           'require-cursor-pointer': requireCursorPointer,
         },
       },
+      'classname-patterns': {
+        rules: {
+          'detect-repeated': detectRepeatedClassnames,
+        },
+      },
     },
     rules: {
       ...react.configs.flat.recommended.rules,
@@ -53,6 +59,8 @@ export default tseslint.config(
       'jsx-a11y/no-autofocus': 'error',
       // Ensure consistent UX feedback via cursor styles on interactive elements
       'cursor-pointer/require-cursor-pointer': 'error',
+      // Warn about repeated className patterns — suggests consolidation candidates
+      'classname-patterns/detect-repeated': 'warn',
 
       // Data extracted from visited pages is untrusted; rendering raw HTML is
       // forbidden (see .claude/skills/privacy-and-security).
