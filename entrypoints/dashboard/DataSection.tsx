@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { Button } from '@/src/components/Button';
 import { useTranslation } from '@/src/i18n/context';
 import {
   deleteAllSavedData,
@@ -84,14 +85,15 @@ export function DataSection() {
           {stored.hasLinks ? t('data.export.hint') : t('data.export.nothingYet')}
         </p>
 
-        <button
+        <Button
           type="button"
+          variant="primary"
           onClick={() => void handleExport()}
           disabled={!stored.hasLinks}
-          className={PRIMARY_BUTTON}
+          className="w-fit"
         >
           {t('data.export.action')}
-        </button>
+        </Button>
 
         <NoticeSlot notice={notice} shownFor="exported" />
       </section>
@@ -106,9 +108,14 @@ export function DataSection() {
           Never disabled, not even with an empty wishlist: an empty one is
           exactly when a file is most likely to be waiting.
         */}
-        <button type="button" onClick={() => pickerRef.current?.click()} className={PRIMARY_BUTTON}>
+        <Button
+          type="button"
+          variant="primary"
+          onClick={() => pickerRef.current?.click()}
+          className="w-fit"
+        >
           {t('data.import.action')}
-        </button>
+        </Button>
 
         {/*
           The picker itself stays out of sight, opened by the button above.
@@ -143,21 +150,6 @@ export function DataSection() {
     </div>
   );
 }
-
-/**
- * Export and import are filled, deleting everything is not.
- *
- * The two that hand data around are what this dialog is for, and they are
- * safe. The third is the one action in the extension that cannot be taken
- * back, so it is left as an outline: it has to be findable, it must not be
- * the thing the eye lands on first. Color cannot make that difference here —
- * the whole palette is red — so weight does (WCAG 2.2 AA, 1.4.1).
- */
-const PRIMARY_BUTTON =
-  'w-fit rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent enabled:hover:bg-accent-strong disabled:bg-disabled disabled:text-on-disabled cursor-pointer';
-
-const OUTLINE_BUTTON =
-  'w-fit rounded-control border border-line-strong px-4 py-2 text-sm font-bold text-link enabled:hover:bg-surface-hover disabled:border-line disabled:text-ink-muted cursor-pointer';
 
 /** Separates the three actions without giving any of them a box of its own. */
 function Divider() {
@@ -251,6 +243,15 @@ function describeNotice(
  * list: categories, tags and status values outlive the links that used them,
  * and clearing those is part of the same right (§7.3).
  */
+/**
+ * Export and import are filled, deleting everything is not.
+ *
+ * The two that hand data around are what this dialog is for, and they are
+ * safe. The third is the one action in the extension that cannot be taken
+ * back, so it is left as an outline: it has to be findable, it must not be
+ * the thing the eye lands on first. Color cannot make that difference here —
+ * the whole palette is red — so weight does (WCAG 2.2 AA, 1.4.1).
+ */
 function DeleteEverything({
   hasAnythingToDelete,
   notice,
@@ -294,15 +295,16 @@ function DeleteEverything({
         <h3 className="text-base font-semibold">{t('data.deleteAll.heading')}</h3>
         <p className="text-sm text-ink-muted">{t('data.deleteAll.hint')}</p>
 
-        <button
+        <Button
           ref={triggerRef}
           type="button"
+          variant="outline"
           onClick={() => setIsAsking(true)}
           disabled={!hasAnythingToDelete}
-          className={OUTLINE_BUTTON}
+          className="w-fit"
         >
           {t('data.deleteAll.action')}
-        </button>
+        </Button>
 
         <NoticeSlot notice={notice} shownFor="deleted" />
       </section>
@@ -322,26 +324,22 @@ function DeleteEverything({
       </p>
 
       <div className="flex flex-wrap gap-2">
-        <button
+        <Button
           type="button"
+          variant="danger"
           onClick={() => {
             void deleteAllSavedData().then(() => {
               setIsAsking(false);
               onDeleted();
             });
           }}
-          className="rounded-control bg-danger px-4 py-2 text-sm font-bold text-on-danger hover:bg-danger-strong cursor-pointer"
         >
           {t('data.deleteAll.confirm')}
-        </button>
+        </Button>
 
-        <button
-          type="button"
-          onClick={() => setIsAsking(false)}
-          className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold hover:bg-surface-hover cursor-pointer"
-        >
+        <Button type="button" variant="outline" onClick={() => setIsAsking(false)}>
           {t('data.deleteAll.cancel')}
-        </button>
+        </Button>
       </div>
     </div>
   );

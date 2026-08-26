@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ActionFeedback, type FeedbackMessage } from '@/src/components/ActionFeedback';
+import { Button } from '@/src/components/Button';
 import { useLinkEditing } from '@/src/components/useLinkEditing';
 import { useTranslation } from '@/src/i18n/context';
 import { getCurrentPage, saveCurrentPage, type CurrentPage } from '@/src/lib/current-page';
@@ -99,14 +100,14 @@ function App() {
       <h1 className="text-base font-semibold">{t('popup.title')}</h1>
 
       <div className="flex flex-col gap-2">
-        <button
+        <Button
           type="button"
+          variant="primary"
           onClick={() => void handleSave()}
           disabled={!canSave || isSaving}
-          className="rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent hover:bg-accent-strong disabled:bg-disabled disabled:text-on-disabled cursor-pointer"
         >
           {isSaving ? t('popup.saving') : t('popup.savePage')}
-        </button>
+        </Button>
 
         {/*
           Saving, editing and deleting all report here. It is the only feedback
@@ -156,15 +157,15 @@ function App() {
         </section>
       )}
 
-      <button
+      <Button
         type="button"
+        variant="outline"
         onClick={() => {
           void browser.tabs.create({ url: browser.runtime.getURL('/dashboard.html') });
         }}
-        className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold hover:bg-surface-hover cursor-pointer"
       >
         {t('popup.openDashboard')}
-      </button>
+      </Button>
     </main>
   );
 }

@@ -1,4 +1,5 @@
 import { useId, useMemo } from 'react';
+import { Button } from '@/src/components/Button';
 import { Select } from '@/src/components/Select';
 import { useTranslation } from '@/src/i18n/context';
 import {
@@ -187,13 +188,9 @@ export function LinkFilters({
       */}
       {isFiltering(criteria) && (
         <div>
-          <button
-            type="button"
-            onClick={() => onChange(NO_FILTER)}
-            className="rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent hover:bg-accent-strong cursor-pointer"
-          >
+          <Button type="button" variant="primary" onClick={() => onChange(NO_FILTER)}>
             {t('filters.reset')}
-          </button>
+          </Button>
         </div>
       )}
     </div>

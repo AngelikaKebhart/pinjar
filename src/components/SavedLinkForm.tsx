@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent, ReactNode } from 'react';
+import { Button } from '@/src/components/Button';
 import { Select } from '@/src/components/Select';
 import { useTranslation } from '@/src/i18n/context';
 import { DEFAULT_STATUS, type LinkStatus, type SavedLinkEdits } from '@/src/lib/saved-link';
@@ -276,29 +277,18 @@ export function SavedLinkForm({
       </Field>
 
       <div className="flex flex-wrap gap-2">
-        <button
-          type="submit"
-          className="rounded-control bg-accent px-4 py-2 text-sm font-bold text-on-accent hover:bg-accent-strong cursor-pointer"
-        >
+        <Button type="submit" variant="primary">
           {t('editLink.save')}
-        </button>
+        </Button>
 
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold hover:bg-surface-hover cursor-pointer"
-        >
+        <Button type="button" variant="outline" onClick={onCancel}>
           {t('editLink.cancel')}
-        </button>
+        </Button>
 
         {onDelete && (
-          <button
-            type="button"
-            onClick={onDelete}
-            className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold text-danger hover:bg-surface-hover cursor-pointer"
-          >
+          <Button type="button" variant="outline-danger" onClick={onDelete}>
             {t('editLink.delete')}
-          </button>
+          </Button>
         )}
       </div>
     </form>
