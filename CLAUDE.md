@@ -6,7 +6,7 @@ This file provides project-level guidance to Claude Code when working in this re
 
 A cross-browser extension (Chrome, Firefox, Edge) that acts as a universal, shop-independent wishlist/bookmark manager. Users save links from any website with one click; the extension shows a badge indicator on domains where something was already saved, and lets users organize saved items with categories, tags, notes, and a customizable status.
 
-The user interface is offered in **German and English**. It starts in the browser's language and can be switched manually in the Dashboard. Note the split this creates: the code stays English-only, while every user-facing string lives in a translation catalog — see the `coding-conventions` skill.
+The user interface is offered in **German and English**. It starts in the browser's language and can be switched manually in either surface — Popup and Dashboard share one header carrying the language and appearance settings. Note the split this creates: the code stays English-only, while every user-facing string lives in a translation catalog — see the `coding-conventions` skill.
 
 Full product concept, feature list, data model, and rationale:
 @docs/concept.md
@@ -38,8 +38,8 @@ Do not duplicate these rules here — consult the skills, they stay up to date i
 
 - Install dependencies: `pnpm install`
 - Start local dev: `pnpm dev` (auto-launches a browser with the extension loaded, hot reload)
-- Build per browser: `pnpm build -b chrome` / `pnpm build -b firefox` / `pnpm build -b edge` (or `pnpm wxt build -b <browser>`, depending on how scripts are set up)
-- See `docs/concept.md` §9 for detailed local-testing/debugging steps, and the README once it exists
+- Build per browser: `pnpm build` (Chrome, the default), `pnpm build:firefox`, `pnpm build:edge`
+- See `docs/concept.md` §9 and the README for detailed local-testing/debugging steps
 
 ## Driving the extension in a real browser
 
@@ -76,7 +76,9 @@ Four constraints are worth knowing before writing a test plan:
 - **Chrome's `--load-extension` flag no longer works** (disabled since Chrome 137, and the
   `DisableLoadExtensionCommandLineSwitch` escape hatch is gone as of Chrome 151). Loading
   over CDP via `install_extension` is the only remaining route, which is why
-  `--categoryExtensions=true` is set in `.mcp.json`.
+  `--categoryExtensions=true` is set in `.mcp.json`. This is about the browser driven from
+  here and says nothing about `pnpm dev`, which does still come up with the current build
+  loaded — do not "fix" the README on the strength of this bullet.
 - **The popup bubble is reachable, but only while it stays open.** `trigger_extension_action`
   opens it, and a moment later it appears in `list_pages` as a regular extension page. Select
   it with `select_page` and `bringToFront: false` — bringing anything else to the front

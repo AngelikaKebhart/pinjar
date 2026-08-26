@@ -12,7 +12,7 @@ All data is stored **locally in your browser** (`storage.local`). There is no ba
 no automatic sync. Data can be moved between browsers via manual JSON export/import.
 
 The interface is available in **German and English**. It follows the browser language by default and
-can be switched at any time in the Dashboard.
+can be switched at any time — both the Popup and the Dashboard carry the switch in their header.
 
 ## Project status
 
@@ -20,9 +20,10 @@ Early development, but feature-complete against the concept. Saving a page from 
 a single click and nothing else. The Popup lists what you saved on the site you are on, and every
 link there carries an Edit button that opens category, tags, status and note right in the Popup. The
 Dashboard manages everything: search, filters for category, tags, status and domain, and the same
-editing. Its header carries three buttons — the interface language, light or dark, and a dialog
-holding export, import and deleting all your data at once. Language and appearance both offer a
-third answer, "automatic", which follows the browser and is what they start on.
+editing. Both surfaces share one header, one size smaller in the Popup. It carries the interface
+language and light-or-dark in both; the Dashboard adds a third button, a dialog holding export,
+import and deleting all your data at once. Language and appearance both offer a third answer,
+"automatic", which follows the browser and is what they start on.
 
 See [`docs/concept.md`](docs/concept.md) for the full product concept, feature list, and data model
 (written in German).
