@@ -3,20 +3,17 @@ import { EditLinkButton } from '@/src/components/EditLinkButton';
 import type { LinkPanels } from '@/src/components/useLinkPanels';
 
 /**
- * The two things that can be done to a saved link, as one group.
+ * The two things that can be done to a saved link, as one group — so popup and
+ * dashboard cannot offer them in different orders, sizes or behaviour.
  *
- * It exists so the popup and the dashboard cannot end up offering the same two
- * actions in different orders, at different sizes or with different behaviour.
- * Both surfaces put it in the same place — the line that carries the link's
- * title — and it stays there while whatever it opened sits below. That is the
- * point: the way out is never further away than the way in was, and deleting
- * a link one has just looked at does not first require closing it.
+ * Both surfaces put it on the line carrying the link's title, and it stays
+ * there while whatever it opened sits below: the way out is never further away
+ * than the way in, and deleting a link just looked at needs no closing first.
  *
- * Both buttons are disclosures with the same contract, because both are the
- * same component: press to open, press again to close, Escape closes, and
- * focus comes back to the button either way. It takes the whole `panels`
- * object rather than a handful of booleans and callbacks so that there is one
- * answer to "what is open" for the entire list, not one per row.
+ * Both buttons are disclosures with the same contract, being the same
+ * component: press to open, press again to close, Escape closes, focus comes
+ * back either way. It takes the whole `panels` object rather than loose
+ * booleans and callbacks, so "what is open" is answered once for the list.
  */
 export function SavedLinkActions({
   id,

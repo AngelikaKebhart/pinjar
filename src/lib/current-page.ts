@@ -5,11 +5,10 @@ import { addSavedLink, findSavedLinkByUrl } from './storage';
 import { extractDomain } from './url';
 
 /**
- * Everything about "the page the user is looking at right now".
+ * Everything about "the page the user is looking at right now": which tab is
+ * active, what can be read out of it, and handing that to storage.
  *
- * Sits between the popup and the two lower layers: it asks the browser which
- * tab is active, has the page read out, and hands the result to storage. It
- * produces no user-facing text — it reports what happened and lets the popup
+ * Produces no user-facing text — it reports what happened and lets the popup
  * put it into words in the active language.
  */
 
@@ -49,10 +48,9 @@ export async function getCurrentPage(): Promise<CurrentPage | null> {
 }
 
 /**
- * Saves the page, enriched with what can be read from it.
- *
- * Saving the same address twice would leave the user with two entries they
- * then have to tell apart, so an existing one is reported back instead.
+ * Saves the page, enriched with what can be read from it. Saving the same
+ * address twice would leave the user with two entries to tell apart, so an
+ * existing one is reported back instead.
  */
 export async function saveCurrentPage(page: CurrentPage): Promise<SaveOutcome> {
   if (page.domain === null) {
@@ -68,8 +66,8 @@ export async function saveCurrentPage(page: CurrentPage): Promise<SaveOutcome> {
 
   const link = await addSavedLink({
     url: page.url,
-    // The page's own idea of its title beats the tab's, but the tab's is
-    // already there and is what remains when the page cannot be read.
+    // The page's own title beats the tab's, which is what remains when the
+    // page cannot be read.
     title: metadata.title === '' ? page.title : metadata.title,
     imageUrl: metadata.imageUrl,
   });
@@ -78,12 +76,10 @@ export async function saveCurrentPage(page: CurrentPage): Promise<SaveOutcome> {
 }
 
 /**
- * Runs the extraction in the given tab.
- *
- * Failure is expected rather than exceptional: the browser refuses injection
- * on its own pages, on PDFs, on the extension gallery, and on any tab that
- * navigated away in the meantime. None of that may stop the user from saving,
- * so it degrades to "nothing extracted" (see docs/concept.md §7.1).
+ * Runs the extraction in the given tab. Failure is expected rather than
+ * exceptional — the browser refuses injection on its own pages, on PDFs, and on
+ * a tab that navigated away — and none of it may stop the user from saving, so
+ * it degrades to "nothing extracted" (docs/concept.md §7.1).
  */
 async function readPageMetadata(tabId: number): Promise<PageMetadata> {
   try {

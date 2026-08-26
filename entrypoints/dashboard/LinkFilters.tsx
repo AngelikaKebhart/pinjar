@@ -14,16 +14,15 @@ import {
 import { statusToKey, type SavedLink } from '@/src/lib/saved-link';
 
 /**
- * The controls above the list (see docs/concept.md §3.5).
+ * The controls above the list (docs/concept.md §3.5).
  *
  * A bar above the list rather than a column beside it: it survives any window
- * width without a second layout, and it does not commit the dashboard to a
- * two-column shape before the design pass has had a say.
+ * width without a second layout.
  *
- * The choices are derived from the saved links rather than from the stored
- * lists of values ever used, and each one accounts for the other filters. So
- * picking a category narrows the tags to those actually used in it, and no
- * option on offer can lead to an empty result.
+ * The choices come from the saved links rather than the stored lists of every
+ * value ever used, and each accounts for the other filters — so picking a
+ * category narrows the tags to those used in it, and no option on offer can
+ * lead to an empty result.
  */
 export function LinkFilters({
   links,
@@ -38,8 +37,8 @@ export function LinkFilters({
   const { t, compareNames } = useTranslation();
   const fieldId = useId();
 
-  // Every list of choices is sorted by name, so a value keeps its place
-  // instead of moving around with whichever link was saved last.
+  // Sorted by name, so a value keeps its place instead of moving with
+  // whichever link was saved last.
   const offeredCategories = useMemo(() => {
     const { names, uncategorised } = availableCategories(links, criteria);
     return { names: [...names].sort(compareNames), uncategorised };
@@ -55,9 +54,8 @@ export function LinkFilters({
     [links, criteria, compareNames],
   );
 
-  // Sorted by the label actually shown, not by the stored status: the built-in
-  // one is the only translated status (§4), so ordering it by its key would
-  // put it somewhere else than where the user reads it.
+  // Sorted by the label shown, not the stored status: the built-in one is the
+  // only translated status (§4), so its key would sort it somewhere else.
   const offeredStatuses = useMemo(() => {
     const labelled = availableStatuses(links, criteria).map((status) => ({
       key: statusToKey(status),
@@ -86,8 +84,8 @@ export function LinkFilters({
           {t('filters.searchHint')}
         </p>
         {/*
-          A search field, so the browser offers to clear it and announces it
-          as one. Not type="text" with a magnifying glass drawn next to it.
+          A search field, so the browser offers to clear it and announces it as
+          one — not type="text" with a magnifying glass drawn beside it.
         */}
         <input
           id={`${fieldId}-search`}
@@ -184,7 +182,7 @@ export function LinkFilters({
 
       {/*
         Only offered when there is something to reset — a button that does
-        nothing is one the user has to think about every time they see it.
+        nothing still has to be thought about every time it is seen.
       */}
       {isFiltering(criteria) && (
         <div>
@@ -198,13 +196,11 @@ export function LinkFilters({
 }
 
 /**
- * The category and domain options.
- *
- * Real names are prefixed so a category the user actually calls "all" or
- * "none" — or a single-label hostname that happens to be `all` — is still
- * read back as itself rather than as one of the collective entries. The
- * status options need no such care: every key from `statusToKey` carries a
- * `builtin:`/`custom:` prefix already, so none of them can equal `all`.
+ * The category and domain options. Real names are prefixed so a category the
+ * user calls "all" or "none" — or a single-label hostname `all` — is read back
+ * as itself rather than as a collective entry. The status options need no such
+ * care: every key from `statusToKey` already carries a `builtin:`/`custom:`
+ * prefix.
  */
 const ALL = 'all';
 const NONE = 'none';

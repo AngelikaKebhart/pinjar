@@ -10,20 +10,18 @@ import {
 /**
  * Carrying the wishlist out as a file, and reading one back in (§3.6).
  *
- * There is no account and no sync, so a file the user carries themselves is
- * the only way this data reaches another browser — and the only backup that
- * exists at all.
+ * There is no account and no sync, so a file the user carries themselves is the
+ * only way this data reaches another browser — and the only backup there is.
  */
 
 /** Marks a file as ours, so any other JSON file can be told apart from it. */
 export const EXPORT_FORMAT = 'pinjar';
 
 /**
- * Raised only when a file stops being readable by older versions.
- *
- * Written from the very first file even though nothing reads it yet: the
- * reader arrives later, and by then these files are already out there. A
- * version that was never written cannot be added afterwards.
+ * Raised only when a file stops being readable by older versions. Written from
+ * the very first file even though nothing reads it yet: by the time a reader
+ * needs it, those files are already out there, and a version that was never
+ * written cannot be added afterwards.
  */
 export const EXPORT_VERSION = 1;
 
@@ -31,16 +29,15 @@ export interface ExportFile {
   format: typeof EXPORT_FORMAT;
   version: number;
   /**
-   * When the file was written. The whole point of it is being carried between
-   * devices, where two copies are otherwise impossible to tell apart — a file
-   * name does not survive being renamed or downloaded a second time.
+   * When the file was written — the only way to tell two copies apart once the
+   * file name has been renamed or suffixed by a second download.
    */
   exportedAt: string;
   links: SavedLink[];
   /**
-   * The suggestion lists travel too, and separately from the links, exactly as
-   * they are stored (docs/concept.md §4). A category the user created and has
-   * not used yet would otherwise not survive the move.
+   * The suggestion lists travel separately from the links, as they are stored
+   * (docs/concept.md §4): a category created but not yet used on any link would
+   * otherwise not survive the move.
    */
   categories: string[];
   tags: string[];
@@ -68,11 +65,8 @@ export async function buildExportFile(): Promise<ExportFile> {
 }
 
 /**
- * A name that says where the file came from and sorts by date.
- *
- * The date is the local one, not UTC: it names the day the user pressed the
- * button, which shortly after midnight is not the same day `toISOString()`
- * would report.
+ * A name that says where the file came from and sorts by date. The local date,
+ * not UTC: shortly after midnight `toISOString()` still reports yesterday.
  */
 export function exportFileName(now = new Date()): string {
   const pad = (value: number): string => String(value).padStart(2, '0');
@@ -102,14 +96,12 @@ export type ImportOutcome =
 /**
  * Reads a file and adds what it holds to what is already here.
  *
- * Adding, never replacing: the file is a copy from another browser, not the
- * truth about this one. A link whose address is already saved keeps whatever
+ * Adding, never replacing: a link whose address is already saved keeps whatever
  * the user made of it here, rather than being overwritten by an older idea of
- * itself from somewhere else (docs/concept.md §3.6).
+ * itself from another browser (docs/concept.md §3.6).
  *
- * The file is the one thing in this extension that arrives from outside: the
- * picker takes whatever it is pointed at, and it could have been written by
- * hand. Nothing in it is therefore trusted as it stands.
+ * The picker takes whatever it is pointed at, and the file could have been
+ * written by hand, so nothing in it is trusted as it stands.
  */
 export async function importFile(contents: string): Promise<ImportOutcome> {
   const file = parseExportFile(contents);
@@ -160,9 +152,8 @@ function parseExportFile(contents: string): ParsedFile {
     return { problem: 'notOurFormat', ...NOTHING };
   }
 
-  // A file from a newer version may hold fields this build knows nothing
-  // about and would drop without a word, so it is refused rather than read
-  // half-way. Older versions are read: that is what the version is for.
+  // A newer file may hold fields this build would drop without a word, so it is
+  // refused rather than read half-way. Older ones are read; that is the point.
   const version = parsed['version'];
   if (typeof version !== 'number' || version > EXPORT_VERSION) {
     return { problem: 'tooNew', ...NOTHING };
@@ -181,14 +172,13 @@ function parseExportFile(contents: string): ParsedFile {
 /**
  * Rebuilds one link from whatever the file claims it was.
  *
- * Deliberately not a cast: the URL and the image go through the same checks a
- * freshly saved page gets, so a hand-edited file cannot smuggle in a
- * `javascript:` image or a link with no domain to file it under (§7.4).
- * Anything unusable becomes `null` and is counted, rather than landing
- * half-valid in storage.
+ * Deliberately not a cast: URL and image go through the same checks a freshly
+ * saved page gets, so a hand-edited file cannot smuggle in a `javascript:`
+ * image or a link with no domain to file it under (§7.4). Anything unusable
+ * becomes `null` and is counted rather than landing half-valid in storage.
  *
- * The id is not taken over. Ids only ever matter inside one browser, and a
- * fresh one cannot collide with something already stored here.
+ * The id is not taken over: ids matter only inside one browser, and a fresh one
+ * cannot collide with what is already stored here.
  */
 function toSavedLink(raw: unknown): SavedLink | null {
   if (!isRecord(raw) || typeof raw['url'] !== 'string') {
@@ -209,8 +199,8 @@ function toSavedLink(raw: unknown): SavedLink | null {
     return null;
   }
 
-  // When the file remembers when this was saved, keep it: the model's "now"
-  // is only a fallback, and importing should not make old finds look new.
+  // Keep the file's timestamps where it has them — importing should not make
+  // old finds look new. The model's "now" is only the fallback.
   return {
     ...link,
     createdAt: asDate(raw['createdAt']) ?? link.createdAt,

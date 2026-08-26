@@ -14,18 +14,16 @@ import { getCategories, getCustomStatuses, getTags } from '@/src/lib/storage';
  *
  * Category, tags and status all work the same way: pick from what you used
  * before, or add something new that is then offered on the next link. That is
- * the whole point of keeping those lists in storage (§4) — nobody should have
- * to retype "Schnittmuster" for the twentieth time and hope they spell it the
- * same way, because a typo silently creates a second category.
+ * what those stored lists are for (§4) — retyping "Schnittmuster" for the
+ * twentieth time invites a typo, and a typo silently creates a second category.
  *
- * Adding something new happens in place, and Enter confirms it. That makes
- * Enter mean the same thing in all three: "take this entry", never "save the
- * whole form" — which is what an unhandled Enter in a text field would do.
- * The Save button stays the one way to finish.
+ * Adding happens in place, confirmed with Enter. So Enter means the same thing
+ * in all three fields — "take this entry", never "save the whole form", which
+ * is what an unhandled Enter would do — and Save stays the one way to finish.
  *
- * Everything here is a native form control with a real label. A custom widget
- * would have to re-earn keyboard operability, screen reader announcements and
- * the browser's own localization, and would almost certainly earn less.
+ * Everything is a native form control with a real label: a custom widget would
+ * have to re-earn keyboard operability, screen reader announcements and the
+ * browser's own localization, and would almost certainly earn less.
  */
 export function SavedLinkForm({
   id,
@@ -70,9 +68,8 @@ export function SavedLinkForm({
   );
   const offeredTags = useMemo(() => [...knownTags].sort(compareNames), [knownTags, compareNames]);
 
-  // Sorted by the label, which for the built-in status is its translation
-  // (§4) — that is what the user reads, and it puts the status in the same
-  // place the filter does.
+  // Sorted by the label, which for the built-in status is its translation (§4):
+  // that is what the user reads, and where the filter puts it too.
   const offeredStatuses = useMemo(() => {
     const options = [
       { value: BUILTIN_CHOICE, label: t('status.default') },
@@ -82,9 +79,8 @@ export function SavedLinkForm({
     return options.sort((one, other) => compareNames(one.label, other.label));
   }, [knownStatuses, compareNames, t]);
 
-  // Opening the form moves focus into it. The button that opened it stays
-  // where it was, so this is a step forward into what just appeared rather
-  // than a rescue from a control that vanished underneath the user.
+  // Opening the form moves focus into it — a step forward into what just
+  // appeared; the button that opened it is still where it was.
   useEffect(() => {
     titleRef.current?.focus();
   }, []);
@@ -92,9 +88,8 @@ export function SavedLinkForm({
   useEffect(() => {
     void Promise.all([getCategories(), getTags(), getCustomStatuses()]).then(
       ([categories, tags, statuses]) => {
-        // What this link already carries always belongs in its list, even if
-        // the stored suggestions somehow lost it — otherwise editing anything
-        // else on the card would quietly drop it.
+        // What this link already carries belongs in its list even if the
+        // stored suggestions lost it, or editing anything else would drop it.
         setKnownCategories(including(categories, link.category));
         setKnownTags(union(tags, link.tags));
         setKnownStatuses(including(statuses, customLabelOf(link.status)));
@@ -124,15 +119,13 @@ export function SavedLinkForm({
    * Escape closes the form — the same key that dismisses the delete question
    * beside it, so there is one way out to learn rather than two.
    *
-   * Only when nothing nearer has already claimed it: the fields for a new
-   * category, status or tag use Escape to abandon what is being typed into
-   * them, and they mark the event handled. Without that check a single press
-   * would drop the entry and the whole form with it.
+   * Only when nothing nearer has claimed it: the fields for a new category,
+   * status or tag use Escape to abandon what is being typed and mark the event
+   * handled, or one press would drop the entry and the form with it.
    *
-   * A press outside the form deliberately does not close it. There is typed
-   * text in here, and a stray click on the page behind must not be able to
-   * throw it away — that is the one place where this form and the delete
-   * question are allowed to behave differently.
+   * A press outside deliberately does not close it — there is typed text in
+   * here, and a stray click behind must not throw it away. That is the one
+   * place where this form and the delete question behave differently.
    */
   const handleKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
     if (event.key === 'Escape' && !event.defaultPrevented) {
@@ -147,8 +140,8 @@ export function SavedLinkForm({
     void onSave({
       title,
       category: choiceToCategory(categoryChoice),
-      // Anything still sitting in the field counts too: pressing Save right
-      // after typing a tag must not throw it away.
+      // Anything still in the field counts: pressing Save right after typing a
+      // tag must not throw it away.
       tags: [...checkedTags, ...splitTags(newTags)],
       status: choiceToStatus(statusChoice),
       note,
@@ -193,9 +186,8 @@ export function SavedLinkForm({
 
       <fieldset className="flex flex-col gap-2 rounded-card border border-line p-4">
         {/*
-          A fieldset with a legend, because the tick boxes and the field for
-          new ones only make sense together — a screen reader announces the
-          group name with every one of them.
+          A fieldset, because the tick boxes and the field for new ones only make
+          sense together — the legend is announced with every one of them.
         */}
         <legend className="px-1 text-sm font-bold">{t('dashboard.link.tags')}</legend>
 
@@ -206,9 +198,8 @@ export function SavedLinkForm({
             <p className="text-sm text-ink-muted">{t('editLink.tagsKnown')}</p>
 
             {/*
-              Tick boxes rather than a multi-select: picking several is one
-              click each instead of a modifier key, and the current selection
-              stays readable at a glance.
+              Tick boxes rather than a multi-select: one click each instead of a
+              modifier key, and the selection stays readable at a glance.
             */}
             <ul className="flex max-h-48 flex-wrap gap-2 overflow-y-auto">
               {offeredTags.map((tag) => (
@@ -288,17 +279,15 @@ export function SavedLinkForm({
 }
 
 /**
- * A dropdown of what exists, with one entry that turns it into a text field
- * for something new. Category and status differ only in what they call things.
+ * A dropdown of what exists, with one entry that turns it into a text field for
+ * something new. Category and status differ only in what they call things.
  *
- * The field takes the place of the dropdown rather than appearing below it:
- * the answer belongs where the question was asked, and nothing on the card
- * jumps around while being answered.
+ * The field takes the place of the dropdown rather than appearing below it, so
+ * nothing on the card jumps around while the question is being answered.
  *
- * Enter takes the entry, Escape abandons it, and leaving the field takes it
- * too — typing a name and clicking elsewhere must not silently discard it.
- * Either way focus returns to the dropdown, so tabbing carries on where it
- * left off.
+ * Enter takes the entry, Escape abandons it, and leaving the field takes it too
+ * — typing a name and clicking elsewhere must not discard it. Either way focus
+ * returns to the dropdown, so tabbing carries on where it left off.
  */
 function ChoiceOrNewField({
   id,
@@ -322,8 +311,7 @@ function ChoiceOrNewField({
   const isAdding = draft !== null;
   const selectRef = useRef<HTMLSelectElement>(null);
   const draftRef = useRef<HTMLInputElement>(null);
-  // Focus only goes back to the dropdown when the user was actually in the
-  // field, never on the first render.
+  // Focus goes back to the dropdown only if the user was in the field.
   const wasAdding = useRef(false);
 
   useEffect(() => {
@@ -342,8 +330,8 @@ function ChoiceOrNewField({
       onAdd(name);
     }
 
-    // A blank entry simply leaves the previous choice in place, which is what
-    // the dropdown still shows — it was never switched to the "new" option.
+    // A blank entry leaves the previous choice, which the dropdown still
+    // shows — it was never switched to the "new" option.
     setDraft(null);
   };
 
@@ -405,11 +393,9 @@ function ChoiceOrNewField({
 }
 
 /**
- * A labelled field.
- *
- * A real label rather than a placeholder: a placeholder disappears as soon as
- * there is input, which is exactly when someone returning to a half-filled
- * form needs it (WCAG 2.2 AA, 3.3.2).
+ * A labelled field. A real label rather than a placeholder, which disappears as
+ * soon as there is input — exactly when someone returning to a half-filled form
+ * needs it (WCAG 2.2 AA, 3.3.2).
  */
 function Field({
   label,
@@ -445,10 +431,10 @@ const INPUT_CLASSES =
   'w-full rounded-field border border-line-strong bg-surface px-3 py-2 text-sm text-ink';
 
 /**
- * A `<select>` can only carry a string, so the option values are prefixed to
- * keep the meanings apart. Without that, a category the user names "new" or a
- * status they name "builtin" would be read back as the sentinel instead of as
- * their own value — exactly the collision the tagged union in §4 rules out.
+ * A `<select>` can only carry a string, so option values are prefixed to keep
+ * the meanings apart: otherwise a category named "new" or a status named
+ * "builtin" would be read back as the sentinel — the very collision the tagged
+ * union in §4 rules out.
  */
 const NONE_CHOICE = 'none';
 const BUILTIN_CHOICE = 'builtin';
@@ -474,10 +460,9 @@ function choiceToStatus(choice: string): LinkStatus {
 }
 
 /**
- * Splits what was typed into usable tags.
- *
- * The model normalizes again before storing; this exists because tick boxes
- * need a clean label the moment they appear, not once they are saved.
+ * Splits what was typed into usable tags. The model normalizes again before
+ * storing; this exists because the tick boxes need a clean label the moment
+ * they appear, not once they are saved.
  */
 function splitTags(typed: string): string[] {
   return typed

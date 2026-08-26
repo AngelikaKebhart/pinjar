@@ -8,33 +8,27 @@ import {
 } from './saved-link';
 
 /**
- * The single place that reads and writes saved links.
+ * The single place that reads and writes saved links — no component touches
+ * `storage.local` itself. Everything stays on the device (docs/concept.md §7.3).
  *
- * Popup, dashboard and background worker all go through these functions — no
- * component touches `storage.local` itself. Everything stays in the browser;
- * nothing here ever leaves the device (see docs/concept.md §7.3).
- *
- * Writes read the whole list, change it and write it back. Two writes started
- * in the very same moment from two open views could therefore lose one of the
- * changes. Every write here is a deliberate user action on a list of at most a
- * few thousand entries, so that window is not worth a locking scheme.
+ * Writes are read-modify-write, so two started in the very same moment from two
+ * open views could lose one of the changes. Every write is a deliberate user
+ * action on at most a few thousand entries, so that window is not worth a
+ * locking scheme.
  */
 
 /**
- * All saved links, newest first.
- *
- * Exported so the background worker and the UI can `watch()` for changes; for
- * reading and writing use the functions below, which keep the suggestion lists
- * in sync.
+ * All saved links, newest first. Exported so the background worker and the UI
+ * can `watch()` it; read and write through the functions below, which keep the
+ * suggestion lists in sync.
  */
 export const savedLinks = defineList<SavedLink>('local:savedLinks');
 
 /**
- * Values the user has used before, kept so the dashboard can offer them.
- *
- * They are stored separately from the links (docs/concept.md §4) and are
- * deliberately not pruned when the last link using them is deleted: a category
- * the user once created stays offered instead of quietly disappearing.
+ * Values the user has used before, kept so the dashboard can offer them. Stored
+ * separately from the links (docs/concept.md §4) and deliberately never pruned:
+ * a category the user created stays offered instead of quietly disappearing
+ * with the last link that used it.
  */
 export const categories = defineList<string>('local:categories');
 export const tags = defineList<string>('local:tags');
@@ -117,12 +111,11 @@ export async function removeSavedLink(id: string): Promise<void> {
  * Adds what an imported file holds to what is already here (§3.6).
  *
  * Adding, never replacing: the file is a copy from another browser, not the
- * truth about this one. Which of its links are new to this browser has been
- * decided before they get here — this function stores what it is handed.
+ * truth about this one. Which of its links are new has been decided before they
+ * get here — this function stores what it is handed.
  *
- * The merged list is sorted rather than appended to, because the file's links
- * are older or newer than the local ones in no particular order, and the
- * dashboard shows the newest first.
+ * Sorted rather than appended, because the file's links interleave with the
+ * local ones by age and the dashboard shows the newest first.
  */
 export async function mergeImportedData(data: {
   links: SavedLink[];
@@ -149,8 +142,7 @@ export async function mergeImportedData(data: {
  * data" the user is entitled to (docs/concept.md §7.3).
  *
  * The interface language is a setting, not user data, and stays untouched:
- * having the dashboard flip to another language would be a confusing way to
- * confirm a deletion.
+ * flipping the dashboard to another language is no way to confirm a deletion.
  */
 export async function deleteAllSavedData(): Promise<void> {
   await Promise.all([
@@ -161,18 +153,14 @@ export async function deleteAllSavedData(): Promise<void> {
   ]);
 }
 
-/**
- * What the dashboard needs to know about what is stored right now, so it can
- * tell an action that would do nothing from one that would.
- */
+/** What the dashboard needs in order to disable actions that would do nothing. */
 export interface StoredDataPresence {
   /** At least one saved link. An export with no links would be an empty file. */
   hasLinks: boolean;
   /**
-   * Anything at all, links or the values remembered beside them. Categories,
-   * tags and status labels outlive the links that used them, so "no links"
-   * does not mean "nothing left to delete" -- and the right to delete
-   * everything must not depend on the list looking empty (§7.3).
+   * Anything at all. Categories, tags and status labels outlive the links that
+   * used them, so "no links" does not mean "nothing left to delete" — and the
+   * right to delete everything must not depend on an empty-looking list (§7.3).
    */
   hasAnything: boolean;
 }
@@ -195,10 +183,9 @@ export async function getStoredDataPresence(): Promise<StoredDataPresence> {
 }
 
 /**
- * Calls back whenever any of that changes, and returns the way to stop.
- *
- * All four lists, not just the links: importing a file can bring categories
- * with it, and deleting everything clears all of them at once.
+ * Calls back whenever any of that changes, and returns the way to stop. All
+ * four lists, not just the links: an import can bring categories with it, and
+ * deleting everything clears all of them at once.
  */
 export function watchStoredData(onChange: () => void): () => void {
   const unwatchers = [

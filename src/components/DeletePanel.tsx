@@ -5,26 +5,21 @@ import { useTranslation } from '@/src/i18n/context';
 /**
  * The question asked before a saved link is deleted.
  *
- * A group rather than a dialog: the page behind stays usable, nothing needs
- * trapping, and the question sits next to the link it is asking about. Without
- * the grouping the two answers would stand in the tab order with nothing
- * saying what they answer.
+ * A group rather than a dialog: the page behind stays usable, and the question
+ * sits next to the link it asks about. Without the grouping the two answers
+ * would stand in the tab order with nothing saying what they answer.
  *
  * The question names the link in words, not only in the buttons' labels: with
- * three cards that look alike, "Delete?" on its own leaves everyone but a
- * screen reader user guessing which one is about to go.
+ * three cards that look alike, "Delete?" leaves everyone but a screen reader
+ * user guessing which one is about to go.
  *
- * Opening puts focus on the question rather than on either answer: what has
- * just appeared is a question, and a keyboard user must not have to hunt for
- * it. Deliberately not on "Yes, delete" — a held or repeated Enter, which is
- * what opened the panel in the first place, would then delete the link without
- * a second decision ever being made, and a confirmation nobody had to answer
- * is no confirmation.
+ * Focus goes to the question, not to either answer — deliberately not to "Yes,
+ * delete": a held or repeated Enter, which is what opened the panel, would
+ * delete the link without a second decision ever being made.
  *
- * Both ways back — Escape and pressing the button again — hand focus to the
- * button that opened it. Confirming is the one case with nowhere to hand it:
- * the link is gone and this panel with it, so where the focus goes next is the
- * list's business, since only the list knows what is left.
+ * Escape and pressing the button again both hand focus back to that button.
+ * Confirming has nowhere to hand it — the panel goes with the link — so where
+ * focus lands next is the list's business; only it knows what is left.
  */
 export function DeletePanel({
   id,
@@ -47,10 +42,10 @@ export function DeletePanel({
   }, []);
 
   /*
-   * Escape dismisses the question — the same key that closes the form beside
-   * it, so there is one way out to learn rather than two. Listened for here
-   * rather than on the document because focus starts inside this panel and the
-   * only controls that can take it from here are its own two answers.
+   * Escape dismisses the question — the same key that closes the form beside it,
+   * so there is one way out to learn rather than two. Listened for here rather
+   * than on the document, because focus starts inside this panel and only its
+   * own two answers can take it away.
    */
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape' && !event.defaultPrevented) {
@@ -68,9 +63,9 @@ export function DeletePanel({
       className="flex flex-col gap-3 rounded-card border border-danger p-4"
       role="group"
       aria-labelledby={questionId}
-      // Focusable only on purpose, never by tabbing: focus is moved here when
-      // the question appears (WCAG 2.2 AA, 2.4.3), but a group that answers
-      // to Tab would be a stop that does nothing.
+      // Focusable on purpose, never by tabbing: focus is moved here when the
+      // question appears (WCAG 2.2 AA, 2.4.3), but a group that answered to
+      // Tab would be a stop that does nothing.
       tabIndex={-1}
     >
       <p id={questionId} className="text-sm font-bold break-words">

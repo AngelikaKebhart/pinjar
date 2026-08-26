@@ -20,12 +20,11 @@ async function renderDashboard(): Promise<void> {
     </ThemeProvider>,
   );
 
-  // The heading is there immediately, the list only once storage has answered.
-  // The visible count is the first thing that shows it has, in either language.
+  // The heading is there immediately, the list only once storage has answered,
+  // and the visible count is the first thing that shows it has.
   //
-  // Deliberately not the announced count: that one is set by an effect a render
-  // later, so waiting for it means waiting past the render this helper is
-  // actually after. Whoever needs the announcement waits for it themselves.
+  // Deliberately not the announced count: an effect sets that a render later,
+  // so waiting for it would wait past the render this helper is after.
   await waitFor(() => {
     expect(shownCount()).toBeTruthy();
   });
@@ -279,8 +278,8 @@ describe('deleting', () => {
   });
 
   /*
-   * In the buttons' labels alone, the question is readable to a screen reader
-   * and to nobody else — and three cards that look alike leave everyone else
+   * In the buttons' labels alone the question is readable to a screen reader
+   * and to nobody else, and three cards that look alike leave everyone else
    * guessing which one is about to go.
    */
   it('names the link in the question itself', async () => {
@@ -309,7 +308,7 @@ describe('deleting', () => {
   });
 
   /*
-   * Deleting a card takes the focus with it unless it is handed on. Left
+   * Deleting a card takes the focus with it unless it is handed on: left
    * behind, it falls to the document and the next Tab starts again at the top
    * of a page that may be very long.
    */
@@ -381,10 +380,10 @@ describe('accessibility', () => {
   });
 
   /*
-   * The data dialog is only shown once the links are known, and it is also what
-   * reports the deletion. An emptied store therefore has to arrive as "nothing
-   * saved" rather than as "not known yet", or the dialog would empty itself at
-   * the very moment it has something to say.
+   * The dialog is shown only once the links are known, and is also what reports
+   * the deletion — so an emptied store has to arrive as "nothing saved" rather
+   * than "not known yet", or it would empty itself just as it has something to
+   * say.
    */
   it('stays whole after everything was deleted', async () => {
     await save({ url: 'https://shop.example/jersey', title: 'Jersey fabric' });
@@ -509,9 +508,9 @@ describe('editing a link', () => {
   });
 
   /*
-   * One form at a time, and the list is what enforces it. While each card kept
-   * its own state, a long list could end up with a screenful of open forms and
-   * nothing saying where one ended and the next began.
+   * One form at a time, enforced by the list: with per-card state a long list
+   * could end up with a screenful of open forms and nothing saying where one
+   * ended and the next began.
    */
   it('closes the open form when another card is opened', async () => {
     await save({ url: 'https://shop.example/first', title: 'Jersey fabric' });
@@ -526,9 +525,8 @@ describe('editing a link', () => {
   });
 
   /*
-   * The buttons used to be taken away while the form was open, which left the
-   * way out at the foot of the form and made deleting a link one had just
-   * looked at a two-step job.
+   * Buttons taken away while the form is open would put the way out at the foot
+   * of the form, and make deleting a link just looked at a two-step job.
    */
   it('keeps both buttons in reach while the form is open', async () => {
     await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
@@ -541,8 +539,8 @@ describe('editing a link', () => {
     expect(within(card).getByRole('button', { name: 'Delete “Jersey fabric”' })).toBeTruthy();
   });
 
-  // The pencil and the waste bin are both disclosures now; this is what tells
-  // a screen reader which of them has something open.
+  // Both are disclosures, and this is what tells a screen reader which of them
+  // has something open.
   it('says on the button whether the form is open', async () => {
     await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
     await renderDashboard();
@@ -954,9 +952,8 @@ describe('the filters narrowing each other', () => {
   });
 
   // By the label on screen, not by the stored status: the built-in one is the
-  // only translated status (§4), so ordering it by its key would put it
-  // somewhere else than where the user reads it. Without this the list was
-  // in order of first appearance and shuffled itself on every edit.
+  // only translated status (§4), so its key would sort it somewhere else — and
+  // first appearance would shuffle the list on every edit.
   it('sorts the statuses by the label shown', async () => {
     // Saved newest last, so first appearance in the list would be the reverse
     // of the order asserted below.
@@ -980,14 +977,13 @@ describe('the filters narrowing each other', () => {
 });
 
 /*
- * The form and the delete question are two separate disclosures, and every
- * test here exists because they were once a single "which panel is open"
- * value that could only ever show one of them. That made closing either one
- * reach further than it should.
+ * The form and the delete question are two separate disclosures. A single
+ * "which panel is open" value could show only one of them, and made closing
+ * either one reach further than it should — which is what these tests hold.
  */
 describe('the form and the delete question side by side', () => {
-  // Dismissing a question on one card used to clear the whole list's editing
-  // state, which took an unrelated card's open form with it.
+  // Dismissing a question must not clear the whole list's editing state and
+  // take an unrelated card's open form with it.
   it('leaves another card’s form alone when a question is dismissed', async () => {
     await save({ url: 'https://shop.example/first', title: 'Jersey fabric' });
     await save({ url: 'https://shop.example/second', title: 'Cotton fabric' });
@@ -1001,9 +997,9 @@ describe('the form and the delete question side by side', () => {
   });
 
   /*
-   * One panel per link at a time. The pencil and the basket are each drawn
-   * filled while their own panel is up, so two filled buttons over a single
-   * card would be saying that both are showing when only one can be.
+   * One panel per link at a time: each button is drawn filled while its own
+   * panel is up, so two filled buttons over one card would claim both are
+   * showing when only one can be.
    */
   it('closes the form when the question is opened on the same link', async () => {
     await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
@@ -1056,9 +1052,8 @@ describe('the form and the delete question side by side', () => {
   });
 
   /*
-   * Both buttons report the same way, because both are the same component.
-   * The delete button used to say `aria-pressed` — "this control is switched
-   * on" — for something that is a disclosure like the pencil beside it.
+   * Both buttons report the same way, being the same component — not
+   * `aria-pressed`, "this control is switched on", for a disclosure.
    */
   it('says on the delete button whether the question is open', async () => {
     await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
@@ -1079,9 +1074,9 @@ describe('the form and the delete question side by side', () => {
   });
 
   /*
-   * Focus is moved into the question when it opens, which needs the group to
-   * be focusable — but only programmatically. At tabIndex 0 it became a stop
-   * on the way through the page that answered to Tab and then did nothing.
+   * Focus is moved into the question when it opens, so the group has to be
+   * focusable — but only programmatically. At tabIndex 0 it is a stop on the
+   * way through the page that answers to Tab and then does nothing.
    */
   it('keeps the question out of the tab order', async () => {
     await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });

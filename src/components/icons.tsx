@@ -1,14 +1,11 @@
 /**
- * The handful of icons the interface uses, drawn inline.
+ * The handful of icons the interface uses, drawn inline rather than pulled
+ * from a library: a few shapes are not worth a dependency to keep updated for
+ * code that never changes (docs/concept.md §7.4).
  *
- * Inline rather than from an icon library: two shapes are not worth a
- * dependency, and a bundled library would be one more thing to keep updated
- * for the sake of code that never changes (docs/concept.md §7.4).
- *
- * They are decoration, never information — every one of them sits inside a
- * control that carries its own name in text (see `IconButton`), so they are
- * hidden from assistive technology. `currentColor` lets the control decide
- * the color, which keeps the contrast question in one place.
+ * They are decoration, never information — each sits inside a control carrying
+ * its own name in text (see `IconButton`) — so they are hidden from assistive
+ * technology. `currentColor` leaves the contrast question with the control.
  */
 
 /** Pencil, for opening the form on a saved link. */
@@ -34,8 +31,8 @@ export function DeleteIcon() {
 }
 
 /**
- * The frame both share: a square that scales with the text around it, drawn
- * in strokes so it stays legible at small sizes and in either theme.
+ * The shared frame: a square that scales with the text around it, drawn in
+ * strokes so it stays legible at small sizes and in either theme.
  */
 function Icon({ children }: { children: React.ReactNode }) {
   return (
@@ -67,12 +64,10 @@ export function LanguageIcon() {
 }
 
 /**
- * Crescent moon, for light and dark.
- *
- * The same shape whichever scheme is active: it names the setting, it does not
- * report its value. A glyph that flipped between a sun and a moon would be
- * telling the user something in a picture alone (WCAG 2.2 AA, 1.4.1), and the
- * menu behind it already says which of the three is chosen, in words.
+ * Crescent moon, for light and dark. The same shape whichever scheme is active:
+ * it names the setting, it does not report its value. A glyph flipping between
+ * sun and moon would say something in a picture alone (WCAG 2.2 AA, 1.4.1),
+ * and the menu behind it already says which of the three is chosen, in words.
  */
 export function ThemeIcon() {
   return (

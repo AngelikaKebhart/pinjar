@@ -15,14 +15,12 @@ import type { ReactNode } from 'react';
  *   everything is the one that needs it: the whole palette is red, so colour
  *   cannot mark it out — its weight does (WCAG 2.2 AA, 1.4.1).
  *
- * `outline-strong` deliberately uses `text-link` and not `text-danger`, which
- * would say "destructive" more directly: `danger` on `surface-hover` comes to
- * 3.22:1 in the dark palette, so the label would fail 1.4.3 the moment the
- * pointer touched it. `link` clears it in both palettes.
+ * `outline-strong` uses `text-link`, not the more direct `text-danger`:
+ * `danger` on `surface-hover` comes to 3.22:1 in the dark palette, so the label
+ * would fail 1.4.3 the moment the pointer touched it. `link` clears both.
  *
- * Forwards its ref to the underlying `<button>` — some callers move focus to
- * a button programmatically (e.g. returning focus after a cancelled
- * confirmation, WCAG 2.2 AA 2.4.3) and need the DOM node for that.
+ * Forwards its ref, because some callers move focus to a button themselves
+ * (returning it after a cancelled confirmation, WCAG 2.2 AA 2.4.3).
  */
 type ButtonVariant = 'primary' | 'danger' | 'outline' | 'outline-strong';
 

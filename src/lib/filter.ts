@@ -1,20 +1,18 @@
 import { keyToStatus, statusToKey, type LinkStatus, type SavedLink } from './saved-link';
 
 /**
- * Narrowing the dashboard list down (see docs/concept.md §3.5).
+ * Narrowing the dashboard list down (docs/concept.md §3.5).
  *
- * Pure functions over an array — no storage, no React. Combining five filters
- * correctly is the kind of logic that is easy to get subtly wrong and hard to
- * see wrong in a browser, which is exactly what unit tests are for.
+ * Pure functions over an array — no storage, no React.
  */
 
 export interface LinkFilterCriteria {
   /** Matched against title and note, ignoring case. Empty matches everything. */
   search: string;
   /**
-   * `null` matches every category. The empty string matches only links
-   * without one — it can never collide with a real category, because the
-   * model turns a blank category into `null` before storing it.
+   * `null` matches every category; the empty string matches only links without
+   * one. That cannot collide with a real category, because the model turns a
+   * blank one into `null` before storing it.
    */
   category: string | null;
   /** A link has to carry all of them. Empty matches everything. */
@@ -22,9 +20,8 @@ export interface LinkFilterCriteria {
   /** A key from `statusToKey`. `null` matches every status. */
   status: string | null;
   /**
-   * A hostname as stored on the link. `null` matches every domain — there is
-   * no "without a domain" case, because a link that has none cannot be saved
-   * at all (see `createSavedLink`).
+   * A hostname as stored on the link. `null` matches every domain; there is no
+   * "without a domain" case, since such a link cannot be saved at all.
    */
   domain: string | null;
 }
@@ -39,10 +36,8 @@ export const NO_FILTER: LinkFilterCriteria = {
 };
 
 /**
- * Whether anything is actually narrowed down.
- *
- * The dashboard needs this to tell "nothing saved yet" apart from "nothing
- * matches" — two situations that need very different words.
+ * Whether anything is actually narrowed down — what tells "nothing saved yet"
+ * apart from "nothing matches", two situations needing very different words.
  */
 export function isFiltering(criteria: LinkFilterCriteria): boolean {
   return (
@@ -55,12 +50,9 @@ export function isFiltering(criteria: LinkFilterCriteria): boolean {
 }
 
 /**
- * The links matching every criterion at once.
- *
- * Filters combine by narrowing: each one can only ever remove links, never
- * bring any back. Several tags therefore mean "carries all of these", not
- * "carries any of them" — picking a second tag that widened the result again
- * would be a strange thing for a filter to do.
+ * The links matching every criterion at once. Filters combine by narrowing, so
+ * several tags mean "carries all of these": picking a second tag that widened
+ * the result again would be a strange thing for a filter to do.
  */
 export function filterSavedLinks(links: SavedLink[], criteria: LinkFilterCriteria): SavedLink[] {
   const search = criteria.search.trim().toLowerCase();
@@ -109,20 +101,19 @@ function matchesDomain(link: SavedLink, domain: string | null): boolean {
 }
 
 /**
- * What each filter is worth offering (see docs/concept.md §3.5).
+ * What each filter is worth offering (docs/concept.md §3.5).
  *
- * A filter offers the values that the *other* filters leave. Picking the
- * category "Fabrics" therefore narrows the tag list down to the tags actually
- * used in it, instead of listing tags that could only ever produce an empty
- * result.
+ * A filter offers the values that the *other* filters leave: picking the
+ * category "Fabrics" narrows the tag list to the tags actually used in it,
+ * rather than listing tags that could only produce an empty result.
  *
- * Each filter is left out of its own calculation. A single-choice filter would
- * otherwise collapse to the one value already picked, and the tag list would
- * lose every tag as soon as one was ticked.
+ * Each filter is left out of its own calculation, or a single-choice filter
+ * would collapse to the value already picked and the tag list would lose every
+ * tag as soon as one was ticked.
  *
- * Whatever is currently picked stays offered even when nothing carries it any
- * more — a dropdown whose value is missing from its own options renders blank,
- * and a ticked box that disappeared could never be unticked.
+ * Whatever is picked stays offered even when nothing carries it any more — a
+ * dropdown whose value is missing from its options renders blank, and a ticked
+ * box that disappeared could never be unticked.
  */
 
 export interface AvailableCategories {

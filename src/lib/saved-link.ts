@@ -15,9 +15,8 @@ export type BuiltinStatusKey = 'default';
 
 /**
  * A status is either one of ours (translatable) or the user's own wording
- * (never translated). Telling the two apart by a `kind` field — rather than by
- * inspecting a plain string — also means a user-created status literally named
- * "default" cannot collide with the built-in one.
+ * (never translated). A `kind` field rather than a plain string, so a
+ * user-created status named "default" cannot collide with the built-in one.
  */
 export type LinkStatus =
   { kind: 'builtin'; key: BuiltinStatusKey } | { kind: 'custom'; label: string };
@@ -26,28 +25,22 @@ export type LinkStatus =
 export const DEFAULT_STATUS: LinkStatus = { kind: 'builtin', key: 'default' };
 
 /**
- * A stable string identity for a status.
+ * A stable string identity for a status, which is what the status filter
+ * compares: comparing the objects would repeat the `kind` check at every call
+ * site, and comparing the displayed text would make a user-created "Saved"
+ * indistinguishable from the built-in one. The kind is part of the key, so the
+ * two can never collide.
  *
- * Two statuses are the same one exactly when their keys match, which is what
- * the status filter compares — comparing the objects would need the same
- * `kind` check spelled out at every call site, and comparing the displayed
- * text would make a user-created status named "Saved" indistinguishable from
- * the built-in one.
- *
- * The kind is part of the key, so the two can never collide. This is an
- * in-memory identity, not a stored value: nothing persists it, and it is free
- * to change.
+ * In-memory only — nothing persists this, so it is free to change.
  */
 export function statusToKey(status: LinkStatus): string {
   return status.kind === 'builtin' ? `builtin:${status.key}` : `custom:${status.label}`;
 }
 
 /**
- * The status a key stands for.
- *
- * Anything unrecognized becomes the built-in status rather than an error: the
- * only source of keys is `statusToKey`, and a status filter that throws would
- * take the dashboard down over a value that is merely stale.
+ * The status a key stands for. Anything unrecognized becomes the built-in one
+ * rather than an error: a status filter that throws would take the dashboard
+ * down over a value that is merely stale.
  */
 export function keyToStatus(key: string): LinkStatus {
   return key.startsWith(CUSTOM_KEY_PREFIX)
@@ -94,13 +87,12 @@ export type SavedLinkEdits = Partial<
 /**
  * Builds a link from what was captured on the page.
  *
- * Returns `null` when the URL cannot be saved at all — browser-internal pages
- * (`chrome://`, `about:`) and anything that is not `http(s)` have no domain to
- * file the link under. Callers are expected to tell the user, which is why this
- * is a regular return value rather than a thrown error.
+ * Returns `null` — a regular return value, because the caller is expected to
+ * tell the user — when the URL has no domain to file the link under:
+ * browser-internal pages (`chrome://`, `about:`) and anything but `http(s)`.
  *
  * Everything else degrades instead of failing: a missing title falls back to
- * the domain, an unusable image URL becomes `null` (see docs/concept.md §7.1).
+ * the domain, an unusable image URL becomes `null` (docs/concept.md §7.1).
  */
 export function createSavedLink(draft: SavedLinkDraft): SavedLink | null {
   const domain = extractDomain(draft.url);
@@ -143,9 +135,9 @@ export function applyEdits(link: SavedLink, edits: SavedLinkEdits): SavedLink {
 }
 
 /**
- * A link with no title at all would render as an empty row and, worse, as an
- * empty alt text on its preview image. The domain is the one thing that is
- * always available and still says something about where the link leads.
+ * A link with no title would render as an empty row and, worse, as an empty alt
+ * text on its preview image. The domain is always available and still says
+ * something about where the link leads.
  */
 function normalizeTitle(title: string | undefined, domain: string): string {
   return title?.trim() || domain;

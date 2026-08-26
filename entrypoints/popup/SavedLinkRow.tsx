@@ -9,19 +9,17 @@ import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
  * One saved link in the popup's list, with its form folded away behind a
  * button (docs/concept.md §3.1 and §3.4).
  *
- * The dashboard's card is built the same way and for the same reason: a line
- * that names the link and carries its two buttons, and underneath it either
- * the link's details or the form. The line stays put while the form is open,
- * so the way out is exactly where the way in was, and the user can still see
- * which link they are editing.
+ * Built like the dashboard's card and for the same reason: a line that names
+ * the link and carries its two buttons, and underneath it either the details or
+ * the form. The line stays put while the form is open, so the way out is where
+ * the way in was and the user can still see which link they are editing.
  *
- * Which panels are open is kept in `panels`, one answer for the whole list and
- * the same one the dashboard uses. Per-row state let the popup open a second
+ * Which panels are open lives in `panels`, one answer for the whole list and
+ * the same one the dashboard uses — per-row state let the popup open a second
  * form without closing the first.
  *
- * The form is long, the list is what the popup is for, and a form that opened
- * by itself would push the list out of sight for everyone who only wanted to
- * look.
+ * Folded away because the form is long and the list is what the popup is for: a
+ * form that opened by itself would push the list out of sight.
  */
 export function SavedLinkRow({
   link,
@@ -44,21 +42,18 @@ export function SavedLinkRow({
     <div className="flex flex-col gap-2">
       {/*
         Title and its two buttons on one line. As icons they cost 88px of the
-        popup's width instead of the two words they replace, which is what
-        leaves the title enough of the line to still be read (WCAG 2.2 AA,
-        1.4.10) — German buttons included, since a pencil is the same width in
-        any language.
+        popup's width instead of the two words they replace, which leaves the
+        title enough of the line to be read (WCAG 2.2 AA, 1.4.10) — in German
+        too, since a pencil is the same width in any language.
 
-        The floor under the title is what keeps that true when the delete
-        button opens its question in words: rather than squeezing the title
-        into a column three characters wide, the buttons move to a line of
-        their own.
+        The floor under the title keeps that true: rather than squeeze it into a
+        column three characters wide, the buttons move to a line of their own.
       */}
       <div className="flex flex-wrap items-start gap-2">
         {/*
-          A real link, so it keeps its semantics and middle-click. The popup
-          would otherwise navigate itself; target opens a tab. noreferrer keeps
-          the extension's address off the target site.
+          A real link, so it keeps its semantics and middle-click. `target` opens
+          a tab, or the popup would navigate itself; `noreferrer` keeps the
+          extension's address off the target site.
         */}
         <a
           href={link.url}
@@ -91,8 +86,8 @@ export function SavedLinkRow({
       )}
 
       {/*
-        Never alongside the form: opening either of the two closes the other,
-        so the filled button is always the one whose panel is showing.
+        Never alongside the form: opening either closes the other, so the filled
+        button is always the one whose panel is showing.
       */}
       {isAsking && (
         <DeletePanel

@@ -6,10 +6,9 @@ import { useTranslation } from '@/src/i18n/context';
 import { THEME_PREFERENCES, type ThemePreference } from '@/src/lib/theme';
 
 /**
- * Lets the user pick light or dark, or follow the browser.
- *
- * Three answers again, and for the same reason as the language: "automatic" is
- * the default and would be lost by a switch that only toggled.
+ * Lets the user pick light or dark, or follow the browser. Three answers for
+ * the same reason as the language: "automatic" is the default and would be lost
+ * by a switch that only toggled.
  *
  * Unlike the languages, the options are named in the interface language —
  * "Hell" and "Dunkel" are ordinary words of this UI, not names of a language

@@ -3,10 +3,9 @@ import type { LanguagePreference } from '@/src/i18n/messages';
 import type { ThemePreference } from './theme';
 
 /**
- * User settings, stored locally like everything else in this extension.
- *
- * Only the bare choice is kept — no detected locale, no resolved theme, no
- * timestamps. See `.claude/skills/privacy-and-security` on data minimization.
+ * User settings, stored locally like everything else. Only the bare choice is
+ * kept — no detected locale, no resolved theme, no timestamps (data
+ * minimization; see `.claude/skills/privacy-and-security`).
  */
 export const languagePreference = storage.defineItem<LanguagePreference>(
   'local:languagePreference',
