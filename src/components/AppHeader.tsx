@@ -53,9 +53,9 @@ const SIZES: Record<
  *
  * Language and appearance belong to every part of the extension, so they are
  * built in here rather than passed in. `children` is for what only one surface
- * has — the dashboard's export/import/delete-all, which the popup deliberately
- * does not carry: a file picker or a download takes the focus, and Chrome
- * dismisses the popup the moment it loses it.
+ * has — the dashboard's manage menu, which the popup deliberately does not
+ * carry: the file picker and the download behind it both take the focus, and
+ * Chrome dismisses the popup the moment it loses it.
  */
 export function AppHeader({
   title,

@@ -116,12 +116,12 @@ describe('the header', () => {
    * Chrome dismisses the popup on. This test is here to stop them being added
    * back out of symmetry with the dashboard.
    */
-  it('leaves the data file to the dashboard', async () => {
+  it('leaves the manage menu to the dashboard', async () => {
     await givenTabOn('https://shop.example/item');
 
     await renderPopup();
 
-    expect(screen.queryByRole('button', { name: en['data.heading'] ?? '' })).toBeNull();
+    expect(screen.queryByRole('button', { name: en['manage.heading'] ?? '' })).toBeNull();
   });
 });
 
