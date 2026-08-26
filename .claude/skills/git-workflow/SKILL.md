@@ -10,6 +10,7 @@ description: Defines this project's Git and GitHub conventions — Conventional 
 - `main` is the stable, always-working branch.
 - New work happens on feature branches, named descriptively, e.g. `feature/tagging`, `feature/dashboard-filter`, `fix/domain-detection`.
 - Feature branches are merged into `main` via Pull Request, not pushed directly to `main`.
+- **Once a branch is merged, never commit to it again.** Create a new feature branch for any new work. Merged branches are closed; treat them as read-only to keep history clean and prevent confusion.
 
 ## Commit messages: Conventional Commits, in English
 
