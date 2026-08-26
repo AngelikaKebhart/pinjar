@@ -12,7 +12,7 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
 
 ## 2. Zielplattform
 
-- **Browser:** Chrome, Firefox und Edge (Manifest V3, möglichst browserübergreifend kompatibler Code, z.B. via `webextension-polyfill`)
+- **Browser:** Chrome, Firefox und Edge (Manifest V3, möglichst browserübergreifend kompatibler Code). WXT stellt die `browser`-API selbst browserübergreifend bereit – ein separates `webextension-polyfill` wird dafür nicht gebraucht und ist bewusst keine Abhängigkeit des Projekts
 - **Speicherung:** Rein lokal im Browser (z.B. `chrome.storage.local` / `browser.storage.local`), **kein Cloud-Account, kein automatischer Sync**
 - **Geräteübergreifende Nutzung:** Über manuellen **Export/Import** als Datei (z.B. JSON), die der Nutzer selbst kopieren/übertragen kann
 
@@ -55,10 +55,11 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
 - Öffnet sich bei Klick auf das Extension-Icon
 - Zeigt kompakt die gespeicherten Links der **aktuell geöffneten Domain**
 - Ermöglicht schnelles Speichern der aktuellen Seite
+- Trägt denselben Kopf wie das Dashboard, eine Stufe kleiner: Marke, Wortmarke und die beiden Einstellungen Sprache und Erscheinungsbild (siehe 3.7). **Nicht** dabei sind Export, Import und Löschen – ein Dateidialog oder ein Download nimmt den Fokus, und genau daraufhin schließt der Browser das Popup
 - Link zum Öffnen des vollständigen Dashboards
 
 ### 3.5 Dashboard (Verwaltung)
-- Eigene große Ansicht (z.B. eigener Browser-Tab, `extension-page.html`)
+- Eigene große Ansicht in einem eigenen Browser-Tab (`dashboard.html`)
 - Zeigt **alle** gespeicherten Links, unabhängig von der Domain
 - Anzeige inkl. Vorschaubild, Titel, Kategorie, Tags, Status, Notiz
 - **Filter- und Suchfunktionen:**
@@ -78,7 +79,7 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
 ### 3.7 Mehrsprachigkeit (Deutsch & Englisch)
 - Die Oberfläche (Popup und Dashboard) wird **vollständig zweisprachig** angeboten: **Deutsch und Englisch**
 - **Startsprache:** automatisch anhand der Browsersprache – bei einer deutschen Browsersprache (`de`, `de-DE`, `de-AT`, …) startet die Extension auf Deutsch, in allen anderen Fällen auf Englisch
-- **Manueller Wechsel:** Der Nutzer kann die Sprache im Dashboard jederzeit umstellen; die Wahl wird lokal gespeichert und überschreibt ab dann die automatische Erkennung
+- **Manueller Wechsel:** Der Nutzer kann die Sprache jederzeit umstellen – im Dashboard wie im Popup, beide tragen denselben Umschalter im Kopf; die Wahl wird lokal gespeichert und überschreibt ab dann die automatische Erkennung
 - Übersetzt werden **alle** vom Nutzer wahrnehmbaren Texte – auch solche, die nicht sichtbar sind: Alternativtexte von Bildern, ARIA-Labels, Fehler- und Bestätigungsmeldungen sowie Datums- und Zahlenformate
 - **Nicht** übersetzt werden vom Nutzer selbst eingegebene Inhalte (Kategorien, Tags, eigene Status-Werte, Notizen) und von Webseiten übernommene Daten (Titel) – diese bleiben in der Sprache, in der sie erfasst wurden
 - Der Default-Status ist ein Sonderfall: Angezeigt wird er übersetzt ("Gemerkt" / "Saved"), gespeichert wird er als sprachunabhängiger Schlüssel `"default"`, damit ein Sprachwechsel bestehende Einträge nicht unbrauchbar macht (Details in Abschnitt 4)
@@ -131,7 +132,7 @@ Im Einzelnen:
 - Klar erkennbarer Badge/Indikator auf dem Icon
 - Übersichtliche Karten-/Listenansicht im Dashboard mit Vorschaubildern
 - **Layout muss zweisprachig tragfähig sein:** Deutsche Texte sind gegenüber englischen typischerweise 20–35% länger (z.B. "Save" → "Speichern", "Settings" → "Einstellungen"). Beschriftungen, Buttons und Spaltenköpfe dürfen daher keine festen Breiten haben, die in einer der beiden Sprachen abgeschnitten werden oder umbrechen – besonders kritisch im schmalen Popup
-- Die Sprachumschaltung ist eine bewusste, auffindbare Einstellung im Dashboard, kein versteckter Schalter
+- Die Sprachumschaltung ist eine bewusste, auffindbare Einstellung im Kopf beider Oberflächen, kein versteckter Schalter
 
 ## 6. Technische Hinweise & Tech-Stack
 

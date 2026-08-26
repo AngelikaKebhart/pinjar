@@ -23,7 +23,7 @@ Two rules that must not be confused with each other: **everything a developer re
 
 ### 1b. User-facing text: German and English
 
-The extension ships a fully bilingual UI (see `docs/concept.md` §3.7 and §6.3). The language follows the browser by default and can be switched manually in the Dashboard.
+The extension ships a fully bilingual UI (see `docs/concept.md` §3.7 and §6.3). The language follows the browser by default and can be switched manually in either surface — Popup and Dashboard share one header carrying that switch.
 
 - **Never hardcode a user-facing string in a component.** Always reference a translation key and resolve it through the `useTranslation()` hook. A literal like `<button>Save</button>` is a bug, not a placeholder to fix later.
 - This includes text that is not visible on screen: `alt` attributes, `aria-label`/`aria-describedby`, `title` attributes, `<option>` labels, placeholder text, error and confirmation messages, and document titles.
