@@ -5,10 +5,9 @@ export type MessageParams = Record<string, string | number>;
 const PLACEHOLDER_PATTERN = /\{(\w+)\}/g;
 
 /**
- * Replaces `{name}` placeholders with the given values.
- *
- * An unknown placeholder is left as-is rather than replaced with "undefined",
- * so a mistake is visible in the UI instead of silently producing wrong text.
+ * Replaces `{name}` placeholders with the given values. An unknown one is left
+ * as-is rather than becoming "undefined", so the mistake is visible in the UI
+ * instead of silently producing wrong text.
  */
 export function interpolate(template: string, params?: MessageParams): string {
   if (params === undefined) {
@@ -22,11 +21,9 @@ export function interpolate(template: string, params?: MessageParams): string {
 }
 
 /**
- * Looks up a message and fills in its placeholders.
- *
- * A missing key falls back to the key itself: that is recognizable during
- * development and still readable if it ever reaches a user, unlike an empty
- * string or a thrown error that would take the whole view down.
+ * Looks up a message and fills in its placeholders. A missing key falls back to
+ * the key itself: recognizable in development and still readable if it reaches
+ * a user, unlike an empty string or an error that takes the view down.
  */
 export function translate(catalog: MessageCatalog, key: string, params?: MessageParams): string {
   const template = catalog[key];
@@ -36,10 +33,9 @@ export function translate(catalog: MessageCatalog, key: string, params?: Message
 /**
  * Picks the plural form matching `count` in the given language and fills it in.
  *
- * `count` is always available as a placeholder without passing it explicitly,
- * since a plural message practically always shows the number it counts. It is
- * applied last on purpose: a `count` in `params` that disagreed with the value
- * the plural form was chosen from could only ever produce a mismatched message.
+ * `count` is available as a placeholder without being passed, since a plural
+ * message practically always shows the number it counts, and it is applied last
+ * so a disagreeing `count` in `params` cannot produce a mismatched message.
  */
 export function translatePlural(
   catalog: MessageCatalog,
@@ -69,13 +65,11 @@ export function formatNumber(
 }
 
 /**
- * Formats a date in the active language.
- *
- * An unparsable value yields an empty string rather than the `RangeError` that
- * `Intl` would throw: timestamps can come from an imported file, and one broken
- * field must not take down the view listing it. Callers that need a visible
- * placeholder add a translated one — this layer must not invent user-facing
- * text of its own.
+ * Formats a date in the active language. An unparsable value yields an empty
+ * string rather than the `RangeError` `Intl` would throw: timestamps can come
+ * from an imported file, and one broken field must not take down the view
+ * listing it. A caller wanting a visible placeholder adds a translated one —
+ * this layer invents no user-facing text.
  */
 export function formatDate(
   language: Language,
@@ -92,10 +86,9 @@ export function formatDate(
 }
 
 /**
- * Compares two names the way the active language reads them.
- *
- * Not a plain `<`: German umlauts do not sort where their code points would
- * put them, so "Österreich" would land after "Recht" instead of beside "O".
+ * Compares two names the way the active language reads them. Not a plain `<`:
+ * German umlauts do not sort where their code points would put them, so
+ * "Österreich" would land after "Recht" instead of beside "O".
  */
 export function compareNames(language: Language, one: string, other: string): number {
   return one.localeCompare(other, language);

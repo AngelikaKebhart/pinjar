@@ -12,10 +12,10 @@ import { SavedLinkCard } from './SavedLinkCard';
 /**
  * Dashboard opened in its own browser tab.
  *
- * Scope (see docs/concept.md §3.5): list every saved link across all domains,
- * with search and filters for category, tags, status and domain, plus inline
- * editing. Carrying the data in and out (§3.6) and the two settings live in
- * the header, one icon button each.
+ * Scope (docs/concept.md §3.5): every saved link across all domains, with
+ * search and filters for category, tags, status and domain, plus inline
+ * editing. Carrying the data in and out (§3.6) and the two settings live in the
+ * header, one icon button each.
  */
 function App() {
   const { t, plural } = useTranslation();
@@ -26,8 +26,8 @@ function App() {
   const savedLinksHeadingId = useId();
   const filtersHeadingId = useId();
 
-  // Where the focus lands when the last card is deleted: there is no
-  // neighbouring button left to take it.
+  // Where focus lands when the last card is deleted — no neighbouring button
+  // is left to take it.
   const savedLinksHeadingRef = useRef<HTMLHeadingElement>(null);
   const panels = useLinkPanels(savedLinksHeadingRef);
 
@@ -48,8 +48,8 @@ function App() {
     await removeSavedLink(link.id);
     setFeedback({ key: 'linkFeedback.removed', params: { title: link.title } });
 
-    // `shown` is still the list as it was drawn, which is what says who stood
-    // next to the card that just went.
+    // `shown` is still the list as drawn, which says who stood next to the
+    // card that just went.
     panels.moveFocusAfterRemoving(shown, link.id);
   };
 
@@ -72,15 +72,13 @@ function App() {
         : plural('dashboard.savedLinks.count', shown.length);
 
   /**
-   * The same text, announced a moment later.
+   * The same text, announced a moment later: typing changes the count on every
+   * keystroke, and a live region reading each one out would talk over the
+   * typing, so waiting for a pause announces the result stopped at.
    *
-   * Typing in the search field changes the count on every keystroke; a live
-   * region reading each one out loud would talk over the typing. Waiting for
-   * a pause announces the result the user actually stopped at.
-   *
-   * The very first count is not a change anyone needs to be told about, so it
-   * appears immediately — a screen reader arriving at the region straight away
-   * would otherwise find it empty.
+   * The first count is no change anyone needs telling about and appears at
+   * once — a screen reader arriving straight away would otherwise find the
+   * region empty.
    */
   const [announcement, setAnnouncement] = useState('');
   const hasAnnounced = useRef(false);
@@ -123,10 +121,9 @@ function App() {
         </h2>
 
         {/*
-          Two elements for one sentence, and the visible one is hidden from
-          assistive technology on purpose: it updates on every keystroke, while
-          the spoken one below waits for a pause in typing. Left visible to both,
-          the count would be read out twice in a row.
+          Two elements for one sentence: this one updates on every keystroke and
+          is hidden from assistive technology, while the spoken one below waits
+          for a pause. Left to both, the count would be read out twice.
         */}
         <p aria-hidden="true" className="mt-2 text-sm">
           {countText}
@@ -141,9 +138,9 @@ function App() {
         </p>
 
         {/*
-          What was done to a link, as against how many are left. Saving an edit
-          changes a card that may be off screen and moves no count at all, and
-          a deleted card cannot report its own disappearance.
+          What was done to a link, as against how many are left: saving an edit
+          changes a card that may be off screen and moves no count, and a
+          deleted card cannot report its own disappearance.
         */}
         <ActionFeedback message={feedback} />
 
@@ -151,9 +148,8 @@ function App() {
           (shown.length === 0 ? (
             <p className="mt-6 text-sm">
               {/*
-                "Nothing saved yet" and "nothing matches" call for very
-                different words: one asks the user to go save something, the
-                other to loosen a filter.
+                "Nothing saved yet" asks the user to go save something; "nothing
+                matches" asks them to loosen a filter.
               */}
               {links.length === 0
                 ? t('dashboard.savedLinks.empty')

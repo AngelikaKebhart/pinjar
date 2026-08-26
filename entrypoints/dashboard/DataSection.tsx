@@ -18,18 +18,16 @@ import {
  * Carrying the wishlist out as a file, reading one back in, and throwing
  * everything away (docs/concept.md §3.6 and §7.3).
  *
- * The three belong together and in this order: the file is the only way the
- * wishlist reaches another browser, and it is also the only backup there is.
- * Putting the export above the deletion means the way to keep a copy is
- * already on screen when someone reaches for the irreversible button.
+ * In this order on purpose: the file is the only backup there is, so the way to
+ * keep a copy is already on screen when someone reaches for the irreversible
+ * button.
  */
 export function DataSection() {
   const { t } = useTranslation();
 
   /*
-   * What happened, not the sentence about it. A message kept as finished text
-   * stays in the language it was made in, and would still be sitting there in
-   * German after the user switched the dashboard to English (§3.7).
+   * What happened, not the sentence about it: a message kept as finished text
+   * would still sit there in German after a switch to English (§3.7).
    */
   const [notice, setNotice] = useState<Notice | null>(null);
   const [stored, setStored] = useState<StoredDataPresence | null>(null);
@@ -37,8 +35,8 @@ export function DataSection() {
 
   /*
    * Watched rather than read once: importing adds, deleting clears, and the
-   * popup can save something while this tab stays open. Either button would
-   * otherwise sit there claiming a state that has passed.
+   * popup can save while this tab stays open — either button would otherwise
+   * claim a state that has passed.
    */
   useEffect(() => {
     const refresh = () => void getStoredDataPresence().then(setStored);
@@ -58,15 +56,14 @@ export function DataSection() {
   const handleImport = async (file: File) => {
     setNotice({ kind: 'imported', outcome: await importFile(await file.text()) });
 
-    // Without this, picking the same file twice in a row fires no second
-    // change event and nothing would appear to happen.
+    // Without this, picking the same file twice fires no second change event.
     if (pickerRef.current !== null) {
       pickerRef.current.value = '';
     }
   };
 
   // Nothing here can be answered before it is known what is stored, and a
-  // button that flips from idle to available is worse than one that waits.
+  // button flipping from idle to available is worse than one that waits.
   if (stored === null) {
     return null;
   }
@@ -77,9 +74,9 @@ export function DataSection() {
         <h3 className="text-base font-semibold">{t('data.export.heading')}</h3>
 
         {/*
-          With nothing saved, the warning about notes in the file describes a
-          file that would hold none — so the empty case says what is actually
-          the matter, and doubles as the reason the button cannot be pressed.
+          With nothing saved, the warning about notes in the file would describe
+          a file holding none — so the empty case says what is actually the
+          matter, and doubles as the reason the button cannot be pressed.
         */}
         <p className="text-sm text-ink-muted">
           {stored.hasLinks ? t('data.export.hint') : t('data.export.nothingYet')}
@@ -118,11 +115,10 @@ export function DataSection() {
         </Button>
 
         {/*
-          The picker itself stays out of sight, opened by the button above.
-          Its own labels come from the browser rather than from our catalogs —
-          it would offer "Datei auswählen" in a dashboard switched to English
-          (§3.7) — and Tailwind's reset strips the button chrome off it, so on
-          screen it reads as plain text rather than as something to press.
+          Out of sight, opened by the button above: its own labels come from the
+          browser, not our catalogs — "Datei auswählen" in a dashboard switched
+          to English (§3.7) — and Tailwind's reset strips its button chrome, so
+          it would read as plain text rather than something to press.
         */}
         <input
           ref={pickerRef}
@@ -163,10 +159,9 @@ type Notice =
 /**
  * The place a message appears: directly below the button that caused it.
  *
- * The region itself is always in the document, even while it has nothing to
- * say. A live region that appears together with its text is announced
- * unreliably, and this is the only feedback the extension gives — where a
- * file goes and comes from afterwards is the browser's own business.
+ * The region stays in the document even while it has nothing to say, because a
+ * live region that appears together with its text is announced unreliably — and
+ * this is the only feedback the extension gives.
  */
 function NoticeSlot({ notice, shownFor }: { notice: Notice | null; shownFor: Notice['kind'] }) {
   return (
@@ -175,10 +170,9 @@ function NoticeSlot({ notice, shownFor }: { notice: Notice | null; shownFor: Not
 }
 
 /**
- * The sentence for a notice, built in the language that is active right now.
- *
- * Marked by a glyph as well as by the color of its border, so that how it
- * went is never carried by color alone (WCAG 2.2 AA, 1.4.1).
+ * The sentence for a notice, built in the language active right now. Marked by
+ * a glyph as well as by its border colour, so how it went is never carried by
+ * colour alone (WCAG 2.2 AA, 1.4.1).
  */
 function NoticePanel({ notice }: { notice: Notice }) {
   const { t, plural } = useTranslation();
@@ -227,21 +221,20 @@ function describeNotice(
     parts.push(plural('data.import.unusable', outcome.unusable));
   }
 
-  // Entries that could not be read are not a failed import, but the user is
-  // left with less than the file promised and should see that at a glance.
+  // Unreadable entries are not a failed import, but the user is left with less
+  // than the file promised and should see that at a glance.
   return { text: parts.join(' '), wentWrong: outcome.unusable > 0 };
 }
 
 /**
- * Deleting everything, behind a question.
+ * Deleting everything, behind a question. The warning appears only once the
+ * button is pressed, so it is read at the moment it matters rather than sitting
+ * there being ignored, and it says what goes and that nothing brings it back
+ * (WCAG 2.2 AA, 3.3.4).
  *
- * The warning only appears once the button is pressed, so it is read at the
- * moment it matters rather than sitting there being ignored. It says what
- * goes and that nothing brings it back (WCAG 2.2 AA, 3.3.4).
- *
- * "Nothing to delete" means nothing at all is stored, not merely an empty
- * list: categories, tags and status values outlive the links that used them,
- * and clearing those is part of the same right (§7.3).
+ * "Nothing to delete" means nothing at all is stored, not merely an empty list:
+ * categories, tags and status values outlive the links that used them, and
+ * clearing those is part of the same right (§7.3).
  */
 function DeleteEverything({
   hasAnythingToDelete,
@@ -260,15 +253,15 @@ function DeleteEverything({
   const warningId = useId();
 
   /*
-   * The button that was pressed is replaced by the question, so focus has to
-   * be handed over: it would otherwise fall back to the document, leaving a
-   * keyboard user to tab in from the top of the page again. The question
-   * carries the warning as its accessible name, so moving focus there is also
-   * what reads the warning out before it can be answered — without it, the
-   * one safeguard against an irreversible deletion is silent (WCAG 2.2 AA,
-   * 4.1.3). Answering hands focus back, except after a deletion, which leaves
-   * the button disabled and therefore unfocusable; what happened is announced
-   * by the notice instead.
+   * The question replaces the button that was pressed, so focus has to be handed
+   * over or it falls back to the document and a keyboard user tabs in from the
+   * top again. The question carries the warning as its accessible name, so
+   * moving focus there is also what reads the warning out before it can be
+   * answered — without it the one safeguard against an irreversible deletion is
+   * silent (WCAG 2.2 AA, 4.1.3).
+   *
+   * Answering hands focus back, except after a deletion, which leaves the button
+   * disabled and unfocusable; the notice announces what happened instead.
    */
   useEffect(() => {
     if (isAsking) {
@@ -337,11 +330,9 @@ function DeleteEverything({
 }
 
 /**
- * Hands the file to the browser's own download.
- *
- * A blob and a link click rather than the `downloads` permission: the file is
- * built here and never leaves the device, so a permission to save it would
- * buy nothing and cost the user a warning (docs/concept.md §7.4).
+ * Hands the file to the browser's own download — a blob and a link click rather
+ * than the `downloads` permission, which would buy nothing for a file built
+ * here and cost the user a warning (docs/concept.md §7.4).
  */
 function downloadJson(contents: string, fileName: string): void {
   const url = URL.createObjectURL(new Blob([contents], { type: 'application/json' }));
@@ -350,10 +341,8 @@ function downloadJson(contents: string, fileName: string): void {
   link.href = url;
   link.download = fileName;
 
-  // Part of the document while it is clicked, and released only a turn later.
-  // Both are for Firefox, which ignores a click on a link that is not in the
-  // page, and cancels a download whose blob URL is revoked in the same turn
-  // that started it.
+  // Both for Firefox, which ignores a click on a link that is not in the page,
+  // and cancels a download whose blob URL is revoked in the same turn.
   document.body.append(link);
   link.click();
   link.remove();

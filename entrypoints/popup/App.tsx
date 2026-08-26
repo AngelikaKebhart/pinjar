@@ -12,12 +12,12 @@ import { SavedLinkRow } from './SavedLinkRow';
 /**
  * Popup shown when the toolbar icon is clicked.
  *
- * Scope (see docs/concept.md §3.4): save the current page with one click and
- * list what is already saved for the site it belongs to.
+ * Scope (docs/concept.md §3.4): save the current page with one click and list
+ * what is already saved for the site it belongs to.
  *
- * Category, tags, status and note can be given here as well (§3.1), but never
- * on the way: saving is one click and stays one click, and every link on the
- * list carries its own button to open the form when it is wanted.
+ * Category, tags, status and note can be given here too (§3.1), but never on
+ * the way: saving stays one click, and every link on the list carries its own
+ * button to open the form when it is wanted.
  */
 function App() {
   const { t } = useTranslation();
@@ -28,8 +28,8 @@ function App() {
   const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
   const savedLinksHeadingId = useId();
 
-  // Where the focus lands when the last link on the list is deleted: there is
-  // no neighbouring button left to take it.
+  // Where focus lands when the last link is deleted — no neighbouring button
+  // is left to take it.
   const savedLinksHeadingRef = useRef<HTMLHeadingElement>(null);
   const panels = useLinkPanels(savedLinksHeadingRef);
 
@@ -42,8 +42,8 @@ function App() {
       setPage(current);
 
       // A page that cannot be saved leaves the button greyed out, and a
-      // disabled button that gives no reason is a dead end. Said here rather
-      // than on click, which is exactly what the button no longer allows.
+      // disabled button giving no reason is a dead end — so the reason is said
+      // here rather than on a click the button no longer allows.
       if ((current?.domain ?? null) === null) {
         setFeedback({ key: 'popup.status.unsupportedPage' });
       }
@@ -75,15 +75,15 @@ function App() {
     await removeSavedLink(link.id);
     setFeedback({ key: 'linkFeedback.removed', params: { title: link.title } });
 
-    // Before the list is reloaded, while it still says who stood next to the
-    // link that just went.
+    // Before the reload, while the list still says who stood next to the link
+    // that just went.
     panels.moveFocusAfterRemoving(links ?? [], link.id);
 
     await loadLinks(page?.domain ?? null);
   };
 
-  // Nothing is worth rendering before we know which page we are looking at —
-  // except the frame, which does not depend on it.
+  // Nothing is worth rendering before the page is known — except the frame,
+  // which does not depend on it.
   if (links === null) {
     return (
       <PopupFrame>
@@ -111,18 +111,17 @@ function App() {
           </Button>
 
           {/*
-          Saving, editing and deleting all report here. It is the only feedback
-          saving gives at all, and after a deletion it is the only thing left to
-          notice: the row that could have said so is gone.
+          Saving, editing and deleting all report here: the only feedback saving
+          gives, and after a deletion the only thing left to notice — the row
+          that could have said so is gone.
         */}
           <ActionFeedback message={feedback} />
         </div>
 
         {/*
         Only where there is a site to list links for. On a browser page the
-        heading would name a domain that does not exist, and the list would
-        claim that nothing is saved here yet — where "here" is a page that can
-        never hold anything.
+        heading would name a domain that does not exist, and the list would say
+        nothing is saved here yet — of a page that can never hold anything.
       */}
         {canSave && (
           <section aria-labelledby={savedLinksHeadingId} className="flex flex-col gap-2">
@@ -171,10 +170,10 @@ function App() {
 /**
  * The popup's fixed frame: its width, its padding, and the header on top.
  *
- * The header sits outside whatever the popup is currently able to show, so it
- * is there while storage is still being read. Drawn only once the links had
- * arrived it would appear a moment after the popup opened and shove everything
- * below it down, under a pointer already on its way to the save button.
+ * The header sits outside whatever the popup can show yet, so it is there while
+ * storage is still being read. Drawn only once the links arrived, it would
+ * appear a moment later and shove everything below it down, under a pointer
+ * already on its way to the save button.
  */
 function PopupFrame({ children }: { children: ReactNode }) {
   const { t } = useTranslation();

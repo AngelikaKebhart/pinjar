@@ -15,13 +15,13 @@ export interface FeedbackMessage {
 /**
  * The one line that says an action went through.
  *
- * Announced as well as shown: saving an edit changes a card the user may not
- * be looking at, and a deletion removes the only thing that could have carried
- * the news. Polite, so it waits for a pause rather than cutting in.
+ * Announced as well as shown: saving an edit changes a card the user may not be
+ * looking at, and a deletion removes the only thing that could have carried the
+ * news. Polite, so it waits for a pause rather than cutting in.
  *
- * It stays until the next action instead of fading on a timer nobody can
- * outrun (WCAG 2.2 AA, 2.2.1), and the line keeps its height while empty so
- * the first message does not push the page down.
+ * It stays until the next action rather than fading on a timer nobody can
+ * outrun (WCAG 2.2 AA, 2.2.1), and keeps its height while empty so the first
+ * message does not push the page down.
  */
 export function ActionFeedback({ message }: { message: FeedbackMessage | null }) {
   const { t } = useTranslation();

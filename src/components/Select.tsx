@@ -5,15 +5,13 @@ import { ChevronIcon } from '@/src/components/icons';
  * A `<select>` with the drop-down arrow drawn by us rather than by the browser.
  *
  * The native arrow cannot be moved: Chrome paints it as part of the widget,
- * hard against the inline end of the box, and no amount of padding shifts it —
- * so it sits on the border instead of inside the field, and it is painted in
- * the platform's colour rather than the palette's. `appearance: none` turns
- * the widget off and this puts the same shape back where the design has it.
+ * hard against the inline end of the box and in the platform's colour, and no
+ * padding shifts it off the border. `appearance: none` turns the widget off and
+ * this puts the same shape back where the design has it.
  *
- * What stays native is everything that matters: it is still a real `<select>`,
- * so the browser opens and draws the list of options itself, with its own
- * keyboard handling, its own type-ahead and its own announcement. The one
- * thing `appearance: none` does not reach is that list.
+ * Everything that matters stays native: still a real `<select>`, so the browser
+ * draws the option list itself with its own keyboard handling, type-ahead and
+ * announcement — the one thing `appearance: none` does not reach.
  */
 export function Select({
   id,
@@ -42,9 +40,8 @@ export function Select({
       </select>
 
       {/*
-        Decoration on top of the field, and no obstacle to using it: without
-        `pointer-events-none` the arrow would swallow the click that is meant
-        to open the very list it points at.
+        Without `pointer-events-none` the arrow would swallow the click meant to
+        open the very list it points at.
       */}
       <span
         aria-hidden="true"

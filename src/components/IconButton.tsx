@@ -3,45 +3,35 @@ import type { ReactNode, Ref } from 'react';
 /**
  * A button that shows an icon and says its name in text anyway.
  *
- * The name is the whole point of this component existing. An icon on its own
- * has no accessible name at all, and "edit" is not a shape anybody is born
- * knowing — so the label is both the button's name for assistive technology
- * and its tooltip for whoever is looking at the picture and guessing (WCAG
- * 2.2 AA, 1.1.1 and 4.1.2). The `title` reaches the accessibility tree as the
- * button's description, so it carries the same sentence word for word: a
- * screen reader that reads descriptions out then has nothing new to add,
- * where a shorter tooltip would have it say a second, different thing.
+ * The name is the point of this component. An icon alone has no accessible
+ * name, and "edit" is not a shape anybody is born knowing, so the label is both
+ * the button's name for assistive technology and its tooltip for whoever is
+ * guessing at the picture (WCAG 2.2 AA, 1.1.1 and 4.1.2). The `title` reaches
+ * the accessibility tree as the description, so it repeats the label word for
+ * word: a shorter tooltip would have a screen reader say a second, different
+ * thing.
  *
- * The box is 36×36 CSS px by default, comfortably past the 24×24 minimum for
- * pointer targets (2.5.8): the icon inside is smaller than the area that
- * answers to a click.
+ * The box is 36×36 CSS px, comfortably past the 24×24 minimum for pointer
+ * targets (2.5.8). A caller short of room can shrink it by setting
+ * `--control-size` on any ancestor — the popup's header does, at 32px. A custom
+ * property rather than a prop because this button sits four components deep
+ * behind `PopoverButton` and `SettingMenu`, and threading a size through would
+ * give three of them a prop that means nothing to them. **Keep any such value
+ * at 24px or above**, with headroom rather than on the minimum: below it the
+ * target fails 2.5.8 unless it earns the spacing exception, a calculation
+ * nobody will redo when the layout next moves.
  *
- * A caller that is short of room can set `--control-size` on any ancestor to
- * shrink it — the popup's header does, at 32px. Deliberately a custom property
- * rather than a prop: this button is four components deep behind
- * `PopoverButton` and `SettingMenu`, and threading a size through all of them
- * would give three components a prop that means nothing to them.
+ * A button with something open is drawn filled, in the tone the tags use. That
+ * is the sighted counterpart to `aria-expanded` and not the only one — what the
+ * button opened sits right underneath it, so the state is never carried by fill
+ * alone (1.4.1). Not `surface-tint`, which in the light palette is exactly the
+ * hover tone: an open button would be indistinguishable from a hovered one.
  *
- * **24px is the floor and it is not negotiable.** Below it the target fails
- * 2.5.8 outright, unless it earns the spacing exception — which is a separate
- * calculation nobody will redo when the layout next moves. Keep whatever is
- * set here at 24px or above, and prefer some headroom over the exact minimum.
- *
- * A button that has something open right now is drawn filled, in the same tone
- * the tags are set in. That is the sighted counterpart to `aria-expanded`, and
- * it is deliberately not the only one: whatever the button opened is sitting
- * right underneath it, so the state is never carried by the fill alone (1.4.1).
- * Not `surface-tint`, which in the light palette is the hover tone to the
- * letter — an open button would then be indistinguishable from one the pointer
- * happens to be resting on.
- *
- * Every one of them is drawn in `glyph` — Crimson Violet, the deepest of the
- * three reds — including the one that deletes. That is the design's tone for a
- * drawn shape, and it is one tone for all of them on purpose: a red delete
- * glyph among violet ones would be saying "destructive" in color alone
- * (1.4.1), which the shape and the name already say in full. The confirmation
- * that follows is the red one, where the question is in words and the color
- * only underlines them.
+ * Every icon is drawn in `glyph`, the delete one included: that is the design's
+ * tone for a drawn shape, and a red delete glyph among violet ones would say
+ * "destructive" in color alone (1.4.1), which the shape and the name already
+ * say in full. The confirmation that follows is the red one, where the colour
+ * only underlines words.
  */
 export function IconButton({
   label,
@@ -55,7 +45,6 @@ export function IconButton({
   /** Names the button, and names what it acts on: "Delete “Blue jersey”". */
   label: string;
   onClick: () => void;
-  /** The icon. */
   children: ReactNode;
   ref?: Ref<HTMLButtonElement>;
   /** Set on a button that reveals something, to say whether it is showing. */

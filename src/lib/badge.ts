@@ -8,24 +8,21 @@ import { extractDomain } from './url';
 
 /**
  * The toolbar badge: how many links are saved for the site shown in a tab
- * (see docs/concept.md §3.2).
+ * (docs/concept.md §3.2).
  *
- * The badge is set per tab, not globally. The browser then shows each tab its
- * own number by itself, which is both correct when two tabs sit on different
- * sites and cheaper than tracking which tab is in front.
+ * Set per tab, not globally: the browser then shows each tab its own number,
+ * which is correct when two tabs sit on different sites and cheaper than
+ * tracking which tab is in front.
  *
  * Reading the address of a tab the user has not clicked the icon on requires
- * the "tabs" permission — `activeTab` only ever covers a tab the user just
- * acted on, which is exactly the click the badge is meant to save.
+ * the "tabs" permission — `activeTab` only covers a tab the user just acted on,
+ * which is exactly the click the badge is meant to save.
  */
 
 /** Above this the badge would be cut off; the exact number is in the popup. */
 const MAX_DISPLAYED_COUNT = 99;
 
-/**
- * Tailwind's blue-700, the accent the popup already uses. White text on it
- * reaches a contrast ratio of 6.7:1, above the 4.5:1 of WCAG 2.2 AA.
- */
+/** White text on this reaches 6.7:1, above the 4.5:1 of WCAG 2.2 AA. */
 const BADGE_BACKGROUND_COLOR = '#1d4ed8';
 const BADGE_TEXT_COLOR = '#ffffff';
 
@@ -39,11 +36,9 @@ interface BadgedTab {
 }
 
 /**
- * Sets the badge colors once, for every tab.
- *
- * Called from the background worker on every start: colors are not persisted
- * across a restart of the service worker's browser session, and the default
- * badge color is neither ours nor guaranteed to pass contrast.
+ * Sets the badge colors once, for every tab. Called from the background worker
+ * on every start: the colors do not survive a restart, and the browser's own
+ * default is neither ours nor guaranteed to pass contrast.
  */
 export async function applyBadgeAppearance(): Promise<void> {
   await toolbarAction.setBadgeBackgroundColor({ color: BADGE_BACKGROUND_COLOR });
@@ -57,10 +52,9 @@ export async function refreshBadgeForTab(tab: BadgedTab): Promise<void> {
 }
 
 /**
- * Brings every open tab's badge up to date.
- *
- * Used on startup and whenever something changed that affects all tabs at
- * once — a saved or deleted link, or a switch of the interface language.
+ * Brings every open tab's badge up to date: on startup, and whenever something
+ * changed that affects all tabs at once — a saved or deleted link, or a switch
+ * of the interface language.
  */
 export async function refreshAllBadges(): Promise<void> {
   const [tabs, language] = await Promise.all([browser.tabs.query({}), resolveActiveLanguage()]);
@@ -69,8 +63,7 @@ export async function refreshAllBadges(): Promise<void> {
 }
 
 async function updateBadge(tab: BadgedTab, language: Language): Promise<void> {
-  // A tab without an id cannot be addressed; that happens for tabs that are
-  // being discarded while we are looking at them.
+  // A tab without an id cannot be addressed — it is being discarded.
   if (tab.id === undefined) {
     return;
   }
@@ -102,9 +95,8 @@ function formatBadgeText(count: number): string {
 }
 
 /**
- * The tooltip of the toolbar button, which is what carries the count for
- * anyone who cannot see the badge: badge text is drawn onto the icon and is
- * never announced by a screen reader (WCAG 2.2 AA, 1.1.1).
+ * The tooltip carries the count for anyone who cannot see the badge: badge text
+ * is drawn onto the icon and never announced (WCAG 2.2 AA, 1.1.1).
  */
 function describeCount(language: Language, count: number): string {
   const catalog = CATALOGS[language];

@@ -29,12 +29,11 @@ async function renderPopup(): Promise<void> {
     </ThemeProvider>,
   );
 
-  // Waiting for the main landmark, not for the loading text to vanish: the
-  // provider renders nothing at all until it knows the language, so "no
-  // loading text" is true before the popup has even started. The heading will
-  // not do either — it lives in the header, which stands while storage is
-  // still being read — and neither will a button, whose name changes with the
-  // language the test is running in.
+  // The main landmark, not the loading text going away: the provider renders
+  // nothing until it knows the language, so "no loading text" is true before
+  // the popup has started. The heading is no good either — it lives in the
+  // header, which stands while storage is read — nor a button, whose name
+  // changes with the language the test runs in.
   await screen.findByRole('main');
 }
 
@@ -112,11 +111,10 @@ describe('the header', () => {
   });
 
   /*
-   * The dashboard's third header button does not belong here, and that is a
-   * decision rather than an omission: export opens a download and import opens
-   * a file picker, and either one takes the focus away — which is the gesture
-   * Chrome dismisses the popup on. The controls would be unusable, so the test
-   * is here to stop them being added back by symmetry with the dashboard.
+   * The dashboard's third header button is left out by decision, not omission:
+   * a download and a file picker both take the focus away, which is the gesture
+   * Chrome dismisses the popup on. This test is here to stop them being added
+   * back out of symmetry with the dashboard.
    */
   it('leaves the data file to the dashboard', async () => {
     await givenTabOn('https://shop.example/item');
@@ -153,8 +151,8 @@ describe('saving the current page', () => {
     await expect(getSavedLinks()).resolves.toHaveLength(1);
   });
 
-  // A browser page has no domain to file anything under, so the button would
-  // only ever produce an error — better to make that visible up front.
+  // A browser page has no domain to file anything under, so the button could
+  // only produce an error — better to say so up front.
   it('offers no way to save a browser page', async () => {
     await givenTabOn('chrome://extensions');
     await renderPopup();
@@ -175,8 +173,8 @@ describe('saving the current page', () => {
 
 /*
  * Concept §3.1: category, tags, status and note can be given from the popup.
- * Each link carries its own button for them, so that saving stays the single
- * click the extension promises and the list stays what the popup shows.
+ * Each link carries its own button for them, so saving stays the single click
+ * the extension promises and the list stays what the popup shows.
  */
 describe('editing a link from the list', () => {
   it('opens the form from the button on that link', async () => {
@@ -205,8 +203,8 @@ describe('editing a link from the list', () => {
     ]);
   });
 
-  // Saving is one click and stays one click. A form opening by itself would
-  // push the list out of sight of everyone who only wanted to save.
+  // Saving stays one click: a form opening by itself would push the list out
+  // of sight of everyone who only wanted to save.
   it('stays closed when a page is saved', async () => {
     await givenTabOn('https://shop.example/item');
     await renderPopup();
@@ -218,10 +216,9 @@ describe('editing a link from the list', () => {
   });
 
   /*
-   * The way out has to stay where the way in was. While the form replaced the
-   * whole row, closing it again meant finding Cancel at the foot of a form
-   * several screens long, and deleting a link one had just looked at meant
-   * closing the form first.
+   * The way out has to stay where the way in was. A form replacing the whole
+   * row would put Cancel at the foot of something several screens long, and
+   * make deleting a link just looked at a two-step job.
    */
   it('keeps both buttons in reach while the form is open', async () => {
     await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
@@ -234,8 +231,8 @@ describe('editing a link from the list', () => {
     expect(deleteButton('Jersey fabric')).toBeTruthy();
   });
 
-  // Two buttons that look alike and now behave alike. This is the only thing
-  // that tells a screen reader which of them has something open.
+  // Two buttons that look and behave alike; this is the only thing telling a
+  // screen reader which of them has something open.
   it('says on the button whether the form is open', async () => {
     await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
     await givenTabOn('https://shop.example/second');
@@ -316,9 +313,9 @@ describe('the links of this site', () => {
   });
 
   /*
-   * On a browser page there is no site to name. The heading would read
-   * "Saved on " with nothing behind it, and the list below it would report
-   * that nothing is saved here yet — for a page that can never hold anything.
+   * On a browser page there is no site to name: the heading would read "Saved
+   * on " with nothing behind it, and the list would say nothing is saved here
+   * yet — of a page that can never hold anything.
    */
   it('lists nothing for a page that has no site', async () => {
     await givenTabOn('chrome://extensions');
@@ -357,8 +354,8 @@ describe('the links of this site', () => {
 });
 
 describe('accessibility', () => {
-  // Badge-free feedback: the status line is the only signal that saving
-  // worked, so it has to reach a screen reader without stealing focus.
+  // The status line is the only signal that saving worked, so it has to reach
+  // a screen reader without stealing focus.
   it('announces the outcome politely', async () => {
     await givenTabOn('https://shop.example/item');
     await renderPopup();
@@ -392,10 +389,9 @@ describe('accessibility', () => {
   });
 
   /*
-   * The question opens under the button that asked it, so focus has to travel
-   * there and come back. It lands on the question itself rather than on "Yes,
-   * delete": a held or repeated Enter — the very key that opened the panel —
-   * would otherwise answer it, and a confirmation nobody had to give is none.
+   * The question opens under the button that asked it, so focus travels there
+   * and back. It lands on the question, not on "Yes, delete": a held or
+   * repeated Enter — the key that opened the panel — would otherwise answer it.
    */
   it('carries focus into the delete question and back out of it', async () => {
     await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
@@ -415,9 +411,9 @@ describe('accessibility', () => {
   });
 
   /*
-   * Deleting the last link takes the button that focus would have gone to with
-   * it. With nowhere to send it, focus falls to the document and the next Tab
-   * starts over at the top of the popup.
+   * Deleting the last link takes the button focus would have gone to with it,
+   * and focus then falls to the document, where the next Tab starts over at
+   * the top of the popup.
    */
   it('moves focus to the heading when the last link is deleted', async () => {
     await addSavedLink({ url: 'https://shop.example/first', title: 'Jersey fabric' });
@@ -445,10 +441,9 @@ describe('accessibility', () => {
 });
 
 /*
- * The popup and the dashboard share one hook for this, and these are the
- * dashboard's rules asked of the popup. They were not, and the popup quietly
- * answered differently: it kept its own state per row, so opening a second
- * form left the first one standing.
+ * Popup and dashboard share one hook for this, and these are the dashboard's
+ * rules asked of the popup. With state kept per row it answered differently,
+ * and opening a second form left the first one standing.
  */
 describe('one panel at a time', () => {
   async function listWith(...titles: string[]): Promise<void> {

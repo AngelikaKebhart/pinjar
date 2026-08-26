@@ -10,24 +10,22 @@ import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
 /**
  * One saved link in the dashboard list.
  *
- * Everything shown here — title, image, note — either comes from an untrusted
- * page or from the user, and is rendered as plain JSX so React escapes it.
+ * Everything shown here — title, image, note — comes from an untrusted page or
+ * from the user, and is rendered as plain JSX so React escapes it.
  * `dangerouslySetInnerHTML` is forbidden project-wide (docs/concept.md §7.4).
  *
  * Built like the popup's row: a line that names the link and carries its two
- * buttons, and under it either the details or the form. The buttons used to
- * sit in a column of their own at the right of the card and disappeared while
- * the form was open — which took away the way back out and, below the
- * breakpoint where that column stacks, would have left it stranded underneath
- * a form several screens long.
+ * buttons, and under it either the details or the form. The buttons stay on
+ * that line rather than in a column at the right of the card, which would put
+ * the way back out below a form several screens long once it stacks.
  *
- * Which panels are open is not kept here but in `panels`, one list-wide answer
- * shared with the popup. A card that remembered it itself could not know what
- * the card above it was showing.
+ * Which panels are open lives in `panels`, one list-wide answer shared with the
+ * popup: a card remembering it itself could not know what the card above it was
+ * showing.
  *
  * The card stacks until there is room beside the preview image. At 320 CSS px —
- * what 400% zoom leaves of a normal screen — the fixed 96px image plus its gap
- * would take most of the width, and the text beside it would break character by
+ * what 400% zoom leaves of a normal screen — the fixed 96px image and its gap
+ * would take most of the width and break the text beside it character by
  * character (WCAG 2.2 AA, 1.4.10).
  */
 export function SavedLinkCard({
@@ -54,9 +52,9 @@ export function SavedLinkCard({
 
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         {/*
-          The buttons keep to the right edge of the card at every width. The
-          floor under the title lets them drop to a line of their own rather
-          than squeezing it (1.4.10).
+          The buttons keep to the right edge at every width; the floor under the
+          title lets them drop to a line of their own rather than squeeze it
+          (1.4.10).
         */}
         <div className="flex flex-wrap items-start gap-2">
           <h3 className="min-w-40 flex-1 text-base font-medium">
@@ -96,13 +94,11 @@ export function SavedLinkCard({
           />
         ) : (
           /*
-           * A description list, because every row is a label and its value.
-           * That is what lets a screen reader announce "Category: Fabrics"
-           * instead of two unrelated words, and the auto column keeps the
-           * longer German labels from squeezing the values.
-           *
-           * Label above value while narrow, side by side once the label column
-           * can have its width without starving the value.
+           * A description list, because every row is a label and its value —
+           * what lets a screen reader announce "Category: Fabrics" instead of
+           * two unrelated words. The auto column keeps the longer German labels
+           * from squeezing the values, stacked while narrow and side by side
+           * once the label column can have its width.
            */
           <dl className="grid grid-cols-1 gap-x-3 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
             <dt className="text-ink-muted">{t('dashboard.link.status')}</dt>
@@ -145,7 +141,7 @@ export function SavedLinkCard({
         )}
 
         {/*
-          The form and the question take the same place, one at a time: opening
+          The form and the question share this place, one at a time: opening
           either closes the other, so the filled button is always the one whose
           panel is showing.
         */}
@@ -165,10 +161,9 @@ export function SavedLinkCard({
 /**
  * The preview image, or nothing at all.
  *
- * Two things it deliberately does not do: it does not send a referrer, so the
- * site never learns that its image is being loaded from a wishlist, and it
- * does not load until it is scrolled into view. Both limit what opening the
- * dashboard tells the servers the images live on.
+ * No referrer, so the site never learns its image is being loaded from a
+ * wishlist, and no load before it is scrolled into view. Both limit what
+ * opening the dashboard tells the servers the images live on.
  *
  * A preview that fails to load is dropped rather than left as a broken icon:
  * these URLs are months old by the time they are looked at, and images move.
@@ -183,8 +178,8 @@ function PreviewImage({ link }: { link: SavedLink }) {
   return (
     <img
       src={link.imageUrl}
-      // The title is the best description available; a screen reader would
-      // otherwise announce the file name or nothing at all.
+      // The best description available; a screen reader would otherwise
+      // announce the file name or nothing at all.
       alt={link.title}
       referrerPolicy="no-referrer"
       loading="lazy"

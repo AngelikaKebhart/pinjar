@@ -5,19 +5,16 @@ import { savedLinks } from '@/src/lib/storage';
 /**
  * Background service worker.
  *
- * Its only responsibility (see docs/concept.md §3.2) is the toolbar badge: show
- * how many links are saved for the domain of the tab the user is looking at.
- * The counting itself lives in `src/lib/badge`; this file only decides when it
- * has to happen.
- *
- * The body runs again every time the worker is woken up, which is why it starts
- * by bringing all badges up to date rather than assuming they survived.
+ * Its only responsibility (docs/concept.md §3.2) is the toolbar badge: how many
+ * links are saved for the domain of the tab in view. The counting lives in
+ * `src/lib/badge`; this file only decides when it has to happen — and since the
+ * body runs again on every wake-up, it starts by refreshing all badges rather
+ * than assuming they survived.
  *
  * `persistent: false` only reaches the Firefox build, which is MV2 and would
- * otherwise keep this page in memory for the whole browser session. There is
- * nothing here to keep alive between events: every listener starts from what
- * is in storage. Chrome and Edge are MV3, where a service worker is already
- * the only option.
+ * otherwise hold this page in memory for the whole browser session; there is
+ * nothing to keep alive, as every listener starts from what is in storage.
+ * Chrome and Edge are MV3, where a service worker is the only option anyway.
  */
 export default defineBackground({
   persistent: false,

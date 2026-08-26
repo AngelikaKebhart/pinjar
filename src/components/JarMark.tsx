@@ -1,18 +1,16 @@
 /**
  * The PinJar mark: a lidded jar with three pins inside it.
  *
- * The same shape the toolbar icon is drawn from — `scripts/build-icon.mjs`
- * holds the numbers again, because that one rasterizes to PNG without a
- * browser and cannot read a React component. Two renderings of one drawing;
- * changing the shape means changing both, which is what the comment there and
- * this one are for.
+ * `scripts/build-icon.mjs` holds the same numbers again, because it rasterizes
+ * to PNG without a browser and cannot read a React component. **Changing the
+ * shape means changing both.**
  *
- * The two differ in one deliberate way: the toolbar icon fills its glass white
- * because it sits on browser chrome we do not control, while here the glass is
- * left empty so the header shows through it in either palette.
+ * They differ in one deliberate way: the toolbar icon fills its glass white,
+ * sitting on browser chrome we do not control, while here the glass is left
+ * empty so the header shows through it in either palette.
  *
- * Decoration, and hidden from assistive technology: it never appears without
- * the wordmark beside it, and "PinJar, PinJar" is not worth reading out.
+ * Decoration, hidden from assistive technology: it never appears without the
+ * wordmark beside it, and "PinJar, PinJar" is not worth reading out.
  */
 export function JarMark({ className }: { className?: string }) {
   return (
