@@ -61,7 +61,7 @@ export function SettingMenu<Value extends string>({
             // target, well under the 24px minimum (WCAG 2.2 AA, 2.5.8).
             <label
               key={option.value}
-              className="flex cursor-pointer items-center gap-3 rounded-field px-3 py-2 text-sm hover:bg-surface-hover"
+              className="flex items-center gap-3 rounded-field px-3 py-2 text-sm hover:bg-surface-hover"
             >
               <input
                 ref={option.value === value ? chosenRef : undefined}

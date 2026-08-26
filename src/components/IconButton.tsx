@@ -64,7 +64,7 @@ export function IconButton({
       aria-expanded={expanded}
       aria-controls={controls}
       aria-haspopup={hasPopup}
-      className={`inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-control border border-line-strong text-glyph hover:bg-surface-hover ${
+      className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-line-strong text-glyph hover:bg-surface-hover ${
         expanded === true ? 'bg-pill' : ''
       }`}
     >
