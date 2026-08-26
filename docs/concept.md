@@ -291,12 +291,15 @@ Diese Informationen sollen auch in der README.md dokumentiert werden, damit die 
 
 ## 10. Claude Skills für dieses Projekt
 
-Begleitend zu diesem Konzept-Dokument gibt es ein separates Bundle (`claude-skills.zip`) mit vier Claude-Skills, welche die wichtigsten Konventionen aus diesem Dokument als eigenständige, zuverlässig getriggerte Regeln kapseln:
+Begleitend zu diesem Konzept-Dokument gibt es ein separates Bundle (`claude-skills.zip`) mit fünf Claude-Skills, welche die wichtigsten Konventionen aus diesem Dokument als eigenständige, zuverlässig getriggerte Regeln kapseln:
 
 - **`coding-conventions`** – Sprache (Englisch im Code), Clean Code, Projektstruktur (Abschnitte 6 & 7.1)
 - **`accessibility-wcag`** – WCAG 2.2 AA (Abschnitt 7.2)
 - **`privacy-and-security`** – DSGVO & Security (Abschnitte 7.3 & 7.4)
 - **`git-workflow`** – Commits, Branching, CI, Versionierung (Abschnitt 8)
+- **`subagent-delegation`** – wann Arbeit an Subagenten abgegeben wird, mit welchem Modell, und wie deren Ergebnisse geprüft werden
+
+Die ersten vier halten Regeln fest, die aus diesem Dokument stammen; `subagent-delegation` hat hier bewusst keinen Abschnitt als Gegenstück. Er beschreibt nicht das Produkt, sondern die Arbeitsweise daran – wie die Entwicklung organisiert wird, nicht was die Extension können soll. Er steht trotzdem in derselben Liste, weil er im selben Ordner liegt und auf demselben Weg ausgeliefert wird.
 
 **Anwendung:** Den Inhalt des ZIPs (Ordner `.claude/skills/`) direkt ins Root-Verzeichnis des neuen Projekts entpacken. Claude Code erkennt Skills darüber automatisch anhand ihrer Beschreibung und zieht sie situationsabhängig heran (z.B. beim Schreiben von UI-Code automatisch die Accessibility-Regeln, bei Commits automatisch die Git-Konventionen) – unabhängig davon, ob sie im aktuellen Gesprächskontext gerade "präsent" sind.
 
