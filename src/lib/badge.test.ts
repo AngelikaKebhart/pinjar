@@ -172,7 +172,7 @@ describe('badge appearance', () => {
     await applyBadgeAppearance();
 
     await expect(fakeBrowser.action.getBadgeBackgroundColor({})).resolves.toEqual([
-      29, 78, 216, 255,
+      86, 22, 67, 255,
     ]);
   });
 });
