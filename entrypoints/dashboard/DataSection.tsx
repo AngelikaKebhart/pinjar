@@ -330,7 +330,7 @@ function DeleteEverything({
               onDeleted();
             });
           }}
-          className="rounded-control bg-danger px-4 py-2 text-sm font-bold text-on-danger hover:bg-danger-strong"
+          className="rounded-control bg-danger px-4 py-2 text-sm font-bold text-on-danger hover:bg-danger-strong cursor-pointer"
         >
           {t('data.deleteAll.confirm')}
         </button>
@@ -338,7 +338,7 @@ function DeleteEverything({
         <button
           type="button"
           onClick={() => setIsAsking(false)}
-          className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold hover:bg-surface-hover"
+          className="rounded-control border border-line-strong px-4 py-2 text-sm font-bold hover:bg-surface-hover cursor-pointer"
         >
           {t('data.deleteAll.cancel')}
         </button>

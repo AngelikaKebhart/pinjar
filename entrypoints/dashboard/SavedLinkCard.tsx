@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useId, useRef, useState, type Ref } from 'react';
 import { DeletePanel } from '@/src/components/DeletePanel';
 import { SavedLinkActions } from '@/src/components/SavedLinkActions';

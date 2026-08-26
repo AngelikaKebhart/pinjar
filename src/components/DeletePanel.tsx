@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-noninteractive-tabindex */
 import { useEffect, useId, useRef } from 'react';
 import { useTranslation } from '@/src/i18n/context';
 
@@ -24,6 +25,8 @@ export function DeletePanel({
       className="flex flex-col gap-3 rounded-card border border-danger p-4"
       role="group"
       aria-labelledby={questionId}
+      // Intentionally focusable: focus is moved here when the delete
+      // confirmation appears (WCAG 2.2 AA, 2.4.3).
       tabIndex={0}
     >
       <p id={questionId} className="text-sm font-bold break-words">

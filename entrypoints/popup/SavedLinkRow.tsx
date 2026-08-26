@@ -2,7 +2,6 @@ import { useId, useRef, useState, type Ref } from 'react';
 import { DeletePanel } from '@/src/components/DeletePanel';
 import { SavedLinkActions } from '@/src/components/SavedLinkActions';
 import { SavedLinkForm } from '@/src/components/SavedLinkForm';
-import { useTranslation } from '@/src/i18n/context';
 import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
 
 type ActivePanel = 'editing' | 'deleting' | null;
@@ -36,7 +35,6 @@ export function SavedLinkRow({
   onEdit: (edits: SavedLinkEdits) => void | Promise<void>;
   editButtonRef?: Ref<HTMLButtonElement>;
 }) {
-  const { t } = useTranslation();
   const formId = useId();
   const [activePanel, setActivePanel] = useState<ActivePanel>(isEditing ? 'editing' : null);
   const deleteButtonRef = useRef<HTMLButtonElement>(null);
