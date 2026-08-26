@@ -25,8 +25,8 @@ Never let a delegated task inherit the model by default. Pass `model` on every `
 | Model | Use for |
 | --- | --- |
 | `haiku` | Mechanical, fully specified work: locating files, listing occurrences of a symbol, straightforward renames, collecting facts, running a known command and reporting its output. |
-| `sonnet` | Ordinary implementation and research needing some judgement: building a component against a clear spec, tracing how an existing feature works, moderate refactors, drafting tests for settled behaviour. |
-| `opus` | Genuinely hard work: architecture decisions, cross-cutting refactors, subtle bug hunts, and anything touching accessibility, extension permissions/privacy, or the i18n catalogs — areas where a wrong answer is expensive and quiet. |
+| `sonnet` | Ordinary implementation and research needing some judgement: building components against a clear spec, tracing how existing features work, moderate refactors, drafting tests for settled behaviour, writing code, testing in browser, applying design decisions. |
+| `opus` | Genuinely hard work: architecture decisions, design plans, interaction flows, cross-cutting refactors, subtle bug hunts, code review, hard trade-off analysis, and anything touching accessibility, extension permissions/privacy, or the i18n catalogs — areas where a wrong answer is expensive and quiet. |
 
 Two failure modes to avoid symmetrically: a strong model on a trivial search is waste; a cheap model on a judgement call produces confident, plausible, wrong output.
 
@@ -45,12 +45,3 @@ The cheaper the model, the more this matters. If verification fails, correct it 
 ## Reporting
 
 Relay what the delegated work actually produced, including what it got wrong and what you had to fix. Never present an unverified subagent claim as a finished result.
-
-## Your model choice for this project's work
-
-When working directly in this project (not delegating), select your model per phase to optimize token efficiency:
-
-- **`opus`** – for conceptual and judgement work: architecture decisions, design plans, interaction flows, approach recommendations, UX/accessibility considerations, hard trade-off analysis, and code review
-- **`sonnet`** – for implementation: writing code, testing in the browser, refactoring, debugging, applying design decisions
-
-This split prevents wasting expensive compute on mechanical work while ensuring judgement calls have the full picture.
