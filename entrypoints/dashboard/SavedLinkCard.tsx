@@ -1,13 +1,11 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-import { useEffect, useId, useRef, useState, type Ref } from 'react';
+import { useId, useState } from 'react';
 import { DeletePanel } from '@/src/components/DeletePanel';
 import { SavedLinkActions } from '@/src/components/SavedLinkActions';
 import { SavedLinkForm } from '@/src/components/SavedLinkForm';
 import { StatusLabel } from '@/src/components/StatusLabel';
+import type { LinkPanels } from '@/src/components/useLinkPanels';
 import { useTranslation } from '@/src/i18n/context';
 import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
-
-type ActivePanel = 'editing' | 'deleting' | null;
 
 /**
  * One saved link in the dashboard list.
@@ -23,6 +21,10 @@ type ActivePanel = 'editing' | 'deleting' | null;
  * breakpoint where that column stacks, would have left it stranded underneath
  * a form several screens long.
  *
+ * Which panels are open is not kept here but in `panels`, one list-wide answer
+ * shared with the popup. A card that remembered it itself could not know what
+ * the card above it was showing.
+ *
  * The card stacks until there is room beside the preview image. At 320 CSS px —
  * what 400% zoom leaves of a normal screen — the fixed 96px image plus its gap
  * would take most of the width, and the text beside it would break character by
@@ -30,44 +32,21 @@ type ActivePanel = 'editing' | 'deleting' | null;
  */
 export function SavedLinkCard({
   link,
-  isEditing,
-  onEditingChange,
+  panels,
   onDelete,
   onEdit,
-  editButtonRef,
 }: {
   link: SavedLink;
-  isEditing: boolean;
-  onEditingChange: (isEditing: boolean) => void;
+  panels: LinkPanels;
   onDelete: () => void | Promise<void>;
   onEdit: (edits: SavedLinkEdits) => void | Promise<void>;
-  editButtonRef?: Ref<HTMLButtonElement>;
 }) {
   const { t, formatDate } = useTranslation();
   const formId = useId();
-  const [activePanel, setActivePanel] = useState<ActivePanel>(isEditing ? 'editing' : null);
-  const deleteButtonRef = useRef<HTMLButtonElement>(null);
+  const questionId = useId();
 
-  useEffect(() => {
-    if (isEditing && activePanel !== 'editing') {
-      setActivePanel('editing');
-    } else if (!isEditing && activePanel === 'editing') {
-      setActivePanel(null);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditing]);
-
-  const setPanel = (panel: ActivePanel) => {
-    setActivePanel(panel);
-    if (panel === null) {
-      onEditingChange(false);
-      if (activePanel === 'deleting') {
-        deleteButtonRef.current?.focus();
-      }
-    } else if (panel === 'editing') {
-      onEditingChange(true);
-    }
-  };
+  const isEditing = panels.editingId === link.id;
+  const isAsking = panels.deletingId === link.id;
 
   return (
     <article className="flex flex-col gap-4 rounded-card border border-line bg-surface p-4 shadow-card sm:flex-row">
@@ -75,11 +54,9 @@ export function SavedLinkCard({
 
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         {/*
-          The buttons keep to the right edge of the card at every width, which
-          is also where the delete question needs them: its panel is anchored
-          to their right edge and would otherwise hang off the side of a 320px
-          card. The floor under the title lets them drop to a line of their own
-          rather than squeezing it (1.4.10).
+          The buttons keep to the right edge of the card at every width. The
+          floor under the title lets them drop to a line of their own rather
+          than squeezing it (1.4.10).
         */}
         <div className="flex flex-wrap items-start gap-2">
           <h3 className="min-w-40 flex-1 text-base font-medium">
@@ -88,20 +65,18 @@ export function SavedLinkCard({
               href={link.url}
               target="_blank"
               rel="noreferrer"
-              className="break-words text-link underline hover:text-link-strong cursor-pointer"
+              className="break-words text-link underline hover:text-link-strong"
             >
               {link.title}
             </a>
           </h3>
 
           <SavedLinkActions
+            id={link.id}
             title={link.title}
-            activePanel={activePanel}
+            panels={panels}
             formId={formId}
-            onToggleEdit={() => setPanel(activePanel === 'editing' ? null : 'editing')}
-            onToggleDelete={() => setPanel(activePanel === 'deleting' ? null : 'deleting')}
-            editButtonRef={editButtonRef}
-            deleteButtonRef={deleteButtonRef}
+            questionId={questionId}
           />
         </div>
 
@@ -109,24 +84,15 @@ export function SavedLinkCard({
           {link.domain} · {formatDate(link.createdAt)}
         </p>
 
-        {activePanel === 'editing' ? (
+        {isEditing ? (
           <SavedLinkForm
             id={formId}
             link={link}
             onSave={async (edits) => {
               await onEdit(edits);
-              setPanel(null);
+              panels.toggleEditing(link.id);
             }}
-            onCancel={() => setPanel(null)}
-            onDelete={() => setPanel('deleting')}
-          />
-        ) : activePanel === 'deleting' ? (
-          <DeletePanel
-            title={link.title}
-            onConfirm={async () => {
-              await onDelete();
-            }}
-            onCancel={() => setPanel(null)}
+            onCancel={() => panels.toggleEditing(link.id)}
           />
         ) : (
           /*
@@ -176,6 +142,21 @@ export function SavedLinkCard({
               </>
             )}
           </dl>
+        )}
+
+        {/*
+          Below whatever is already there rather than instead of it. Asked from
+          an open form, the question used to replace the form — so answering
+          "no" left the user back at the card with everything they had typed
+          gone.
+        */}
+        {isAsking && (
+          <DeletePanel
+            id={questionId}
+            title={link.title}
+            onConfirm={onDelete}
+            onCancel={() => panels.toggleDeleting(link.id)}
+          />
         )}
       </div>
     </article>

@@ -1,10 +1,6 @@
-import { forwardRef, type Ref } from 'react';
-import { DeleteIcon } from '@/src/components/icons';
 import { DeleteLinkButton } from '@/src/components/DeleteLinkButton';
 import { EditLinkButton } from '@/src/components/EditLinkButton';
-import { useTranslation } from '@/src/i18n/context';
-
-type ActivePanel = 'editing' | 'deleting' | null;
+import type { LinkPanels } from '@/src/components/useLinkPanels';
 
 /**
  * The two things that can be done to a saved link, as one group.
@@ -12,91 +8,49 @@ type ActivePanel = 'editing' | 'deleting' | null;
  * It exists so the popup and the dashboard cannot end up offering the same two
  * actions in different orders, at different sizes or with different behaviour.
  * Both surfaces put it in the same place — the line that carries the link's
- * title — and it stays there while the form below is open. That is the point:
- * the way out of the form is never further away than the way in was, and
- * deleting a link one has just looked at does not first require closing it.
+ * title — and it stays there while whatever it opened sits below. That is the
+ * point: the way out is never further away than the way in was, and deleting
+ * a link one has just looked at does not first require closing it.
  *
- * Both buttons are disclosures with the same contract: press to open, press
- * again to close, Escape closes, and focus comes back to the button either
- * way.
+ * Both buttons are disclosures with the same contract, because both are the
+ * same component: press to open, press again to close, Escape closes, and
+ * focus comes back to the button either way. It takes the whole `panels`
+ * object rather than a handful of booleans and callbacks so that there is one
+ * answer to "what is open" for the entire list, not one per row.
  */
 export function SavedLinkActions({
+  id,
   title,
-  activePanel,
-  isEditing,
+  panels,
   formId,
-  onToggleEdit,
-  onToggleDelete,
-  onDelete,
-  editButtonRef,
-  deleteButtonRef,
+  questionId,
 }: {
+  /** The link these buttons act on. */
+  id: string;
   title: string;
-  activePanel?: ActivePanel;
-  isEditing?: boolean;
+  panels: LinkPanels;
   /** The id of the form the edit button opens, for `aria-controls`. */
   formId: string;
-  onToggleEdit: () => void;
-  onToggleDelete?: () => void;
-  onDelete?: () => void | Promise<void>;
-  /**
-   * Handed in by the list rather than kept here: after a deletion the list is
-   * what knows which link is left to take the focus.
-   */
-  editButtonRef?: Ref<HTMLButtonElement>;
-  deleteButtonRef?: Ref<HTMLButtonElement>;
+  /** The id of the question the delete button opens, for the same reason. */
+  questionId: string;
 }) {
-  const resolvedActivePanel = activePanel ?? (isEditing ? 'editing' : null);
-  const resolvedOnToggleDelete = onToggleDelete;
-  const resolvedOnDelete = onDelete;
-
   return (
     <div className="flex shrink-0 gap-2">
       <EditLinkButton
-        ref={editButtonRef}
+        ref={(button) => panels.rememberEditButton(id, button)}
         title={title}
-        isEditing={resolvedActivePanel === 'editing'}
+        isEditing={panels.editingId === id}
         controls={formId}
-        onToggle={onToggleEdit}
+        onToggle={() => panels.toggleEditing(id)}
       />
 
-      {resolvedOnToggleDelete ? (
-        <DeleteIconButton
-          ref={deleteButtonRef}
-          title={title}
-          isActive={resolvedActivePanel === 'deleting'}
-          onToggle={resolvedOnToggleDelete}
-        />
-      ) : resolvedOnDelete ? (
-        <DeleteLinkButton title={title} onDelete={resolvedOnDelete} />
-      ) : null}
+      <DeleteLinkButton
+        ref={(button) => panels.rememberDeleteButton(id, button)}
+        title={title}
+        isAsking={panels.deletingId === id}
+        controls={questionId}
+        onToggle={() => panels.toggleDeleting(id)}
+      />
     </div>
   );
 }
-
-const DeleteIconButton = forwardRef<
-  HTMLButtonElement,
-  {
-    title: string;
-    isActive: boolean;
-    onToggle: () => void;
-  }
->(function DeleteIconButton({ title, isActive, onToggle }, ref) {
-  const { t } = useTranslation();
-
-  return (
-    <button
-      ref={ref}
-      type="button"
-      onClick={() => {
-        onToggle();
-      }}
-      title={t('deleteLink.actionLabel', { title })}
-      aria-label={t('deleteLink.actionLabel', { title })}
-      aria-pressed={isActive}
-      className="cursor-pointer rounded-control border border-line-strong p-2 text-link hover:bg-surface-hover"
-    >
-      <DeleteIcon />
-    </button>
-  );
-});

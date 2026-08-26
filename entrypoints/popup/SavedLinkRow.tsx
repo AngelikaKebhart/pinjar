@@ -1,10 +1,9 @@
-import { useId, useRef, useState, type Ref } from 'react';
+import { useId } from 'react';
 import { DeletePanel } from '@/src/components/DeletePanel';
 import { SavedLinkActions } from '@/src/components/SavedLinkActions';
 import { SavedLinkForm } from '@/src/components/SavedLinkForm';
+import type { LinkPanels } from '@/src/components/useLinkPanels';
 import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
-
-type ActivePanel = 'editing' | 'deleting' | null;
 
 /**
  * One saved link in the popup's list, with its form folded away behind a
@@ -16,40 +15,30 @@ type ActivePanel = 'editing' | 'deleting' | null;
  * so the way out is exactly where the way in was, and the user can still see
  * which link they are editing.
  *
+ * Which panels are open is kept in `panels`, one answer for the whole list and
+ * the same one the dashboard uses. Per-row state let the popup open a second
+ * form without closing the first.
+ *
  * The form is long, the list is what the popup is for, and a form that opened
  * by itself would push the list out of sight for everyone who only wanted to
  * look.
  */
 export function SavedLinkRow({
   link,
-  isEditing,
-  onEditingChange,
+  panels,
   onDelete,
   onEdit,
-  editButtonRef,
 }: {
   link: SavedLink;
-  isEditing: boolean;
-  onEditingChange: (isEditing: boolean) => void;
+  panels: LinkPanels;
   onDelete: () => void | Promise<void>;
   onEdit: (edits: SavedLinkEdits) => void | Promise<void>;
-  editButtonRef?: Ref<HTMLButtonElement>;
 }) {
   const formId = useId();
-  const [activePanel, setActivePanel] = useState<ActivePanel>(isEditing ? 'editing' : null);
-  const deleteButtonRef = useRef<HTMLButtonElement>(null);
+  const questionId = useId();
 
-  const setPanel = (panel: ActivePanel) => {
-    setActivePanel(panel);
-    if (panel === null) {
-      onEditingChange(false);
-      if (activePanel === 'deleting') {
-        deleteButtonRef.current?.focus();
-      }
-    } else if (panel === 'editing') {
-      onEditingChange(true);
-    }
-  };
+  const isEditing = panels.editingId === link.id;
+  const isAsking = panels.deletingId === link.id;
 
   return (
     <div className="flex flex-col gap-2">
@@ -75,42 +64,44 @@ export function SavedLinkRow({
           href={link.url}
           target="_blank"
           rel="noreferrer"
-          className="min-w-40 flex-1 break-words rounded-sm py-1 text-sm text-link underline hover:text-link-strong cursor-pointer"
+          className="min-w-40 flex-1 break-words rounded-sm py-1 text-sm text-link underline hover:text-link-strong"
         >
           {link.title}
         </a>
 
         <SavedLinkActions
+          id={link.id}
           title={link.title}
-          activePanel={activePanel}
+          panels={panels}
           formId={formId}
-          onToggleEdit={() => setPanel(activePanel === 'editing' ? null : 'editing')}
-          onToggleDelete={() => setPanel(activePanel === 'deleting' ? null : 'deleting')}
-          editButtonRef={editButtonRef}
-          deleteButtonRef={deleteButtonRef}
+          questionId={questionId}
         />
       </div>
 
-      {activePanel === 'editing' ? (
+      {isEditing && (
         <SavedLinkForm
           id={formId}
           link={link}
           onSave={async (edits) => {
             await onEdit(edits);
-            setPanel(null);
+            panels.toggleEditing(link.id);
           }}
-          onCancel={() => setPanel(null)}
-          onDelete={() => setPanel('deleting')}
+          onCancel={() => panels.toggleEditing(link.id)}
         />
-      ) : activePanel === 'deleting' ? (
+      )}
+
+      {/*
+        Below the form rather than instead of it: answering "no" to the
+        question must not take away what the user has typed above it.
+      */}
+      {isAsking && (
         <DeletePanel
+          id={questionId}
           title={link.title}
-          onConfirm={async () => {
-            await onDelete();
-          }}
-          onCancel={() => setPanel(null)}
+          onConfirm={onDelete}
+          onCancel={() => panels.toggleDeleting(link.id)}
         />
-      ) : null}
+      )}
     </div>
   );
 }

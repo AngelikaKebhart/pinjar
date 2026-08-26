@@ -393,3 +393,49 @@ describe('accessibility', () => {
     expect(screen.getByRole('button', { name: 'Diese Seite merken' })).toBeTruthy();
   });
 });
+
+/*
+ * The popup and the dashboard share one hook for this, and these are the
+ * dashboard's rules asked of the popup. They were not, and the popup quietly
+ * answered differently: it kept its own state per row, so opening a second
+ * form left the first one standing.
+ */
+describe('one panel at a time', () => {
+  async function listWith(...titles: string[]): Promise<void> {
+    for (const [index, title] of titles.entries()) {
+      await addSavedLink({ url: `https://shop.example/${index}`, title });
+    }
+    await givenTabOn('https://shop.example/current');
+    await renderPopup();
+  }
+
+  it('closes the open form when another link is opened', async () => {
+    await listWith('Jersey fabric', 'Cotton fabric');
+
+    fireEvent.click(editButton('Jersey fabric'));
+    fireEvent.click(editButton('Cotton fabric'));
+
+    expect(screen.getAllByRole('form')).toHaveLength(1);
+    expect(screen.getByRole('form', { name: 'Edit “Cotton fabric”' })).toBeTruthy();
+  });
+
+  it('leaves another link’s form alone when a question is dismissed', async () => {
+    await listWith('Jersey fabric', 'Cotton fabric');
+
+    fireEvent.click(editButton('Jersey fabric'));
+    fireEvent.click(deleteButton('Cotton fabric'));
+    fireEvent.click(screen.getByRole('button', { name: 'Keep “Cotton fabric”' }));
+
+    expect(screen.getByRole('form', { name: 'Edit “Jersey fabric”' })).toBeTruthy();
+  });
+
+  it('dismisses the question with Escape', async () => {
+    await listWith('Jersey fabric');
+
+    fireEvent.click(deleteButton('Jersey fabric'));
+    fireEvent.keyDown(screen.getByRole('group'), { key: 'Escape' });
+
+    expect(screen.queryByRole('group')).toBeNull();
+    expect(document.activeElement).toBe(deleteButton('Jersey fabric'));
+  });
+});

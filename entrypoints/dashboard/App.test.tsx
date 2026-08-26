@@ -60,6 +60,12 @@ async function save(draft: Parameters<typeof addSavedLink>[0]) {
   return link;
 }
 
+/** Opens one card's form the way a user does, and waits for it to be there. */
+async function startEditing(title: string): Promise<void> {
+  fireEvent.click(within(cardOf(title)).getByRole('button', { name: `Edit “${title}”` }));
+  await screen.findByLabelText(en['dashboard.link.title'] ?? '');
+}
+
 function cardOf(title: string): HTMLElement {
   const card = screen.getByRole('link', { name: title }).closest('article');
   if (card === null) {
@@ -415,11 +421,6 @@ describe('accessibility', () => {
 
 describe('editing a link', () => {
   /** Opens the form on the card of the given link. */
-  async function startEditing(title: string): Promise<void> {
-    fireEvent.click(within(cardOf(title)).getByRole('button', { name: `Edit “${title}”` }));
-    await screen.findByLabelText(en['dashboard.link.title'] ?? '');
-  }
-
   /**
    * Adds a category the way a first one is made: pick "add a new one", type
    * into the field that takes the dropdown's place, confirm with Enter.
@@ -581,11 +582,6 @@ describe('reusing what was entered before', () => {
     fireEvent.change(field(), { target: { value: 'new' } });
     fireEvent.change(field(), { target: { value: name } });
     fireEvent.keyDown(field(), { key: 'Enter' });
-  }
-
-  async function startEditing(title: string): Promise<void> {
-    fireEvent.click(within(cardOf(title)).getByRole('button', { name: `Edit “${title}”` }));
-    await screen.findByLabelText(en['dashboard.link.title'] ?? '');
   }
 
   it('offers a category on the next link once it exists', async () => {
@@ -813,11 +809,6 @@ describe('the filters and an open edit form', () => {
     return section;
   }
 
-  async function startEditing(title: string): Promise<void> {
-    fireEvent.click(within(cardOf(title)).getByRole('button', { name: `Edit “${title}”` }));
-    await screen.findByLabelText(en['dashboard.link.title'] ?? '');
-  }
-
   function enterInForm(label: string, value: string): void {
     fireEvent.change(within(editForm()).getByLabelText(label), { target: { value } });
   }
@@ -975,5 +966,110 @@ describe('the filters narrowing each other', () => {
     await within(filters()).findByRole('option', { name: 'Asked about it' });
 
     expect(offeredStatuses()).toEqual(['Asked about it', 'Saved', 'Zebra print ordered']);
+  });
+});
+
+/*
+ * The form and the delete question are two separate disclosures, and every
+ * test here exists because they were once a single "which panel is open"
+ * value that could only ever show one of them. That made closing either one
+ * reach further than it should.
+ */
+describe('the form and the delete question side by side', () => {
+  // Dismissing a question on one card used to clear the whole list's editing
+  // state, which took an unrelated card's open form with it.
+  it('leaves another card’s form alone when a question is dismissed', async () => {
+    await save({ url: 'https://shop.example/first', title: 'Jersey fabric' });
+    await save({ url: 'https://shop.example/second', title: 'Cotton fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    fireEvent.click(screen.getByRole('button', { name: 'Delete “Cotton fabric”' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Keep “Cotton fabric”' }));
+
+    expect(screen.getByRole('form', { name: 'Edit “Jersey fabric”' })).toBeTruthy();
+  });
+
+  /*
+   * The question opens below the form rather than in its place. Asked from an
+   * open form, it used to replace it — so answering "no" handed the user back
+   * a card with everything they had typed gone, which is the one thing a
+   * confirmation must never do.
+   */
+  it('keeps the form and what was typed into it while the question shows', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    await startEditing('Jersey fabric');
+    const title = screen.getByLabelText(en['dashboard.link.title'] ?? '');
+    fireEvent.change(title, { target: { value: 'Jersey fabric, blue' } });
+
+    fireEvent.click(within(cardOf('Jersey fabric')).getByRole('button', { name: /^Delete/ }));
+
+    expect(screen.getByRole('form')).toBeTruthy();
+    expect(screen.getByLabelText(en['dashboard.link.title'] ?? '')).toHaveProperty(
+      'value',
+      'Jersey fabric, blue',
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Keep “Jersey fabric”' }));
+
+    expect(screen.getByLabelText(en['dashboard.link.title'] ?? '')).toHaveProperty(
+      'value',
+      'Jersey fabric, blue',
+    );
+  });
+
+  // The same key that closes the form, so there is one way out to learn.
+  it('dismisses the question with Escape and hands focus back', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    const button = within(cardOf('Jersey fabric')).getByRole('button', {
+      name: 'Delete “Jersey fabric”',
+    });
+    fireEvent.click(button);
+
+    fireEvent.keyDown(screen.getByRole('group'), { key: 'Escape' });
+
+    expect(screen.queryByRole('group')).toBeNull();
+    expect(document.activeElement).toBe(button);
+  });
+
+  /*
+   * Both buttons report the same way, because both are the same component.
+   * The delete button used to say `aria-pressed` — "this control is switched
+   * on" — for something that is a disclosure like the pencil beside it.
+   */
+  it('says on the delete button whether the question is open', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    const button = () =>
+      within(cardOf('Jersey fabric')).getByRole('button', { name: 'Delete “Jersey fabric”' });
+
+    expect(button().getAttribute('aria-expanded')).toBe('false');
+    expect(button().getAttribute('aria-controls')).toBeTruthy();
+
+    fireEvent.click(button());
+
+    expect(button().getAttribute('aria-expanded')).toBe('true');
+    expect(document.getElementById(button().getAttribute('aria-controls') ?? '')).toBe(
+      screen.getByRole('group'),
+    );
+  });
+
+  /*
+   * Focus is moved into the question when it opens, which needs the group to
+   * be focusable — but only programmatically. At tabIndex 0 it became a stop
+   * on the way through the page that answered to Tab and then did nothing.
+   */
+  it('keeps the question out of the tab order', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Jersey fabric' });
+    await renderDashboard();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete “Jersey fabric”' }));
+
+    expect(screen.getByRole('group').getAttribute('tabindex')).toBe('-1');
   });
 });

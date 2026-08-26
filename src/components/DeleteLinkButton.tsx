@@ -1,101 +1,56 @@
-import { useId, useRef } from 'react';
-import { Button } from '@/src/components/Button';
+import type { Ref } from 'react';
+import { IconButton } from '@/src/components/IconButton';
 import { DeleteIcon } from '@/src/components/icons';
-import { PopoverButton } from '@/src/components/PopoverButton';
 import { useTranslation } from '@/src/i18n/context';
 
 /**
- * Deletes a saved link, asking once before it does.
+ * Opens and closes the delete question for one saved link.
  *
  * Deleting is irreversible and there is no undo, so it is confirmed rather
  * than executed on a single stray click (WCAG 2.2 AA, 3.3.4 — the criterion
  * covers deleting data the user controls).
  *
- * The question is a panel hanging off the button rather than a modal dialog:
- * it needs no focus trap, it cannot be missed behind the window, and it stays
- * next to the thing it is asking about. It used to *replace* the button, which
- * meant the question had to fit into the width of a row of icons and came out
- * crushed against the edge of the card — and pressing the button again was no
- * way back out, because by then there was no button.
- *
- * The question names the link in words, not only in the buttons' labels: with
- * three cards that look alike, "Delete?" on its own leaves everyone but a
- * screen reader user guessing which one is about to go.
+ * A disclosure, exactly like the edit button beside it, and deliberately the
+ * same component underneath: it stays put while the question is showing, says
+ * so through `aria-expanded`, and pressing it again is the way back. It was
+ * once a hand-rolled button reporting `aria-pressed` instead — which says
+ * "this control is switched on", not "the thing below is showing" — and came
+ * out two pixels taller and a different colour than the pencil next to it.
  *
  * Only the way in is an icon. The question and its two answers stay words:
  * an icon is a good enough hint for something the user can undo by not
  * pressing it, and no hint at all for a decision that is final.
+ *
+ * The name behind the basket names the link, because "Delete" on its own says
+ * nothing when a whole list of them is read out one after another (WCAG 2.2
+ * AA, 2.4.6).
  */
 export function DeleteLinkButton({
   title,
-  onDelete,
+  isAsking,
+  controls,
+  onToggle,
+  ref,
 }: {
   /** Title of the link, so every button says which one it deletes. */
   title: string;
-  onDelete: () => void | Promise<void>;
+  isAsking: boolean;
+  /** The id of the question this button opens. */
+  controls: string;
+  onToggle: () => void;
+  ref?: Ref<HTMLButtonElement>;
 }) {
   const { t } = useTranslation();
-  const questionId = useId();
-
-  /*
-   * Opening puts focus on the question rather than on either answer: what has
-   * just appeared is a question, and a keyboard user must not have to hunt for
-   * it. Deliberately not on "Yes, delete" — a held or repeated Enter, which is
-   * what opened the panel in the first place, would then delete the link
-   * without a second decision ever being made, and a confirmation nobody had
-   * to answer is no confirmation.
-   *
-   * Both ways back — Escape and pressing the button again — return focus to
-   * the button, which `PopoverButton` handles.
-   *
-   * Confirming is the one case with nowhere to hand focus: the link is gone
-   * and this component with it. Where the focus goes next is the list's
-   * business, since only the list knows what is left.
-   */
-  const questionRef = useRef<HTMLDivElement>(null);
 
   return (
-    <PopoverButton
+    <IconButton
+      ref={ref}
       label={t('deleteLink.actionLabel', { title })}
-      icon={<DeleteIcon />}
-      initialFocusRef={questionRef}
+      expanded={isAsking}
+      controls={controls}
+      onClick={onToggle}
     >
-      {(close) => (
-        // A group rather than a dialog: the page behind stays usable, and the
-        // two answers would otherwise sit in the tab order with nothing saying
-        // what they answer.
-        <div
-          ref={questionRef}
-          tabIndex={-1}
-          role="group"
-          aria-labelledby={questionId}
-          className="flex flex-col gap-3"
-        >
-          <p id={questionId} className="text-sm font-bold break-words">
-            {t('deleteLink.question', { title })}
-          </p>
-
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="danger"
-              onClick={() => void onDelete()}
-              aria-label={t('deleteLink.confirmLabel', { title })}
-            >
-              {t('deleteLink.confirm')}
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={close}
-              aria-label={t('deleteLink.cancelLabel', { title })}
-            >
-              {t('deleteLink.cancel')}
-            </Button>
-          </div>
-        </div>
-      )}
-    </PopoverButton>
+      <DeleteIcon />
+    </IconButton>
   );
 }
