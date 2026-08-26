@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { ActionFeedback, type FeedbackMessage } from '@/src/components/ActionFeedback';
+import { AppHeader } from '@/src/components/AppHeader';
 import { Button } from '@/src/components/Button';
 import { useLinkPanels } from '@/src/components/useLinkPanels';
 import { useTranslation } from '@/src/i18n/context';
@@ -81,12 +82,13 @@ function App() {
     await loadLinks(page?.domain ?? null);
   };
 
-  // Nothing is worth rendering before we know which page we are looking at.
+  // Nothing is worth rendering before we know which page we are looking at —
+  // except the frame, which does not depend on it.
   if (links === null) {
     return (
-      <main className="w-96 p-4">
+      <PopupFrame>
         <p className="text-sm">{t('popup.loading')}</p>
-      </main>
+      </PopupFrame>
     );
   }
 
@@ -96,73 +98,92 @@ function App() {
   const canSave = currentDomain !== null;
 
   return (
-    <main className="flex w-96 flex-col gap-4 p-4">
-      <h1 className="text-base font-semibold">{t('popup.title')}</h1>
+    <PopupFrame>
+      <main className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <Button
+            type="button"
+            variant="primary"
+            onClick={() => void handleSave()}
+            disabled={!canSave || isSaving}
+          >
+            {isSaving ? t('popup.saving') : t('popup.savePage')}
+          </Button>
 
-      <div className="flex flex-col gap-2">
-        <Button
-          type="button"
-          variant="primary"
-          onClick={() => void handleSave()}
-          disabled={!canSave || isSaving}
-        >
-          {isSaving ? t('popup.saving') : t('popup.savePage')}
-        </Button>
-
-        {/*
+          {/*
           Saving, editing and deleting all report here. It is the only feedback
           saving gives at all, and after a deletion it is the only thing left to
           notice: the row that could have said so is gone.
         */}
-        <ActionFeedback message={feedback} />
-      </div>
+          <ActionFeedback message={feedback} />
+        </div>
 
-      {/*
+        {/*
         Only where there is a site to list links for. On a browser page the
         heading would name a domain that does not exist, and the list would
         claim that nothing is saved here yet — where "here" is a page that can
         never hold anything.
       */}
-      {canSave && (
-        <section aria-labelledby={savedLinksHeadingId} className="flex flex-col gap-2">
-          <h2
-            id={savedLinksHeadingId}
-            ref={savedLinksHeadingRef}
-            tabIndex={-1}
-            className="text-sm font-medium"
-          >
-            {t('popup.savedLinks.heading', { domain: currentDomain })}
-          </h2>
+        {canSave && (
+          <section aria-labelledby={savedLinksHeadingId} className="flex flex-col gap-2">
+            <h2
+              id={savedLinksHeadingId}
+              ref={savedLinksHeadingRef}
+              tabIndex={-1}
+              className="text-sm font-medium"
+            >
+              {t('popup.savedLinks.heading', { domain: currentDomain })}
+            </h2>
 
-          {links.length === 0 ? (
-            <p className="text-sm text-ink-muted">{t('popup.savedLinks.empty')}</p>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {links.map((link) => (
-                <li key={link.id}>
-                  <SavedLinkRow
-                    link={link}
-                    panels={panels}
-                    onDelete={() => handleRemove(link)}
-                    onEdit={(edits) => handleEdit(link, edits)}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      )}
+            {links.length === 0 ? (
+              <p className="text-sm text-ink-muted">{t('popup.savedLinks.empty')}</p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {links.map((link) => (
+                  <li key={link.id}>
+                    <SavedLinkRow
+                      link={link}
+                      panels={panels}
+                      onDelete={() => handleRemove(link)}
+                      onEdit={(edits) => handleEdit(link, edits)}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
 
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => {
-          void browser.tabs.create({ url: browser.runtime.getURL('/dashboard.html') });
-        }}
-      >
-        {t('popup.openDashboard')}
-      </Button>
-    </main>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            void browser.tabs.create({ url: browser.runtime.getURL('/dashboard.html') });
+          }}
+        >
+          {t('popup.openDashboard')}
+        </Button>
+      </main>
+    </PopupFrame>
+  );
+}
+
+/**
+ * The popup's fixed frame: its width, its padding, and the header on top.
+ *
+ * The header sits outside whatever the popup is currently able to show, so it
+ * is there while storage is still being read. Drawn only once the links had
+ * arrived it would appear a moment after the popup opened and shove everything
+ * below it down, under a pointer already on its way to the save button.
+ */
+function PopupFrame({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex w-96 flex-col gap-4 p-4">
+      <AppHeader title={t('popup.title')} size="compact" />
+      {children}
+    </div>
   );
 }
 
