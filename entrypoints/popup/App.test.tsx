@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
+import { ThemeProvider } from '@/src/components/ThemeProvider';
 import { interpolate } from '@/src/i18n/format';
 import { TranslationProvider } from '@/src/i18n/TranslationProvider';
 import { CATALOGS } from '@/src/i18n/messages';
@@ -18,16 +19,23 @@ async function givenTabOn(url: string): Promise<void> {
 }
 
 async function renderPopup(): Promise<void> {
+  // The same two providers the popup is mounted under in main.tsx. The header
+  // reads both of them — the theme switcher would throw without ThemeProvider.
   render(
-    <TranslationProvider>
-      <App />
-    </TranslationProvider>,
+    <ThemeProvider>
+      <TranslationProvider>
+        <App />
+      </TranslationProvider>
+    </ThemeProvider>,
   );
 
-  // Waiting for the heading, not for the loading text to vanish: the
+  // Waiting for the main landmark, not for the loading text to vanish: the
   // provider renders nothing at all until it knows the language, so "no
-  // loading text" is true before the popup has even started.
-  await screen.findByRole('heading', { level: 1 });
+  // loading text" is true before the popup has even started. The heading will
+  // not do either — it lives in the header, which stands while storage is
+  // still being read — and neither will a button, whose name changes with the
+  // language the test is running in.
+  await screen.findByRole('main');
 }
 
 function saveButton(): HTMLElement {
@@ -85,6 +93,38 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+});
+
+describe('the header', () => {
+  it('carries the settings that apply everywhere', async () => {
+    await givenTabOn('https://shop.example/item');
+
+    await renderPopup();
+
+    const header = screen.getByRole('banner');
+    expect(within(header).getByRole('heading', { level: 1, name: 'PinJar' })).toBeTruthy();
+    expect(
+      within(header).getByRole('button', { name: en['settings.language.label'] ?? '' }),
+    ).toBeTruthy();
+    expect(
+      within(header).getByRole('button', { name: en['settings.theme.label'] ?? '' }),
+    ).toBeTruthy();
+  });
+
+  /*
+   * The dashboard's third header button does not belong here, and that is a
+   * decision rather than an omission: export opens a download and import opens
+   * a file picker, and either one takes the focus away — which is the gesture
+   * Chrome dismisses the popup on. The controls would be unusable, so the test
+   * is here to stop them being added back by symmetry with the dashboard.
+   */
+  it('leaves the data file to the dashboard', async () => {
+    await givenTabOn('https://shop.example/item');
+
+    await renderPopup();
+
+    expect(screen.queryByRole('button', { name: en['data.heading'] ?? '' })).toBeNull();
+  });
 });
 
 describe('saving the current page', () => {
