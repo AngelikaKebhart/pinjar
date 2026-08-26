@@ -31,7 +31,7 @@ export default {
         // Skip if it's a disabled button (users won't interact with it)
         if (elementName === 'button') {
           const disabledAttr = node.attributes.find(
-            (attr) => attr.name && attr.name.name === 'disabled'
+            (attr) => attr.name && attr.name.name === 'disabled',
           );
           if (disabledAttr) {
             return;
@@ -40,7 +40,7 @@ export default {
 
         // Find className attribute
         const classNameAttr = node.attributes.find(
-          (attr) => attr.name && attr.name.name === 'className'
+          (attr) => attr.name && attr.name.name === 'className',
         );
 
         if (!classNameAttr || classNameAttr.type !== 'JSXAttribute') {

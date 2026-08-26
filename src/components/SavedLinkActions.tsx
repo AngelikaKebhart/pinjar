@@ -67,9 +67,9 @@ export function SavedLinkActions({
           isActive={resolvedActivePanel === 'deleting'}
           onToggle={resolvedOnToggleDelete}
         />
-      ) : (
+      ) : resolvedOnDelete ? (
         <DeleteLinkButton title={title} onDelete={resolvedOnDelete} />
-      )}
+      ) : null}
     </div>
   );
 }
