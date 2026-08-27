@@ -181,16 +181,25 @@ export function LinkFilters({
       )}
 
       {/*
-        Only offered when there is something to reset — a button that does
-        nothing still has to be thought about every time it is seen.
+        Always there, and dimmed while there is nothing to reset. Shown only
+        when it had work to do, it appeared and vanished as filters were picked
+        and cleared, shifting everything below it — and a control that is
+        sometimes absent has to be looked for rather than remembered.
+
+        `disabled` rather than a click that does nothing: it is what tells a
+        screen reader the button is unavailable, and it takes the button out of
+        the tab order so the keyboard is not walked through a dead stop.
       */}
-      {isFiltering(criteria) && (
-        <div>
-          <Button type="button" variant="primary" onClick={() => onChange(NO_FILTER)}>
-            {t('filters.reset')}
-          </Button>
-        </div>
-      )}
+      <div>
+        <Button
+          type="button"
+          variant="primary"
+          disabled={!isFiltering(criteria)}
+          onClick={() => onChange(NO_FILTER)}
+        >
+          {t('filters.reset')}
+        </Button>
+      </div>
     </div>
   );
 }
