@@ -1,0 +1,452 @@
+import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { ActionFeedback, type FeedbackMessage } from '@/src/components/ActionFeedback';
+import { Button } from '@/src/components/Button';
+import { ConfirmPanel } from '@/src/components/ConfirmPanel';
+import { Dialog } from '@/src/components/Dialog';
+import { IconButton } from '@/src/components/IconButton';
+import { DeleteIcon, EditIcon } from '@/src/components/icons';
+import { useButtonRegistry } from '@/src/components/useButtonRegistry';
+import { useTranslation } from '@/src/i18n/context';
+import type { OrganizationKind } from '@/src/lib/organization';
+import {
+  deleteOrganizationValue,
+  getOrganizationValues,
+  renameOrganizationValue,
+  watchStoredData,
+  type OrganizationValue,
+} from '@/src/lib/storage';
+
+/**
+ * Renaming and deleting the values links are organized by (docs/concept.md
+ * §3.3) — one dialog, opened three times over: for categories, for tags and for
+ * the user's own status labels.
+ *
+ * One component rather than three, for the same reason `src/lib/organization`
+ * is one module: the three differ in what they are called and in what deleting
+ * one does to a link, and in nothing else. Three copies would drift, and the
+ * one that drifted would be the one nobody opened.
+ *
+ * Reached from the manage menu rather than from the form that offers the
+ * values: the form is where a link is filed, and a list of everything ever
+ * typed would bury the two fields it is really for.
+ */
+export function OrganizationDialog({
+  kind,
+  isOpen,
+  onClose,
+}: {
+  kind: OrganizationKind;
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <Dialog isOpen={isOpen} onClose={onClose} title={t(`organization.${kind}.heading`)}>
+      <OrganizationList kind={kind} />
+    </Dialog>
+  );
+}
+
+/** Which row has a panel open, and which of the two it is. */
+interface OpenPanel {
+  value: string;
+  mode: 'rename' | 'delete';
+}
+
+function OrganizationList({ kind }: { kind: OrganizationKind }) {
+  const { t, plural, compareNames } = useTranslation();
+
+  const [values, setValues] = useState<OrganizationValue[] | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
+  const [openPanel, setOpenPanel] = useState<OpenPanel | null>(null);
+
+  /**
+   * Where focus goes once the changed list has been rendered. A ref rather than
+   * state: nothing is drawn from it, and clearing it is not a reason to render
+   * the list a second time.
+   */
+  const valueToFocus = useRef<string | null>(null);
+  const summaryRef = useRef<HTMLParagraphElement>(null);
+
+  const [renameButtons, rememberRenameButton] = useButtonRegistry();
+  const [deleteButtons, rememberDeleteButton] = useButtonRegistry();
+
+  /*
+   * Watched as well as read: the popup can save a link while this dialog is
+   * open, and a value it invents belongs in the list rather than appearing only
+   * the next time the dialog is opened.
+   */
+  useEffect(() => {
+    const refresh = () => void getOrganizationValues(kind).then(setValues);
+
+    refresh();
+
+    return watchStoredData(refresh);
+  }, [kind]);
+
+  /*
+   * A rename or a deletion takes the row that was being worked on off the
+   * screen — a renamed row sorts elsewhere, a merged or deleted one is gone —
+   * and focus would fall to the dialog with nothing saying why. Done here
+   * rather than in the handler, because the button focus moves to only exists
+   * once the new list has been rendered.
+   */
+  useEffect(() => {
+    const target = valueToFocus.current;
+
+    if (values === null || target === null) {
+      return;
+    }
+
+    valueToFocus.current = null;
+    (renameButtons.current.get(target) ?? summaryRef.current)?.focus();
+    // `renameButtons` is a ref and never changes; the linter cannot see that
+    // through the hook that hands it over.
+  }, [values, renameButtons]);
+
+  const togglePanel = (value: string, mode: OpenPanel['mode']) => {
+    const isClosing = openPanel?.value === value && openPanel.mode === mode;
+
+    setOpenPanel(isClosing ? null : { value, mode });
+
+    /*
+     * Neither button leaves when its panel closes — which is why both stay on
+     * screen while it is open — so focus can go back straight away. The panel
+     * cannot do this itself: it is where focus currently is, and it knows
+     * nothing about the button that opened it.
+     */
+    if (isClosing) {
+      const buttons = mode === 'rename' ? renameButtons : deleteButtons;
+
+      buttons.current.get(value)?.focus();
+    }
+  };
+
+  /**
+   * Runs a change, says what it did, and puts focus back where the user was.
+   * The list is re-read here rather than left to the watcher above, so that the
+   * render focus depends on cannot arrive after the focus does.
+   */
+  const applyChange = async (change: () => Promise<FeedbackMessage | null>, focusOn: string) => {
+    const message = await change();
+
+    valueToFocus.current = focusOn;
+    setValues(await getOrganizationValues(kind));
+    setFeedback(message);
+    setOpenPanel(null);
+  };
+
+  const handleRename = (from: string, to: string) =>
+    applyChange(async () => {
+      const outcome = await renameOrganizationValue(kind, from, to);
+
+      // Nothing happened: the value went while the field was open, which the
+      // refreshed list says better than a sentence about it would.
+      if (outcome === null) {
+        return null;
+      }
+
+      return {
+        key: outcome.merged ? 'organization.feedback.merged' : 'organization.feedback.renamed',
+        params: { from, to },
+      };
+    }, to);
+
+  const handleDelete = (value: string, usage: number, neighbour: string | null) =>
+    applyChange(async () => {
+      await deleteOrganizationValue(kind, value);
+
+      return {
+        key: usage > 0 ? 'organization.feedback.deletedInUse' : 'organization.feedback.deleted',
+        params: { value },
+      };
+      // No neighbour left means the list is empty, and focus falls to the line
+      // that now says so.
+    }, neighbour ?? '');
+
+  // Nothing can be said about the list before it is known, and a count that
+  // flicked from nothing to twenty-seven would be read out twice.
+  if (values === null) {
+    return null;
+  }
+
+  const shown = [...values].sort((one, other) => compareNames(one.value, other.value));
+  const unused = shown.filter((value) => value.usage === 0).length;
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/*
+        Plain text, not a live region: every change to this line is the result
+        of an action the feedback below already announces, and the same event
+        announced twice is one interruption too many.
+      */}
+      <p ref={summaryRef} tabIndex={-1} className="text-sm text-ink-muted">
+        {shown.length === 0
+          ? t(`organization.${kind}.empty`)
+          : [
+              plural(`organization.${kind}.count`, shown.length),
+              ...(unused > 0 ? [plural('organization.unused', unused)] : []),
+            ].join(' ')}
+      </p>
+
+      <ActionFeedback message={feedback} />
+
+      {shown.length > 0 && (
+        <ul className="flex flex-col gap-2">
+          {shown.map((value, position) => (
+            <ValueRow
+              key={value.value}
+              kind={kind}
+              value={value}
+              knownValues={shown.map((each) => each.value)}
+              openPanel={openPanel}
+              onToggle={togglePanel}
+              rememberRenameButton={rememberRenameButton}
+              rememberDeleteButton={rememberDeleteButton}
+              onRename={handleRename}
+              onDelete={() =>
+                handleDelete(
+                  value.value,
+                  value.usage,
+                  (shown[position + 1] ?? shown[position - 1])?.value ?? null,
+                )
+              }
+            />
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/**
+ * One remembered value: what it is called, what still hangs on it, and the two
+ * buttons that change that.
+ *
+ * Both buttons are disclosures with the same contract as the ones on a saved
+ * link: press to open, press again to close, Escape closes, focus comes back
+ * either way. Each says which value it acts on, because "Rename" on its own
+ * says nothing when a list of thirty is read out one after another (WCAG 2.2
+ * AA, 2.4.6).
+ *
+ * The usage count sits under the name rather than beside it: in German these
+ * are long enough that a single line would break either the name or the count
+ * character by character once the dialog is narrow (1.4.10).
+ */
+function ValueRow({
+  kind,
+  value,
+  knownValues,
+  openPanel,
+  onToggle,
+  rememberRenameButton,
+  rememberDeleteButton,
+  onRename,
+  onDelete,
+}: {
+  kind: OrganizationKind;
+  value: OrganizationValue;
+  /** Every name in the list, so a rename onto one of them can be asked about. */
+  knownValues: string[];
+  openPanel: OpenPanel | null;
+  onToggle: (value: string, mode: OpenPanel['mode']) => void;
+  rememberRenameButton: (value: string, button: HTMLButtonElement | null) => void;
+  rememberDeleteButton: (value: string, button: HTMLButtonElement | null) => void;
+  onRename: (from: string, to: string) => void | Promise<void>;
+  onDelete: () => void | Promise<void>;
+}) {
+  const { t, plural } = useTranslation();
+  const formId = useId();
+  const questionId = useId();
+
+  const isRenaming = openPanel?.value === value.value && openPanel.mode === 'rename';
+  const isDeleting = openPanel?.value === value.value && openPanel.mode === 'delete';
+
+  return (
+    <li className="flex flex-col gap-3 rounded-card border border-line p-3">
+      {/*
+        The buttons keep to the right edge at every width; the floor under the
+        name lets them drop to a line of their own rather than squeeze it.
+      */}
+      <div className="flex flex-wrap items-start gap-2">
+        <div className="min-w-32 flex-1">
+          <p className="text-sm font-medium break-words">{value.value}</p>
+          <p className="text-sm text-ink-muted">
+            {value.usage === 0
+              ? t('organization.usage.none')
+              : plural('organization.usage', value.usage)}
+          </p>
+        </div>
+
+        <div className="flex shrink-0 gap-2">
+          <IconButton
+            ref={(button) => rememberRenameButton(value.value, button)}
+            label={t('organization.rename.actionLabel', { value: value.value })}
+            expanded={isRenaming}
+            controls={formId}
+            onClick={() => onToggle(value.value, 'rename')}
+          >
+            <EditIcon />
+          </IconButton>
+
+          <IconButton
+            ref={(button) => rememberDeleteButton(value.value, button)}
+            label={t('organization.delete.actionLabel', { value: value.value })}
+            expanded={isDeleting}
+            controls={questionId}
+            onClick={() => onToggle(value.value, 'delete')}
+          >
+            <DeleteIcon />
+          </IconButton>
+        </div>
+      </div>
+
+      {isRenaming && (
+        <RenameForm
+          id={formId}
+          value={value.value}
+          knownValues={knownValues}
+          onRename={(name) => onRename(value.value, name)}
+          onCancel={() => onToggle(value.value, 'rename')}
+        />
+      )}
+
+      {isDeleting && (
+        <ConfirmPanel
+          id={questionId}
+          question={t('organization.delete.question', { value: value.value })}
+          /*
+            The hint is the whole point of asking: what goes is the value, not
+            what was filed under it, and that is the fear worth answering before
+            the button is pressed (3.3.4).
+          */
+          hint={t(`organization.delete.hint.${kind}`, { fallback: t('status.default') })}
+          confirm={t('organization.delete.confirm')}
+          confirmLabel={t('organization.delete.confirmLabel', { value: value.value })}
+          cancel={t('organization.delete.cancel')}
+          cancelLabel={t('organization.delete.cancelLabel', { value: value.value })}
+          onConfirm={onDelete}
+          onCancel={() => onToggle(value.value, 'delete')}
+        />
+      )}
+    </li>
+  );
+}
+
+/**
+ * The field a value is renamed in, and the question asked when the new name is
+ * one that already exists.
+ *
+ * Renaming onto an existing name merges the two rather than being refused —
+ * that is what a rename means when it collides, the same thing having been
+ * typed twice, once with a slip. It is still not something anyone does by
+ * accident without noticing, so it is asked about first (WCAG 2.2 AA, 3.3.4):
+ * a second value is about to change with it, and nothing brings the two apart
+ * again.
+ *
+ * A blank name, or the name it already has, closes the field rather than
+ * reporting an error — neither is a mistake to explain, only a change of mind.
+ */
+function RenameForm({
+  id,
+  value,
+  knownValues,
+  onRename,
+  onCancel,
+}: {
+  id: string;
+  value: string;
+  knownValues: string[];
+  onRename: (name: string) => void | Promise<void>;
+  onCancel: () => void;
+}) {
+  const { t } = useTranslation();
+  const fieldId = useId();
+  const questionId = useId();
+
+  const [name, setName] = useState(value);
+  /** The existing name this is about to be merged into, once asked about. */
+  const [mergeInto, setMergeInto] = useState<string | null>(null);
+  const fieldRef = useRef<HTMLInputElement>(null);
+
+  // The field is what the button opened, so it is where focus belongs (2.4.3).
+  // Selected rather than merely focused: a rename usually replaces the name
+  // rather than adding to it.
+  useEffect(() => {
+    fieldRef.current?.select();
+  }, []);
+
+  const handleSubmit = (event: FormEvent) => {
+    event.preventDefault();
+
+    const next = name.trim();
+
+    if (next === '' || next === value) {
+      onCancel();
+    } else if (knownValues.includes(next)) {
+      setMergeInto(next);
+    } else {
+      void onRename(next);
+    }
+  };
+
+  /*
+   * Escape leaves the field, the same key that closes the panels beside it.
+   * While the merge question is up the key belongs to that question, which
+   * cancels back to the field rather than out of the rename altogether.
+   */
+  const handleKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
+    if (event.key === 'Escape' && !event.defaultPrevented && mergeInto === null) {
+      event.preventDefault();
+      onCancel();
+    }
+  };
+
+  return (
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- the rule guards against a plain element made clickable; this one only listens for Escape, and everything inside it is a real control
+    <form id={id} onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="flex flex-col gap-3">
+      <div className="flex flex-col gap-1">
+        {/* A real label, not a placeholder that leaves as soon as there is
+            something in the field (3.3.2). */}
+        <label htmlFor={fieldId} className="text-sm font-bold">
+          {t('organization.rename.label', { value })}
+        </label>
+
+        <input
+          ref={fieldRef}
+          id={fieldId}
+          type="text"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          className="w-full rounded-field border border-line-strong bg-surface px-3 py-2 text-sm text-ink"
+        />
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" variant="primary">
+          {t('organization.rename.save')}
+        </Button>
+
+        <Button type="button" variant="outline" onClick={onCancel}>
+          {t('organization.rename.cancel')}
+        </Button>
+      </div>
+
+      {mergeInto !== null && (
+        <ConfirmPanel
+          id={questionId}
+          question={t('organization.rename.merge.question', { to: mergeInto })}
+          hint={t('organization.rename.merge.hint', { from: value, to: mergeInto })}
+          confirm={t('organization.rename.merge.confirm')}
+          cancel={t('organization.rename.merge.cancel')}
+          onConfirm={() => onRename(mergeInto)}
+          onCancel={() => {
+            setMergeInto(null);
+            fieldRef.current?.select();
+          }}
+        />
+      )}
+    </form>
+  );
+}

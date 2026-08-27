@@ -327,15 +327,22 @@ describe('deleting everything', () => {
   /*
    * The warning is the only safeguard there is, and it appears where the
    * button just was. Without focus following it, it is never read out and a
-   * keyboard user has to tab in from the top of the page to answer it.
+   * keyboard user has to tab in from the top of the page to answer it. It is
+   * the question's description rather than its name, so the name stays short
+   * enough to answer — both are read out on arrival.
    */
-  it('hands focus to the warning, which carries it as its name', async () => {
+  it('hands focus to the question, which carries the warning as its description', async () => {
     await saveOneLink();
     await renderSection();
 
     fireEvent.click(deleteButton());
 
-    expect(document.activeElement).toBe(screen.getByRole('group', { name: /cannot be undone/i }));
+    const question = screen.getByRole('group', { name: /really delete all data/i });
+
+    expect(document.activeElement).toBe(question);
+    expect(question.getAttribute('aria-describedby')).toBe(
+      screen.getByText(/cannot be undone/i).id,
+    );
   });
 
   it('hands focus back to the button when the question is dismissed', async () => {

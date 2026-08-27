@@ -2,20 +2,33 @@ import { useId, useRef, useState, type Ref } from 'react';
 import { DataIcon } from '@/src/components/icons';
 import { PopoverButton } from '@/src/components/PopoverButton';
 import { useTranslation } from '@/src/i18n/context';
+import type { OrganizationKind } from '@/src/lib/organization';
 import { DataDialog } from './DataDialog';
+import { OrganizationDialog } from './OrganizationDialog';
+
+/** What the menu can have open. `null` is the menu itself doing nothing. */
+type Destination = OrganizationKind | 'data';
+
+/** The three lists of values, in the order the link form offers them. */
+const ORGANIZATION_ENTRIES: OrganizationKind[] = ['category', 'tag', 'status'];
 
 /**
  * The cog in the dashboard header, and the list of what it leads to.
  *
  * A menu rather than a shortcut into one dialog: the cog used to open the data
  * file straight away, which is a promise no cog makes — and the surfaces behind
- * it are about to be more than one. Naming each destination in words also
- * spares every one of them an icon of its own, since a picture in a header row
- * says nothing until it is hovered.
+ * it are more than one. Naming each destination in words also spares every one
+ * of them an icon of its own, since a picture in a header row says nothing
+ * until it is hovered.
  *
  * Not "settings": language and appearance are the only settings there are, and
  * they stay outside as their own buttons because they are what gets reached for
  * most. What is in here are tasks that open a workspace.
+ *
+ * The three lists of values come before the data file, in the order the form
+ * offers them. They are what gets tidied every so often; export, import and
+ * delete-all are rare, and the last of them is the one entry nobody should
+ * reach for by mistake.
  *
  * Entries carry no trailing ellipsis. The convention distinguishes an entry
  * that acts at once from one that asks first, and here there is nothing to
@@ -23,9 +36,20 @@ import { DataDialog } from './DataDialog';
  */
 export function ManageMenu() {
   const { t } = useTranslation();
-  const [isDataOpen, setIsDataOpen] = useState(false);
+  const [openDestination, setOpenDestination] = useState<Destination | null>(null);
   const firstEntryRef = useRef<HTMLButtonElement>(null);
   const headingId = useId();
+
+  /*
+   * In this order on purpose. Closing the panel hands focus back to the cog
+   * first, and that is the element the browser then remembers as it opens the
+   * dialog — so closing the dialog again lands on the cog rather than on
+   * nothing, the entry that was clicked having gone with the panel.
+   */
+  const go = (close: () => void, destination: Destination) => {
+    close();
+    setOpenDestination(destination);
+  };
 
   return (
     <>
@@ -46,30 +70,40 @@ export function ManageMenu() {
             </h2>
 
             <ul aria-labelledby={headingId} className="flex flex-col gap-1">
+              {ORGANIZATION_ENTRIES.map((kind, position) => (
+                <li key={kind}>
+                  <MenuEntry
+                    ref={position === 0 ? firstEntryRef : undefined}
+                    onClick={() => go(close, kind)}
+                  >
+                    {t(`organization.${kind}.heading`)}
+                  </MenuEntry>
+                </li>
+              ))}
+
               <li>
-                <MenuEntry
-                  ref={firstEntryRef}
-                  onClick={() => {
-                    /*
-                      In this order on purpose. Closing the panel hands focus
-                      back to the cog first, and that is the element the browser
-                      then remembers as it opens the dialog — so closing the
-                      dialog again lands on the cog rather than on nothing,
-                      the entry that was clicked having gone with the panel.
-                    */
-                    close();
-                    setIsDataOpen(true);
-                  }}
-                >
-                  {t('data.heading')}
-                </MenuEntry>
+                <MenuEntry onClick={() => go(close, 'data')}>{t('data.heading')}</MenuEntry>
               </li>
             </ul>
           </>
         )}
       </PopoverButton>
 
-      <DataDialog isOpen={isDataOpen} onClose={() => setIsDataOpen(false)} />
+      {/*
+        Every dialog is rendered, open or not: each keeps its contents unmounted
+        while closed, and a dialog that appeared only once it was wanted would
+        have nothing to hand focus back to when it went again.
+      */}
+      {ORGANIZATION_ENTRIES.map((kind) => (
+        <OrganizationDialog
+          key={kind}
+          kind={kind}
+          isOpen={openDestination === kind}
+          onClose={() => setOpenDestination(null)}
+        />
+      ))}
+
+      <DataDialog isOpen={openDestination === 'data'} onClose={() => setOpenDestination(null)} />
     </>
   );
 }

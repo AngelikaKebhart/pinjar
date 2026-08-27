@@ -70,8 +70,55 @@
 
   "manage.heading": "Verwalten",
 
+  "dialog.close": "Schließen",
+
+  "organization.category.heading": "Kategorien",
+  "organization.tag.heading": "Schlagwörter",
+  "organization.status.heading": "Status",
+
+  "organization.category.count_one": "{count} Kategorie.",
+  "organization.category.count_other": "{count} Kategorien.",
+  "organization.tag.count_one": "{count} Schlagwort.",
+  "organization.tag.count_other": "{count} Schlagwörter.",
+  "organization.status.count_one": "{count} eigener Status.",
+  "organization.status.count_other": "{count} eigene Status.",
+
+  "organization.unused_one": "{count} davon hängt an keinem gemerkten Link.",
+  "organization.unused_other": "{count} davon hängen an keinem gemerkten Link.",
+
+  "organization.category.empty": "Du hast noch keine Kategorie vergeben.",
+  "organization.tag.empty": "Du hast noch kein Schlagwort vergeben.",
+  "organization.status.empty": "Du hast noch keinen eigenen Status angelegt.",
+
+  "organization.usage.none": "An keinem gemerkten Link",
+  "organization.usage_one": "An {count} gemerktem Link",
+  "organization.usage_other": "An {count} gemerkten Links",
+
+  "organization.rename.actionLabel": "„{value}“ umbenennen",
+  "organization.rename.label": "Neuer Name für „{value}“",
+  "organization.rename.save": "Speichern",
+  "organization.rename.cancel": "Abbrechen",
+  "organization.rename.merge.question": "„{to}“ gibt es schon. Beide zusammenführen?",
+  "organization.rename.merge.hint": "Jeder gemerkte Link mit „{from}“ bekommt stattdessen „{to}“, und „{from}“ ist danach weg.",
+  "organization.rename.merge.confirm": "Ja, zusammenführen",
+  "organization.rename.merge.cancel": "Nein, beide behalten",
+
+  "organization.delete.actionLabel": "„{value}“ löschen",
+  "organization.delete.question": "„{value}“ löschen?",
+  "organization.delete.hint.category": "Deine gemerkten Links bleiben. Sie haben danach nur keine Kategorie mehr.",
+  "organization.delete.hint.tag": "Deine gemerkten Links bleiben. Das Schlagwort wird von ihnen entfernt.",
+  "organization.delete.hint.status": "Deine gemerkten Links bleiben. Sie stehen danach wieder auf „{fallback}“.",
+  "organization.delete.confirm": "Ja, löschen",
+  "organization.delete.confirmLabel": "„{value}“ wirklich löschen",
+  "organization.delete.cancel": "Abbrechen",
+  "organization.delete.cancelLabel": "„{value}“ behalten",
+
+  "organization.feedback.renamed": "„{from}“ heißt jetzt „{to}“.",
+  "organization.feedback.merged": "„{from}“ wurde mit „{to}“ zusammengeführt.",
+  "organization.feedback.deleted": "„{value}“ wurde gelöscht.",
+  "organization.feedback.deletedInUse": "„{value}“ wurde gelöscht. Die gemerkten Links dazu gibt es weiterhin.",
+
   "data.heading": "Daten & Sicherung",
-  "data.close": "Schließen",
   "data.export.heading": "Alle Links exportieren",
   "data.export.action": "Als Datei exportieren",
   "data.export.nothingYet": "Es ist noch nichts gemerkt, also gibt es auch nichts zu exportieren.",
@@ -94,6 +141,7 @@
   "data.deleteAll.heading": "Alle Daten löschen",
   "data.deleteAll.hint": "Entfernt alles, was diese Erweiterung in diesem Browser gespeichert hat.",
   "data.deleteAll.action": "Alle Daten löschen",
+  "data.deleteAll.question": "Wirklich alle Daten löschen?",
   "data.deleteAll.warning": "Damit verschwinden alle gemerkten Links, Kategorien, Schlagwörter und Status aus diesem Browser. Das lässt sich nicht rückgängig machen — exportiere vorher eine Datei, wenn du eine Kopie möchtest.",
   "data.deleteAll.confirm": "Ja, alles löschen",
   "data.deleteAll.cancel": "Abbrechen",
