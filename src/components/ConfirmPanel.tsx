@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { Button } from '@/src/components/Button';
 
 /**
@@ -27,6 +27,7 @@ import { Button } from '@/src/components/Button';
 export function ConfirmPanel({
   id,
   question,
+  details,
   hint,
   confirm,
   confirmLabel,
@@ -38,6 +39,13 @@ export function ConfirmPanel({
   /** Names the panel, so the button that opened it can point at it. */
   id: string;
   question: string;
+  /**
+   * What exactly the question is about, where naming it in the question would
+   * be a sentence nobody could read — a list of the things about to go, above
+   * all. Part of the panel's description, so it is read out on arrival rather
+   * than only found by someone browsing the page.
+   */
+  details?: ReactNode;
   /** What confirming will do, where that is not obvious from the question. */
   hint?: string;
   confirm: string;
@@ -49,8 +57,15 @@ export function ConfirmPanel({
   onCancel: () => void;
 }) {
   const questionId = useId();
+  const detailsId = useId();
   const hintId = useId();
   const groupRef = useRef<HTMLDivElement>(null);
+
+  /* Read out in the order they are shown: what goes, then what survives it. */
+  const describedBy = [
+    ...(details === undefined ? [] : [detailsId]),
+    ...(hint === undefined ? [] : [hintId]),
+  ];
 
   useEffect(() => {
     groupRef.current?.focus();
@@ -78,7 +93,7 @@ export function ConfirmPanel({
       className="flex flex-col gap-3 rounded-card border border-danger p-4"
       role="group"
       aria-labelledby={questionId}
-      aria-describedby={hint === undefined ? undefined : hintId}
+      aria-describedby={describedBy.length === 0 ? undefined : describedBy.join(' ')}
       // Focusable on purpose, never by tabbing: focus is moved here when the
       // question appears (WCAG 2.2 AA, 2.4.3), but a group that answered to
       // Tab would be a stop that does nothing.
@@ -87,6 +102,8 @@ export function ConfirmPanel({
       <p id={questionId} className="text-sm font-bold break-words">
         {question}
       </p>
+
+      {details !== undefined && <div id={detailsId}>{details}</div>}
 
       {hint !== undefined && (
         <p id={hintId} className="text-sm break-words text-ink-muted">

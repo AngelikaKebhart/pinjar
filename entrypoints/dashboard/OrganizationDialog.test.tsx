@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
 import { CATALOGS } from '@/src/i18n/messages';
@@ -29,8 +29,9 @@ async function renderDialog(kind: OrganizationKind, onClose = vi.fn()) {
 
   // Nothing renders until the provider has read the stored language, the dialog
   // is opened by an effect a moment later, and the list is read from storage
-  // after that.
-  await screen.findByRole('dialog', { name: en[`organization.${kind}.heading`] });
+  // after that. Found by role alone: its name carries the count, which is what
+  // the test below is about and what most of the others go on to change.
+  await screen.findByRole('dialog');
 
   return { onClose };
 }
@@ -69,21 +70,33 @@ describe('OrganizationDialog', () => {
 
     expect(await screen.findByText('Fabrics')).toBeTruthy();
     expect(screen.getByText('Books')).toBeTruthy();
-    expect(screen.getByText('On 2 saved links')).toBeTruthy();
-    expect(screen.getByText('On 1 saved link')).toBeTruthy();
+    expect(screen.getByText('Used 2 times')).toBeTruthy();
+    expect(screen.getByText('Used 1 time')).toBeTruthy();
   });
 
   /*
-   * A count line rather than a live region: every number in it changes because
-   * of an action the feedback line already announces (WCAG 2.2 AA, 4.1.3).
+   * The count is the dialog's heading, and the line under it says what can be
+   * done here rather than repeating the number. Not a live region either way:
+   * the count changes only through an action the feedback line announces
+   * anyway (WCAG 2.2 AA, 4.1.3).
    */
-  it('counts the values and how many of them are unused', async () => {
+  it('carries the total in its heading, and what the dialog is for underneath', async () => {
     await saveLink('https://shop.example/one', { category: 'Fabrics' });
     await categories.setValue(['Fabrics', 'Recipes']);
 
     await renderDialog('category');
 
-    expect(await screen.findByText('2 categories. 1 of them is on no saved link.')).toBeTruthy();
+    expect(await screen.findByRole('dialog', { name: '2 categories' })).toBeTruthy();
+    expect(
+      screen.getByText('Here you can see, rename and delete all your categories.'),
+    ).toBeTruthy();
+  });
+
+  // An empty list has no number worth heading, and the line below says more.
+  it('falls back to the plain name while there is nothing to count', async () => {
+    await renderDialog('category');
+
+    expect(await screen.findByRole('dialog', { name: 'Categories' })).toBeTruthy();
   });
 
   /*
@@ -100,8 +113,17 @@ describe('OrganizationDialog', () => {
     await screen.findByText('Recipes');
 
     fireEvent.click(screen.getByRole('button', { name: 'Remove unused categories' }));
+
+    /*
+     * The names, not only the number: a category kept for next time looks
+     * exactly like one forgotten by accident until the question spells it out
+     * (3.3.4).
+     */
+    const question = screen.getByRole('group', { name: 'Remove this category?' });
+    expect(within(question).getByText('Recipes')).toBeTruthy();
+    expect(within(question).queryByText('Fabrics')).toBeNull();
     expect(
-      screen.getByText(
+      within(question).getByText(
         'Your saved links stay exactly as they are — none of them uses these names. You can type any of them again at any time.',
       ),
     ).toBeTruthy();
@@ -129,7 +151,7 @@ describe('OrganizationDialog', () => {
   it('says so when nothing has been used yet', async () => {
     await renderDialog('status');
 
-    expect(await screen.findByText('You have not added a status of your own yet.')).toBeTruthy();
+    expect(await screen.findByText('You have not added a status label yet.')).toBeTruthy();
   });
 
   it('renames a value on every link that carries it', async () => {
@@ -205,7 +227,7 @@ describe('OrganizationDialog', () => {
 
     fireEvent.click(deleteButton('Fabrics'));
     expect(
-      screen.getByText('Your saved links stay. They simply no longer have a category.'),
+      screen.getByText('Your saved links stay, they just no longer have this category.'),
     ).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'Yes, delete “Fabrics”' }));
@@ -232,7 +254,7 @@ describe('OrganizationDialog', () => {
     fireEvent.click(deleteButton('Fabrics'));
 
     expect(screen.queryByLabelText('New name for “Fabrics”')).toBeNull();
-    expect(screen.getByText('Delete “Fabrics”?')).toBeTruthy();
+    expect(screen.getByText('Delete the category “Fabrics”?')).toBeTruthy();
   });
 
   /*
@@ -262,7 +284,7 @@ describe('OrganizationDialog', () => {
    */
   it.each([
     ['rename', renameButton, 'New name for “Fabrics”'],
-    ['delete', deleteButton, 'Delete “Fabrics”?'],
+    ['delete', deleteButton, 'Delete the category “Fabrics”?'],
   ] as const)(
     'hands focus back to the %s button when Escape dismisses its panel',
     async (_mode, button, shown) => {
