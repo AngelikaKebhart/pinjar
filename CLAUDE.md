@@ -43,7 +43,7 @@ Detailed conventions are encoded as project skills under `.claude/skills/` and a
 - **`accessibility-wcag`** — all UI must meet WCAG 2.2 Level AA, including a correct `<html lang>` for the active language and layouts that survive longer German text
 - **`privacy-and-security`** — GDPR/DSGVO-friendly data handling (local-only, minimal data, full user control) and security rules (untrusted webpage data, minimal permissions, no remote code, dependency hygiene)
 - **`git-workflow`** — Conventional Commits in English, trunk-based branching, GitHub Actions CI, Semantic Versioning
-- **`subagent-delegation`** — delegate only when asked, since a subagent buys wall-clock time rather than budget; name the model on every call, and it is always `sonnet` — nothing cheaper below it, and judgement work stays inline instead of going to `opus`; treat every result as a claim to verify, not a finished one
+- **`subagent-delegation`** — Claude decides itself when a task belongs in a subagent, but proposes the split with a reason and waits for confirmation before spawning; the model is passed explicitly on every call, delegated work runs on `sonnet`, `haiku` is never used, and judgement work stays inline on `opus` rather than fanning out into parallel agents; treat every result as a claim to verify, not a finished one
 
 Do not duplicate these rules here — consult the skills, they stay up to date independently of this file.
 
