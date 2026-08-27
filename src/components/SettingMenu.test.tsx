@@ -57,15 +57,34 @@ describe('SettingMenu', () => {
     expect(document.activeElement).toBe(screen.getByRole('radio', { name: 'Light' }));
   });
 
-  it('reports a pick and stays open while doing it', () => {
+  /*
+   * Arrow keys move through a radio group by selecting every option they pass
+   * over, so a panel that closed on the first of those picks could not be
+   * walked through with the keyboard at all. The browser sends a click along
+   * with the arrow press; jsdom does not, so both halves are spelled out here.
+   */
+  it('reports a pick made with the keyboard and stays open', () => {
     const { onChange } = renderMenu();
 
-    fireEvent.click(screen.getByRole('radio', { name: 'Dark' }));
+    const option = screen.getByRole('radio', { name: 'Dark' });
+    fireEvent.keyDown(option, { key: 'ArrowDown' });
+    fireEvent.click(option);
 
     expect(onChange).toHaveBeenCalledWith('dark');
-    // Arrow keys move through radios by selecting them, so a panel that closed
-    // on the first pick could not be walked through with the keyboard at all.
     expect(screen.getByRole('radio', { name: 'Dark' })).toBeTruthy();
+  });
+
+  // A click is a finished decision, and leaving the panel standing over the
+  // page afterwards means every pick costs a second gesture to dismiss it.
+  it('closes the panel when a pick is made with the pointer', () => {
+    const { onChange } = renderMenu();
+
+    const option = screen.getByRole('radio', { name: 'Dark' });
+    fireEvent.pointerDown(option);
+    fireEvent.click(option);
+
+    expect(onChange).toHaveBeenCalledWith('dark');
+    expect(screen.queryByRole('radio', { name: 'Dark' })).toBeNull();
   });
 
   /*
@@ -76,7 +95,9 @@ describe('SettingMenu', () => {
   it('picks the option when the word beside it is clicked', () => {
     const { onChange } = renderMenu();
 
-    fireEvent.click(screen.getByText('Dark'));
+    const word = screen.getByText('Dark');
+    fireEvent.pointerDown(word);
+    fireEvent.click(word);
 
     expect(onChange).toHaveBeenCalledWith('dark');
   });

@@ -26,6 +26,14 @@ async function openMenu(): Promise<void> {
   fireEvent.click(await screen.findByRole('button', { name: en['settings.language.label'] ?? '' }));
 }
 
+/** Picks an option the way a user does, with the pointer — which also closes the menu. */
+function pick(name: string): void {
+  const option = screen.getByRole('radio', { name });
+
+  fireEvent.pointerDown(option);
+  fireEvent.click(option);
+}
+
 describe('LanguageSwitcher', () => {
   beforeEach(() => {
     fakeBrowser.reset();
@@ -67,7 +75,7 @@ describe('LanguageSwitcher', () => {
   it('switches the interface and stores the choice', async () => {
     await openMenu();
 
-    fireEvent.click(screen.getByRole('radio', { name: LANGUAGE_NAMES.de }));
+    pick(LANGUAGE_NAMES.de);
 
     expect(
       await screen.findByRole('button', { name: de['settings.language.label'] ?? '' }),

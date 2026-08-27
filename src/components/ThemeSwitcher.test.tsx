@@ -27,6 +27,14 @@ async function openMenu(): Promise<void> {
   fireEvent.click(await screen.findByRole('button', { name: en['settings.theme.label'] ?? '' }));
 }
 
+/** Picks an option the way a user does, with the pointer — which also closes the menu. */
+function pick(name: string): void {
+  const option = screen.getByRole('radio', { name });
+
+  fireEvent.pointerDown(option);
+  fireEvent.click(option);
+}
+
 describe('ThemeSwitcher', () => {
   beforeEach(() => {
     fakeBrowser.reset();
@@ -59,7 +67,7 @@ describe('ThemeSwitcher', () => {
   it('marks the document with the chosen scheme and stores it', async () => {
     await openMenu();
 
-    fireEvent.click(screen.getByRole('radio', { name: en['settings.theme.dark'] ?? '' }));
+    pick(en['settings.theme.dark'] ?? '');
 
     expect(document.documentElement.dataset.theme).toBe('dark');
     await expect(themePreference.getValue()).resolves.toBe('dark');
@@ -72,8 +80,11 @@ describe('ThemeSwitcher', () => {
   it('takes the mark off again when the choice goes back to automatic', async () => {
     await openMenu();
 
-    fireEvent.click(screen.getByRole('radio', { name: en['settings.theme.dark'] ?? '' }));
-    fireEvent.click(screen.getByRole('radio', { name: en['settings.theme.auto'] ?? '' }));
+    // Two picks, so twice through the menu: a pick made with the pointer closes
+    // it behind itself.
+    pick(en['settings.theme.dark'] ?? '');
+    fireEvent.click(screen.getByRole('button', { name: en['settings.theme.label'] ?? '' }));
+    pick(en['settings.theme.auto'] ?? '');
 
     expect(document.documentElement.dataset.theme).toBeUndefined();
     await expect(themePreference.getValue()).resolves.toBe('auto');
