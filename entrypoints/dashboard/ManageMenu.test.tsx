@@ -54,7 +54,34 @@ describe('ManageMenu', () => {
     await openMenu();
 
     expect(screen.getByRole('heading', { name: en['manage.heading'] })).toBeTruthy();
-    expect(screen.getByRole('button', { name: en['data.heading'] })).toBeTruthy();
+
+    for (const destination of [
+      en['organization.category.heading'],
+      en['organization.tag.heading'],
+      en['organization.status.heading'],
+      en['data.heading'],
+    ]) {
+      expect(screen.getByRole('button', { name: destination })).toBeTruthy();
+    }
+  });
+
+  // The three lists share one component, and telling it which kind it is
+  // showing is the whole of what the menu does for them.
+  it('opens each list of values under its own heading', async () => {
+    const cog = await renderMenu();
+
+    for (const heading of [
+      en['organization.category.heading'],
+      en['organization.tag.heading'],
+      en['organization.status.heading'],
+    ]) {
+      fireEvent.click(cog);
+      fireEvent.click(screen.getByRole('button', { name: heading }));
+
+      expect(await screen.findByRole('dialog', { name: heading })).toBeTruthy();
+
+      fireEvent.click(screen.getByRole('button', { name: en['dialog.close'] }));
+    }
   });
 
   // Said by the entry, not by the cog: the cog only opens the panel.
@@ -84,7 +111,7 @@ describe('ManageMenu', () => {
 
     fireEvent.click(cog);
     fireEvent.click(screen.getByRole('button', { name: en['data.heading'] }));
-    fireEvent.click(await screen.findByRole('button', { name: en['data.close'] }));
+    fireEvent.click(await screen.findByRole('button', { name: en['dialog.close'] }));
 
     expect(screen.queryByRole('dialog')).toBeNull();
 

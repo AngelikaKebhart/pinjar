@@ -1,4 +1,5 @@
-import { useCallback, useRef, useState, type RefObject } from 'react';
+import { useCallback, useState, type RefObject } from 'react';
+import { useButtonRegistry } from '@/src/components/useButtonRegistry';
 import type { SavedLink } from '@/src/lib/saved-link';
 
 /**
@@ -115,19 +116,4 @@ export function useLinkPanels(emptyListFocusRef: RefObject<HTMLElement | null>):
     rememberDeleteButton,
     moveFocusAfterRemoving,
   };
-}
-
-/** The buttons of one kind, by link id, so focus can be handed back to them. */
-function useButtonRegistry() {
-  const buttons = useRef(new Map<string, HTMLButtonElement>());
-
-  const remember = useCallback((id: string, button: HTMLButtonElement | null) => {
-    if (button === null) {
-      buttons.current.delete(id);
-    } else {
-      buttons.current.set(id, button);
-    }
-  }, []);
-
-  return [buttons, remember] as const;
 }

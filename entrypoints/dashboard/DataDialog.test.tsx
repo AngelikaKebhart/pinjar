@@ -76,7 +76,7 @@ describe('DataDialog', () => {
   it('reports the close button rather than closing behind the caller', async () => {
     const { onClose } = await renderDialog(true);
 
-    fireEvent.click(screen.getByRole('button', { name: en['data.close'] }));
+    fireEvent.click(screen.getByRole('button', { name: en['dialog.close'] }));
 
     expect(onClose).toHaveBeenCalled();
   });

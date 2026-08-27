@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Button } from '@/src/components/Button';
+import { ConfirmPanel } from '@/src/components/ConfirmPanel';
 import { useTranslation } from '@/src/i18n/context';
 import {
   deleteAllSavedData,
@@ -248,25 +249,20 @@ function DeleteEverything({
   const { t } = useTranslation();
   const [isAsking, setIsAsking] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const questionRef = useRef<HTMLDivElement>(null);
   const wasAsking = useRef(false);
-  const warningId = useId();
+  const questionId = useId();
 
   /*
    * The question replaces the button that was pressed, so focus has to be handed
-   * over or it falls back to the document and a keyboard user tabs in from the
-   * top again. The question carries the warning as its accessible name, so
-   * moving focus there is also what reads the warning out before it can be
-   * answered — without it the one safeguard against an irreversible deletion is
-   * silent (WCAG 2.2 AA, 4.1.3).
+   * back when it goes or it falls to the document and a keyboard user tabs in
+   * from the top again. Moving focus into the question is `ConfirmPanel`'s
+   * business; only this knows where it came from.
    *
-   * Answering hands focus back, except after a deletion, which leaves the button
+   * Answering hands it back, except after a deletion, which leaves the button
    * disabled and unfocusable; the notice announces what happened instead.
    */
   useEffect(() => {
-    if (isAsking) {
-      questionRef.current?.focus();
-    } else if (wasAsking.current) {
+    if (!isAsking && wasAsking.current) {
       triggerRef.current?.focus();
     }
 
@@ -296,36 +292,25 @@ function DeleteEverything({
   }
 
   return (
-    <div
-      ref={questionRef}
-      tabIndex={-1}
-      role="group"
-      aria-labelledby={warningId}
-      className="flex flex-col gap-3 rounded-card border border-danger p-4"
-    >
-      <p id={warningId} className="text-sm">
-        {t('data.deleteAll.warning')}
-      </p>
-
-      <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="danger"
-          onClick={() => {
-            void deleteAllSavedData().then(() => {
-              setIsAsking(false);
-              onDeleted();
-            });
-          }}
-        >
-          {t('data.deleteAll.confirm')}
-        </Button>
-
-        <Button type="button" variant="outline" onClick={() => setIsAsking(false)}>
-          {t('data.deleteAll.cancel')}
-        </Button>
-      </div>
-    </div>
+    <ConfirmPanel
+      id={questionId}
+      question={t('data.deleteAll.question')}
+      /*
+        The warning is the hint rather than the question, so the question stays
+        short enough to answer and the warning is still read out on arrival —
+        it describes the group focus lands in (WCAG 2.2 AA, 3.3.4, 4.1.3).
+      */
+      hint={t('data.deleteAll.warning')}
+      confirm={t('data.deleteAll.confirm')}
+      cancel={t('data.deleteAll.cancel')}
+      onConfirm={() =>
+        deleteAllSavedData().then(() => {
+          setIsAsking(false);
+          onDeleted();
+        })
+      }
+      onCancel={() => setIsAsking(false)}
+    />
   );
 }
 

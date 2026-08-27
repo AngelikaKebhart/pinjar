@@ -70,8 +70,55 @@
 
   "manage.heading": "Manage",
 
+  "dialog.close": "Close",
+
+  "organization.category.heading": "Categories",
+  "organization.tag.heading": "Tags",
+  "organization.status.heading": "Status labels",
+
+  "organization.category.count_one": "{count} category.",
+  "organization.category.count_other": "{count} categories.",
+  "organization.tag.count_one": "{count} tag.",
+  "organization.tag.count_other": "{count} tags.",
+  "organization.status.count_one": "{count} status label.",
+  "organization.status.count_other": "{count} status labels.",
+
+  "organization.unused_one": "{count} of them is on no saved link.",
+  "organization.unused_other": "{count} of them are on no saved link.",
+
+  "organization.category.empty": "You have not used a category yet.",
+  "organization.tag.empty": "You have not used a tag yet.",
+  "organization.status.empty": "You have not added a status of your own yet.",
+
+  "organization.usage.none": "On no saved link",
+  "organization.usage_one": "On {count} saved link",
+  "organization.usage_other": "On {count} saved links",
+
+  "organization.rename.actionLabel": "Rename “{value}”",
+  "organization.rename.label": "New name for “{value}”",
+  "organization.rename.save": "Save",
+  "organization.rename.cancel": "Cancel",
+  "organization.rename.merge.question": "“{to}” already exists. Merge the two?",
+  "organization.rename.merge.hint": "Every saved link carrying “{from}” gets “{to}” instead, and “{from}” is gone afterwards.",
+  "organization.rename.merge.confirm": "Yes, merge",
+  "organization.rename.merge.cancel": "No, keep both",
+
+  "organization.delete.actionLabel": "Delete “{value}”",
+  "organization.delete.question": "Delete “{value}”?",
+  "organization.delete.hint.category": "Your saved links stay. They simply no longer have a category.",
+  "organization.delete.hint.tag": "Your saved links stay. The tag comes off them.",
+  "organization.delete.hint.status": "Your saved links stay. They go back to “{fallback}”.",
+  "organization.delete.confirm": "Yes, delete",
+  "organization.delete.confirmLabel": "Yes, delete “{value}”",
+  "organization.delete.cancel": "Cancel",
+  "organization.delete.cancelLabel": "Keep “{value}”",
+
+  "organization.feedback.renamed": "“{from}” is now called “{to}”.",
+  "organization.feedback.merged": "“{from}” was merged into “{to}”.",
+  "organization.feedback.deleted": "“{value}” was deleted.",
+  "organization.feedback.deletedInUse": "“{value}” was deleted. The saved links that carried it are still there.",
+
   "data.heading": "Data & backup",
-  "data.close": "Close",
   "data.export.heading": "Export all links",
   "data.export.action": "Export as a file",
   "data.export.nothingYet": "Nothing is saved yet, so there is nothing to export.",
@@ -94,6 +141,7 @@
   "data.deleteAll.heading": "Delete all data",
   "data.deleteAll.hint": "Removes everything this extension has stored in this browser.",
   "data.deleteAll.action": "Delete all data",
+  "data.deleteAll.question": "Really delete all data?",
   "data.deleteAll.warning": "This removes every saved link, category, tag and status from this browser. It cannot be undone — export a file first if you want a copy.",
   "data.deleteAll.confirm": "Yes, delete everything",
   "data.deleteAll.cancel": "Cancel",
