@@ -1,4 +1,12 @@
-import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+} from 'react';
 import { ActionFeedback, type FeedbackMessage } from '@/src/components/ActionFeedback';
 import { Button } from '@/src/components/Button';
 import { ConfirmPanel } from '@/src/components/ConfirmPanel';
@@ -40,11 +48,54 @@ export function OrganizationDialog({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, plural } = useTranslation();
+
+  const [values, setValues] = useState<OrganizationValue[] | null>(null);
+
+  const reload = useCallback(
+    () => getOrganizationValues(kind).then(setValues),
+    // The dialog is mounted three times over, one per kind, and each one reads
+    // its own.
+    [kind],
+  );
+
+  /*
+   * Read while the dialog is open, and forgotten when it closes, so the next
+   * opening shows what is there rather than what was there.
+   *
+   * Watched as well as read: the popup can save a link while this dialog is
+   * open, and a value it invents belongs in the list rather than appearing only
+   * the next time the dialog is opened.
+   */
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    void reload();
+
+    const stopWatching = watchStoredData(() => void reload());
+
+    return () => {
+      stopWatching();
+      setValues(null);
+    };
+  }, [isOpen, reload]);
+
+  /*
+   * The count is the heading, rather than a line under it: it is the first
+   * thing the dialog is asked, and a heading answering it costs no row. Before
+   * the list has arrived, and once it is empty, the plain name — "0 categories"
+   * is a heading that has to be read twice, and the line below says it better.
+   */
+  const title =
+    values === null || values.length === 0
+      ? t(`organization.${kind}.heading`)
+      : plural(`organization.${kind}.count`, values.length);
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} title={t(`organization.${kind}.heading`)}>
-      <OrganizationList kind={kind} />
+    <Dialog isOpen={isOpen} onClose={onClose} title={title}>
+      <OrganizationList kind={kind} values={values} onReload={reload} />
     </Dialog>
   );
 }
@@ -63,10 +114,18 @@ interface OpenPanel {
  */
 const WHOLE_LIST = '';
 
-function OrganizationList({ kind }: { kind: OrganizationKind }) {
+function OrganizationList({
+  kind,
+  values,
+  onReload,
+}: {
+  kind: OrganizationKind;
+  /** `null` until storage has answered; the dialog above owns the reading. */
+  values: OrganizationValue[] | null;
+  onReload: () => Promise<unknown>;
+}) {
   const { t, plural, compareNames } = useTranslation();
 
-  const [values, setValues] = useState<OrganizationValue[] | null>(null);
   const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
   const [openPanel, setOpenPanel] = useState<OpenPanel | null>(null);
 
@@ -82,19 +141,6 @@ function OrganizationList({ kind }: { kind: OrganizationKind }) {
   const [deleteButtons, rememberDeleteButton] = useButtonRegistry();
   const unusedButton = useRef<HTMLButtonElement>(null);
   const unusedPanelId = useId();
-
-  /*
-   * Watched as well as read: the popup can save a link while this dialog is
-   * open, and a value it invents belongs in the list rather than appearing only
-   * the next time the dialog is opened.
-   */
-  useEffect(() => {
-    const refresh = () => void getOrganizationValues(kind).then(setValues);
-
-    refresh();
-
-    return watchStoredData(refresh);
-  }, [kind]);
 
   /*
    * A rename or a deletion takes the row that was being worked on off the
@@ -150,7 +196,7 @@ function OrganizationList({ kind }: { kind: OrganizationKind }) {
     const message = await change();
 
     valueToFocus.current = focusOn;
-    setValues(await getOrganizationValues(kind));
+    await onReload();
     setFeedback(message);
     setOpenPanel(null);
   };
@@ -186,7 +232,7 @@ function OrganizationList({ kind }: { kind: OrganizationKind }) {
   /**
    * Forgets everything on no saved link at all. Nothing on a link changes, so
    * unlike the deletion above this needs no word about what survives it — the
-   * question's hint says that, and the count line says the rest.
+   * question names what goes and its hint says the rest.
    */
   const handleRemoveUnused = () =>
     applyChange(
@@ -206,23 +252,21 @@ function OrganizationList({ kind }: { kind: OrganizationKind }) {
   }
 
   const shown = [...values].sort((one, other) => compareNames(one.value, other.value));
-  const unused = shown.filter((value) => value.usage === 0).length;
+  const unused = shown.filter((value) => value.usage === 0);
   const isRemovingUnused = openPanel?.mode === 'unused';
 
   return (
     <div className="flex flex-col gap-4">
       {/*
-        Plain text, not a live region: every change to this line is the result
-        of an action the feedback below already announces, and the same event
-        announced twice is one interruption too many.
+        What this dialog is for, in one line — the heading above carries how
+        many there are. Plain text, not a live region: it does not change, and
+        what does change is announced by the feedback below.
+
+        Also where focus lands when the row it was on has gone (see above),
+        which is why it stays one element in both states rather than two.
       */}
       <p ref={summaryRef} tabIndex={-1} className="text-sm text-ink-muted">
-        {shown.length === 0
-          ? t(`organization.${kind}.empty`)
-          : [
-              plural(`organization.${kind}.count`, shown.length),
-              ...(unused > 0 ? [plural('organization.unused', unused)] : []),
-            ].join(' ')}
+        {t(shown.length === 0 ? `organization.${kind}.empty` : `organization.${kind}.help`)}
       </p>
 
       {/*
@@ -230,7 +274,7 @@ function OrganizationList({ kind }: { kind: OrganizationKind }) {
         that is: "Remove unused" alone would be one more thing to work out in a
         dialog that already asks the user to keep three kinds apart (2.4.6).
       */}
-      {unused > 0 && (
+      {unused.length > 0 && (
         <Button
           ref={unusedButton}
           variant="outline"
@@ -246,7 +290,23 @@ function OrganizationList({ kind }: { kind: OrganizationKind }) {
       {isRemovingUnused && (
         <ConfirmPanel
           id={unusedPanelId}
-          question={t(`organization.unused.question.${kind}`)}
+          question={plural(`organization.unused.question.${kind}`, unused.length)}
+          /*
+            Named one by one rather than counted: a category outlives its last
+            link precisely because it may be wanted again, and "remove 3 unused
+            categories" is not enough to know whether one of them is the one
+            being kept for next time (3.3.4).
+          */
+          details={
+            <>
+              <p className="text-sm font-medium">{t('organization.unused.list')}</p>
+              <ul className="mt-1 list-disc pl-5 text-sm break-words">
+                {unused.map((value) => (
+                  <li key={value.value}>{value.value}</li>
+                ))}
+              </ul>
+            </>
+          }
           hint={t('organization.unused.hint')}
           confirm={t('organization.unused.confirm')}
           cancel={t('organization.unused.cancel')}
@@ -380,7 +440,7 @@ function ValueRow({
       {isDeleting && (
         <ConfirmPanel
           id={questionId}
-          question={t('organization.delete.question', { value: value.value })}
+          question={t(`organization.delete.question.${kind}`, { value: value.value })}
           /*
             The hint is the whole point of asking: what goes is the value, not
             what was filed under it, and that is the fear worth answering before
