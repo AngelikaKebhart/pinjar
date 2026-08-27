@@ -25,7 +25,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "check": "pnpm lint && pnpm typecheck && pnpm test",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm format:check",
     "test:watch": "vitest",
     "prepare": "git config core.hooksPath .githooks || true",
     "postinstall": "wxt prepare"
