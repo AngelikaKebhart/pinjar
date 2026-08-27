@@ -223,22 +223,21 @@ describe('OrganizationDialog', () => {
   it.each([
     ['rename', renameButton, 'New name for “Fabrics”'],
     ['delete', deleteButton, 'Delete “Fabrics”?'],
-  ] as const)('hands focus back to the %s button when Escape dismisses its panel', async (
-    _mode,
-    button,
-    shown,
-  ) => {
-    await saveLink('https://shop.example/one', { category: 'Fabrics' });
+  ] as const)(
+    'hands focus back to the %s button when Escape dismisses its panel',
+    async (_mode, button, shown) => {
+      await saveLink('https://shop.example/one', { category: 'Fabrics' });
 
-    await renderDialog('category');
-    await screen.findByText('Fabrics');
+      await renderDialog('category');
+      await screen.findByText('Fabrics');
 
-    fireEvent.click(button('Fabrics'));
-    fireEvent.keyDown(screen.getByText(shown), { key: 'Escape' });
+      fireEvent.click(button('Fabrics'));
+      fireEvent.keyDown(screen.getByText(shown), { key: 'Escape' });
 
-    expect(screen.queryByText(shown)).toBeNull();
-    expect(document.activeElement).toBe(button('Fabrics'));
-  });
+      expect(screen.queryByText(shown)).toBeNull();
+      expect(document.activeElement).toBe(button('Fabrics'));
+    },
+  );
 
   it('says whether a row has something open', async () => {
     await saveLink('https://shop.example/one', { category: 'Fabrics' });
