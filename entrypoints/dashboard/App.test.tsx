@@ -167,7 +167,7 @@ describe('what a card shows', () => {
       category: 'Fabrics',
       tags: ['jersey', 'blue'],
       note: 'Two metres are enough',
-      status: { kind: 'custom', label: 'Bought' },
+      status: 'Bought',
     });
 
     await renderDashboard();
@@ -189,6 +189,7 @@ describe('what a card shows', () => {
     const card = within(cardOf('Jersey fabric'));
     expect(card.queryByText(en['dashboard.link.category'] ?? '')).toBeNull();
     expect(card.queryByText(en['dashboard.link.tags'] ?? '')).toBeNull();
+    expect(card.queryByText(en['dashboard.link.status'] ?? '')).toBeNull();
     expect(card.queryByText(en['dashboard.link.note'] ?? '')).toBeNull();
   });
 
@@ -413,19 +414,14 @@ describe('accessibility', () => {
     expect(screen.getByRole('button', { name: '„Jersey fabric“ löschen' })).toBeTruthy();
   });
 
-  // The built-in status is translated, the user's own wording never is.
-  it('translates the built-in status but leaves a custom one alone', async () => {
-    await save({ url: 'https://shop.example/first', title: 'Default status' });
-    await save({
-      url: 'https://shop.example/second',
-      title: 'Custom status',
-      status: { kind: 'custom', label: 'Gekauft' },
-    });
+  // The status is the user's own wording, so it is shown as typed whatever the
+  // interface language happens to be.
+  it('never translates a status', async () => {
+    await save({ url: 'https://shop.example/item', title: 'Filed away', status: 'Gekauft' });
 
     await renderDashboard();
 
-    expect(within(cardOf('Default status')).getByText('Saved')).toBeTruthy();
-    expect(within(cardOf('Custom status')).getByText('Gekauft')).toBeTruthy();
+    expect(within(cardOf('Filed away')).getByText('Gekauft')).toBeTruthy();
   });
 });
 
@@ -676,7 +672,7 @@ describe('searching and filtering', () => {
       title: 'Cotton poplin',
       category: 'Fabrics',
       tags: ['cotton'],
-      status: { kind: 'custom', label: 'Bought' },
+      status: 'Bought',
     });
     await save({ url: 'https://shop.example/pattern', title: 'Sewing pattern' });
     await renderDashboard();
@@ -712,10 +708,18 @@ describe('searching and filtering', () => {
     await givenLinks();
 
     fireEvent.change(await within(filters()).findByLabelText('Status'), {
-      target: { value: 'custom:Bought' },
+      target: { value: 'named:Bought' },
     });
 
     expect(listedTitles()).toEqual(['Cotton poplin']);
+  });
+
+  it('can single out the links without a status', async () => {
+    await givenLinks();
+
+    fireEvent.change(within(filters()).getByLabelText('Status'), { target: { value: 'none' } });
+
+    expect(listedTitles()).toEqual(['Sewing pattern', 'Blue jersey']);
   });
 
   it('filters by tag', async () => {
@@ -910,7 +914,7 @@ describe('the filters narrowing each other', () => {
       title: 'Dress pattern',
       category: 'Patterns',
       tags: ['dress'],
-      status: { kind: 'custom', label: 'Bought' },
+      status: 'Bought',
     });
     await renderDashboard();
     await within(filters()).findByLabelText('jersey');
@@ -962,28 +966,26 @@ describe('the filters narrowing each other', () => {
     expect(offeredTags()).toEqual(['blue', 'dress', 'jersey']);
   });
 
-  // By the label on screen, not by the stored status: the built-in one is the
-  // only translated status (§4), so its key would sort it somewhere else — and
-  // first appearance would shuffle the list on every edit.
-  it('sorts the statuses by the label shown', async () => {
+  // By name, like the tags above: first appearance would shuffle the list on
+  // every edit.
+  it('sorts the statuses by name', async () => {
     // Saved newest last, so first appearance in the list would be the reverse
     // of the order asserted below.
     await save({
       url: 'https://shop.example/first',
       title: 'Wrapped up',
-      status: { kind: 'custom', label: 'Zebra print ordered' },
+      status: 'Zebra print ordered',
     });
     await save({
       url: 'https://shop.example/second',
       title: 'Waiting',
-      status: { kind: 'custom', label: 'Asked about it' },
+      status: 'Asked about it',
     });
-    await save({ url: 'https://shop.example/third', title: 'Still wishlisted' });
 
     await renderDashboard();
     await within(filters()).findByRole('option', { name: 'Asked about it' });
 
-    expect(offeredStatuses()).toEqual(['Asked about it', 'Saved', 'Zebra print ordered']);
+    expect(offeredStatuses()).toEqual(['Asked about it', 'Zebra print ordered']);
   });
 });
 

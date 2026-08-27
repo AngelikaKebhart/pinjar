@@ -34,8 +34,6 @@
   "dashboard.link.domain": "Domain",
   "dashboard.link.note": "Note",
 
-  "status.default": "Saved",
-
   "editLink.actionLabel": "Edit “{title}”",
   "editLink.formLabel": "Edit “{title}”",
   "editLink.categoryNone": "No category",
@@ -45,6 +43,7 @@
   "editLink.tagsNewLabel": "New tags",
   "editLink.tagsHint": "Separate several with commas, then press Enter to add them.",
   "editLink.newHint": "Press Enter to confirm, Escape to cancel.",
+  "editLink.statusNone": "No status",
   "editLink.statusNew": "Add a new status…",
   "editLink.save": "Save",
   "editLink.cancel": "Cancel",
@@ -65,6 +64,7 @@
   "filters.categoryAll": "All categories",
   "filters.categoryNone": "Without a category",
   "filters.statusAll": "Any status",
+  "filters.statusNone": "Without a status",
   "filters.domainAll": "All domains",
   "filters.reset": "Reset filters",
 
@@ -124,7 +124,7 @@
   "organization.delete.question.status": "Delete the status label “{value}”?",
   "organization.delete.hint.category": "Your saved links stay, they just no longer have this category.",
   "organization.delete.hint.tag": "Your saved links stay, they just no longer carry this tag.",
-  "organization.delete.hint.status": "Your saved links stay, they just go back to “{fallback}”.",
+  "organization.delete.hint.status": "Your saved links stay, they just no longer have this status.",
   "organization.delete.confirm": "Yes, delete",
   "organization.delete.confirmLabel": "Yes, delete “{value}”",
   "organization.delete.cancel": "Cancel",

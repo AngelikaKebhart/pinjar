@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_STATUS, applyEdits, createSavedLink, type SavedLink } from './saved-link';
+import { applyEdits, createSavedLink, type SavedLink } from './saved-link';
 
 /** Shorthand for the many cases that only care about one field. */
 function createLink(draft: Partial<Parameters<typeof createSavedLink>[0]> = {}): SavedLink {
@@ -22,10 +22,10 @@ describe('createSavedLink', () => {
     expect(createLink().id).not.toBe(createLink().id);
   });
 
-  it('starts a link out as merely saved, with nothing filled in', () => {
+  it('starts a link out with nothing filled in', () => {
     const link = createLink();
 
-    expect(link.status).toEqual(DEFAULT_STATUS);
+    expect(link.status).toBeNull();
     expect(link.category).toBeNull();
     expect(link.tags).toEqual([]);
     expect(link.note).toBe('');
@@ -44,7 +44,7 @@ describe('createSavedLink', () => {
       title: 'Jersey fabric',
       category: 'Fabrics',
       tags: ['jersey', 'blue'],
-      status: { kind: 'custom', label: 'Bought' },
+      status: 'Bought',
       note: 'Two metres are enough',
       imageUrl: 'https://shop.example/preview.jpg',
     });
@@ -53,7 +53,7 @@ describe('createSavedLink', () => {
       title: 'Jersey fabric',
       category: 'Fabrics',
       tags: ['jersey', 'blue'],
-      status: { kind: 'custom', label: 'Bought' },
+      status: 'Bought',
       note: 'Two metres are enough',
       imageUrl: 'https://shop.example/preview.jpg',
     });
@@ -110,17 +110,12 @@ describe('createSavedLink', () => {
     expect(createLink({ category: '   ' }).category).toBeNull();
   });
 
-  it('trims a custom status', () => {
-    expect(createLink({ status: { kind: 'custom', label: '  Bought  ' } }).status).toEqual({
-      kind: 'custom',
-      label: 'Bought',
-    });
+  it('trims a status', () => {
+    expect(createLink({ status: '  Bought  ' }).status).toBe('Bought');
   });
 
-  // An unlabelled status would show up as an empty chip and split the status
-  // filter into a nameless group.
-  it('falls back to the default status when a custom label is blank', () => {
-    expect(createLink({ status: { kind: 'custom', label: '   ' } }).status).toEqual(DEFAULT_STATUS);
+  it('treats a status of only whitespace as none', () => {
+    expect(createLink({ status: '   ' }).status).toBeNull();
   });
 });
 
@@ -180,25 +175,27 @@ describe('applyEdits', () => {
       tags: ['  jersey  ', 'jersey', ''],
       category: '  ',
       imageUrl: 'javascript:alert(1)',
-      status: { kind: 'custom', label: '  Bought  ' },
+      status: '  Bought  ',
     });
 
     expect(edited.title).toBe('shop.example');
     expect(edited.tags).toEqual(['jersey']);
     expect(edited.category).toBeNull();
     expect(edited.imageUrl).toBeNull();
-    expect(edited.status).toEqual({ kind: 'custom', label: 'Bought' });
+    expect(edited.status).toBe('Bought');
   });
 
-  it('can clear the image and the category again', () => {
+  it('can clear the image, the category and the status again', () => {
     const link = createLink({
       category: 'Fabrics',
+      status: 'Bought',
       imageUrl: 'https://shop.example/preview.jpg',
     });
 
-    const edited = applyEdits(link, { category: null, imageUrl: null });
+    const edited = applyEdits(link, { category: null, status: null, imageUrl: null });
 
     expect(edited.category).toBeNull();
+    expect(edited.status).toBeNull();
     expect(edited.imageUrl).toBeNull();
   });
 });

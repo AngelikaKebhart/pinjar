@@ -446,7 +446,7 @@ function ValueRow({
             what was filed under it, and that is the fear worth answering before
             the button is pressed (3.3.4).
           */
-          hint={t(`organization.delete.hint.${kind}`, { fallback: t('status.default') })}
+          hint={t(`organization.delete.hint.${kind}`)}
           confirm={t('organization.delete.confirm')}
           confirmLabel={t('organization.delete.confirmLabel', { value: value.value })}
           cancel={t('organization.delete.cancel')}

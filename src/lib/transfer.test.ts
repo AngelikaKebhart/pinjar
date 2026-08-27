@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
-import { DEFAULT_STATUS } from './saved-link';
-import { addSavedLink, getCategories, getCustomStatuses, getSavedLinks, getTags } from './storage';
+import { addSavedLink, getCategories, getStatuses, getSavedLinks, getTags } from './storage';
 import {
   buildExportFile,
   EXPORT_FORMAT,
@@ -31,7 +30,7 @@ describe('the export file', () => {
       imageUrl: 'https://shop.example/jersey.png',
       category: 'Fabrics',
       tags: ['Cotton', 'Blue'],
-      status: { kind: 'custom', label: 'Bought' },
+      status: 'Bought',
       note: 'Two metres',
     });
 
@@ -44,7 +43,7 @@ describe('the export file', () => {
       imageUrl: 'https://shop.example/jersey.png',
       category: 'Fabrics',
       tags: ['Cotton', 'Blue'],
-      status: { kind: 'custom', label: 'Bought' },
+      status: 'Bought',
       note: 'Two metres',
     });
   });
@@ -60,7 +59,7 @@ describe('the export file', () => {
       title: 'Jersey fabric',
       category: 'Fabrics',
       tags: ['Cotton'],
-      status: { kind: 'custom', label: 'Bought' },
+      status: 'Bought',
     });
 
     const file = await buildExportFile();
@@ -68,7 +67,7 @@ describe('the export file', () => {
     expect(file).toMatchObject({
       categories: ['Fabrics'],
       tags: ['Cotton'],
-      customStatuses: ['Bought'],
+      statuses: ['Bought'],
     });
   });
 
@@ -93,7 +92,7 @@ describe('the export file', () => {
   it('is complete even with nothing saved', async () => {
     const file = await buildExportFile();
 
-    expect(file).toMatchObject({ links: [], categories: [], tags: [], customStatuses: [] });
+    expect(file).toMatchObject({ links: [], categories: [], tags: [], statuses: [] });
   });
 });
 
@@ -116,7 +115,7 @@ function anExport(links: unknown[] = [], extras: Record<string, unknown> = {}): 
     links,
     categories: [],
     tags: [],
-    customStatuses: [],
+    statuses: [],
     ...extras,
   });
 }
@@ -131,7 +130,7 @@ function aStoredLink(url: string, extras: Record<string, unknown> = {}): Record<
     imageUrl: null,
     category: null,
     tags: [],
-    status: DEFAULT_STATUS,
+    status: null,
     note: '',
     createdAt: '2026-07-01T10:00:00.000Z',
     updatedAt: '2026-07-01T10:00:00.000Z',
@@ -152,7 +151,7 @@ describe('reading a file back in', () => {
       imageUrl: 'https://shop.example/jersey.png',
       category: 'Fabrics',
       tags: ['Cotton'],
-      status: { kind: 'custom', label: 'Bought' },
+      status: 'Bought',
       note: 'Two metres',
     });
 
@@ -164,7 +163,7 @@ describe('reading a file back in', () => {
         imageUrl: 'https://shop.example/jersey.png',
         category: 'Fabrics',
         tags: ['Cotton'],
-        status: { kind: 'custom', label: 'Bought' },
+        status: 'Bought',
         note: 'Two metres',
         createdAt: '2026-07-01T10:00:00.000Z',
       },
@@ -192,13 +191,13 @@ describe('reading a file back in', () => {
       anExport([aStoredLink('https://shop.example/jersey', { tags: ['Cotton'] })], {
         categories: ['Fabrics'],
         tags: ['Cotton'],
-        customStatuses: ['Bought'],
+        statuses: ['Bought'],
       }),
     );
 
     await expect(getCategories()).resolves.toEqual(['Fabrics']);
     await expect(getTags()).resolves.toEqual(['Cotton']);
-    await expect(getCustomStatuses()).resolves.toEqual(['Bought']);
+    await expect(getStatuses()).resolves.toEqual(['Bought']);
   });
 
   /*
@@ -297,12 +296,12 @@ describe('a file that cannot be trusted', () => {
     await expect(getSavedLinks()).resolves.toMatchObject([{ imageUrl: null }]);
   });
 
-  it('reads a status it does not recognize as the built-in one', async () => {
+  it('reads a status that is not a name as none at all', async () => {
     const invented = aStoredLink('https://shop.example/jersey', { status: { kind: 'invented' } });
 
     await importFile(anExport([invented]));
 
-    await expect(getSavedLinks()).resolves.toMatchObject([{ status: DEFAULT_STATUS }]);
+    await expect(getSavedLinks()).resolves.toMatchObject([{ status: null }]);
   });
 
   it('replaces fields of the wrong type rather than storing them', async () => {
@@ -332,7 +331,7 @@ describe('a file this extension wrote itself', () => {
       title: 'Jersey fabric',
       category: 'Fabrics',
       tags: ['Cotton'],
-      status: { kind: 'custom', label: 'Bought' },
+      status: 'Bought',
       note: 'Two metres',
     });
   }
@@ -363,11 +362,11 @@ describe('a file this extension wrote itself', () => {
         title: 'Jersey fabric',
         category: 'Fabrics',
         tags: ['Cotton'],
-        status: { kind: 'custom', label: 'Bought' },
+        status: 'Bought',
         note: 'Two metres',
       },
     ]);
     await expect(getCategories()).resolves.toEqual(['Fabrics']);
-    await expect(getCustomStatuses()).resolves.toEqual(['Bought']);
+    await expect(getStatuses()).resolves.toEqual(['Bought']);
   });
 });

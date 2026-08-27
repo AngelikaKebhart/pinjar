@@ -1,4 +1,4 @@
-import { keyToStatus, statusToKey, type LinkStatus, type SavedLink } from './saved-link';
+import type { SavedLink } from './saved-link';
 
 /**
  * Narrowing the dashboard list down (docs/concept.md §3.5).
@@ -17,7 +17,7 @@ export interface LinkFilterCriteria {
   category: string | null;
   /** A link has to carry all of them. Empty matches everything. */
   tags: string[];
-  /** A key from `statusToKey`. `null` matches every status. */
+  /** Read exactly like `category`: `null` matches all, `''` matches unset. */
   status: string | null;
   /**
    * A hostname as stored on the link. `null` matches every domain; there is no
@@ -81,11 +81,7 @@ function matchesText(link: SavedLink, search: string): boolean {
 }
 
 function matchesCategory(link: SavedLink, category: string | null): boolean {
-  if (category === null) {
-    return true;
-  }
-
-  return category === '' ? link.category === null : link.category === category;
+  return matchesOptionalName(link.category, category);
 }
 
 function matchesTags(link: SavedLink, tags: string[]): boolean {
@@ -93,7 +89,16 @@ function matchesTags(link: SavedLink, tags: string[]): boolean {
 }
 
 function matchesStatus(link: SavedLink, status: string | null): boolean {
-  return status === null || statusToKey(link.status) === status;
+  return matchesOptionalName(link.status, status);
+}
+
+/** `null` wanted means every link; the empty string means only unset ones. */
+function matchesOptionalName(carried: string | null, wanted: string | null): boolean {
+  if (wanted === null) {
+    return true;
+  }
+
+  return wanted === '' ? carried === null : carried === wanted;
 }
 
 function matchesDomain(link: SavedLink, domain: string | null): boolean {
@@ -116,24 +121,39 @@ function matchesDomain(link: SavedLink, domain: string | null): boolean {
  * box that disappeared could never be unticked.
  */
 
-export interface AvailableCategories {
+/** What a filter over one optional name — the category, the status — can offer. */
+export interface AvailableNames {
   names: string[];
-  /** Whether offering "without a category" would find anything. */
-  uncategorised: boolean;
+  /** Whether offering "without one" would find anything. */
+  unset: boolean;
 }
 
 export function availableCategories(
   links: SavedLink[],
   criteria: LinkFilterCriteria,
-): AvailableCategories {
-  const relevant = filterSavedLinks(links, { ...criteria, category: null });
-  const names = relevant
-    .map((link) => link.category)
-    .filter((category): category is string => category !== null);
+): AvailableNames {
+  return availableNames(links, criteria, 'category');
+}
+
+export function availableStatuses(
+  links: SavedLink[],
+  criteria: LinkFilterCriteria,
+): AvailableNames {
+  return availableNames(links, criteria, 'status');
+}
+
+function availableNames(
+  links: SavedLink[],
+  criteria: LinkFilterCriteria,
+  field: 'category' | 'status',
+): AvailableNames {
+  const picked = criteria[field];
+  const relevant = filterSavedLinks(links, { ...criteria, [field]: null });
+  const names = relevant.map((link) => link[field]).filter((name): name is string => name !== null);
 
   return {
-    names: [...new Set(criteria.category ? [...names, criteria.category] : names)],
-    uncategorised: relevant.some((link) => link.category === null) || criteria.category === '',
+    names: [...new Set(picked ? [...names, picked] : names)],
+    unset: relevant.some((link) => link[field] === null) || picked === '',
   };
 }
 
@@ -148,19 +168,4 @@ export function availableDomains(links: SavedLink[], criteria: LinkFilterCriteri
   const domains = relevant.map((link) => link.domain);
 
   return [...new Set(criteria.domain ? [...domains, criteria.domain] : domains)];
-}
-
-export function availableStatuses(links: SavedLink[], criteria: LinkFilterCriteria): LinkStatus[] {
-  const relevant = filterSavedLinks(links, { ...criteria, status: null });
-  const byKey = new Map<string, LinkStatus>();
-
-  for (const link of relevant) {
-    byKey.set(statusToKey(link.status), link.status);
-  }
-
-  if (criteria.status !== null && !byKey.has(criteria.status)) {
-    byKey.set(criteria.status, keyToStatus(criteria.status));
-  }
-
-  return [...byKey.values()];
 }

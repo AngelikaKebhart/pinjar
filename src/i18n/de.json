@@ -34,8 +34,6 @@
   "dashboard.link.domain": "Domain",
   "dashboard.link.note": "Notiz",
 
-  "status.default": "Gemerkt",
-
   "editLink.actionLabel": "„{title}“ bearbeiten",
   "editLink.formLabel": "„{title}“ bearbeiten",
   "editLink.categoryNone": "Keine Kategorie",
@@ -45,6 +43,7 @@
   "editLink.tagsNewLabel": "Neue Schlagwörter",
   "editLink.tagsHint": "Mehrere mit Komma trennen, dann mit Enter hinzufügen.",
   "editLink.newHint": "Mit Enter bestätigen, mit Escape abbrechen.",
+  "editLink.statusNone": "Kein Status",
   "editLink.statusNew": "Neuen Status anlegen…",
   "editLink.save": "Speichern",
   "editLink.cancel": "Abbrechen",
@@ -65,6 +64,7 @@
   "filters.categoryAll": "Alle Kategorien",
   "filters.categoryNone": "Ohne Kategorie",
   "filters.statusAll": "Beliebiger Status",
+  "filters.statusNone": "Ohne Status",
   "filters.domainAll": "Alle Domains",
   "filters.reset": "Filter zurücksetzen",
 
@@ -124,7 +124,7 @@
   "organization.delete.question.status": "Status „{value}“ löschen?",
   "organization.delete.hint.category": "Deine gemerkten Links bleiben erhalten, haben aber diese Kategorie nicht mehr.",
   "organization.delete.hint.tag": "Deine gemerkten Links bleiben erhalten, haben aber dieses Schlagwort nicht mehr.",
-  "organization.delete.hint.status": "Deine gemerkten Links bleiben erhalten, stehen danach aber wieder auf „{fallback}“.",
+  "organization.delete.hint.status": "Deine gemerkten Links bleiben erhalten, haben aber diesen Status nicht mehr.",
   "organization.delete.confirm": "Ja, löschen",
   "organization.delete.confirmLabel": "„{value}“ wirklich löschen",
   "organization.delete.cancel": "Abbrechen",

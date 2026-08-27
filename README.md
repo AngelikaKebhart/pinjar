@@ -6,7 +6,7 @@ A cross-browser extension (Chrome, Firefox, Edge) that acts as a universal, shop
 
 Save any page with a single click — no account, no sign-up. When you return to a domain where you
 already saved something, the extension shows a badge with the number of saved links for that domain.
-Saved items can be organized with categories, tags, a customizable status, and free-text notes.
+Saved items can be organized with categories, tags, an optional status, and free-text notes.
 
 All data is stored **locally in your browser** (`storage.local`). There is no backend, no account, and
 no automatic sync. Data can be moved between browsers via manual JSON export/import.
@@ -175,7 +175,7 @@ reasoning.
   regular key segments are separated by dots.
 - Dates and numbers go through `formatDate()` / `formatNumber()` from the same hook, never through
   hand-built strings.
-- Do not translate what the user typed (categories, tags, notes, custom status values) or what came
+- Do not translate what the user typed (categories, tags, notes, status values) or what came
   from a website (title).
 - Check new UI in both languages: German runs roughly 20–35% longer than English and will expose any
   fixed width that clips.

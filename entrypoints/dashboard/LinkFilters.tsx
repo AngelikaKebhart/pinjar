@@ -11,7 +11,7 @@ import {
   NO_FILTER,
   type LinkFilterCriteria,
 } from '@/src/lib/filter';
-import { statusToKey, type SavedLink } from '@/src/lib/saved-link';
+import type { SavedLink } from '@/src/lib/saved-link';
 
 /**
  * The controls above the list (docs/concept.md §3.5).
@@ -40,8 +40,8 @@ export function LinkFilters({
   // Sorted by name, so a value keeps its place instead of moving with
   // whichever link was saved last.
   const offeredCategories = useMemo(() => {
-    const { names, uncategorised } = availableCategories(links, criteria);
-    return { names: [...names].sort(compareNames), uncategorised };
+    const { names, unset } = availableCategories(links, criteria);
+    return { names: [...names].sort(compareNames), unset };
   }, [links, criteria, compareNames]);
 
   const offeredTags = useMemo(
@@ -54,16 +54,10 @@ export function LinkFilters({
     [links, criteria, compareNames],
   );
 
-  // Sorted by the label shown, not the stored status: the built-in one is the
-  // only translated status (§4), so its key would sort it somewhere else.
   const offeredStatuses = useMemo(() => {
-    const labelled = availableStatuses(links, criteria).map((status) => ({
-      key: statusToKey(status),
-      label: status.kind === 'builtin' ? t(`status.${status.key}`) : status.label,
-    }));
-
-    return labelled.sort((one, other) => compareNames(one.label, other.label));
-  }, [links, criteria, compareNames, t]);
+    const { names, unset } = availableStatuses(links, criteria);
+    return { names: [...names].sort(compareNames), unset };
+  }, [links, criteria, compareNames]);
 
   const toggleTag = (tag: string) => {
     onChange({
@@ -104,13 +98,11 @@ export function LinkFilters({
           </label>
           <Select
             id={`${fieldId}-category`}
-            value={categoryToChoice(criteria.category)}
-            onChange={(choice) => onChange({ ...criteria, category: choiceToCategory(choice) })}
+            value={nameToChoice(criteria.category)}
+            onChange={(choice) => onChange({ ...criteria, category: choiceToName(choice) })}
           >
             <option value={ALL}>{t('filters.categoryAll')}</option>
-            {offeredCategories.uncategorised && (
-              <option value={NONE}>{t('filters.categoryNone')}</option>
-            )}
+            {offeredCategories.unset && <option value={NONE}>{t('filters.categoryNone')}</option>}
 
             {offeredCategories.names.map((category) => (
               <option key={category} value={`${NAMED_PREFIX}${category}`}>
@@ -126,14 +118,15 @@ export function LinkFilters({
           </label>
           <Select
             id={`${fieldId}-status`}
-            value={criteria.status ?? ALL}
-            onChange={(choice) => onChange({ ...criteria, status: choice === ALL ? null : choice })}
+            value={nameToChoice(criteria.status)}
+            onChange={(choice) => onChange({ ...criteria, status: choiceToName(choice) })}
           >
             <option value={ALL}>{t('filters.statusAll')}</option>
+            {offeredStatuses.unset && <option value={NONE}>{t('filters.statusNone')}</option>}
 
-            {offeredStatuses.map(({ key, label }) => (
-              <option key={key} value={key}>
-                {label}
+            {offeredStatuses.names.map((status) => (
+              <option key={status} value={`${NAMED_PREFIX}${status}`}>
+                {status}
               </option>
             ))}
           </Select>
@@ -205,30 +198,29 @@ export function LinkFilters({
 }
 
 /**
- * The category and domain options. Real names are prefixed so a category the
- * user calls "all" or "none" — or a single-label hostname `all` — is read back
- * as itself rather than as a collective entry. The status options need no such
- * care: every key from `statusToKey` already carries a `builtin:`/`custom:`
- * prefix.
+ * The options for every drop-down here. Real names are prefixed so a category
+ * or status the user calls "all" or "none" — or a single-label hostname `all` —
+ * is read back as itself rather than as a collective entry.
  */
 const ALL = 'all';
 const NONE = 'none';
 const NAMED_PREFIX = 'named:';
 
-function categoryToChoice(category: string | null): string {
-  if (category === null) {
+/** The category and the status read the same way; only the domain differs. */
+function nameToChoice(name: string | null): string {
+  if (name === null) {
     return ALL;
   }
 
-  return category === '' ? NONE : `${NAMED_PREFIX}${category}`;
+  return name === '' ? NONE : `${NAMED_PREFIX}${name}`;
 }
 
-function choiceToCategory(choice: string): string | null {
+function choiceToName(choice: string): string | null {
   if (choice === ALL) {
     return null;
   }
 
-  // The empty string is what the filter reads as "without a category".
+  // The empty string is what the filter reads as "without one".
   return choice === NONE ? '' : choice.slice(NAMED_PREFIX.length);
 }
 

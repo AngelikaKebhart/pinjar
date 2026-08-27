@@ -162,7 +162,7 @@ describe('the components', () => {
 
   // A guard that found nothing would pass while checking nothing.
   it('finds the components to check', () => {
-    expect(componentFiles()).toContain('src/components/StatusLabel.tsx');
+    expect(componentFiles()).toContain('src/components/SavedLinkForm.tsx');
     expect(componentFiles().length).toBeGreaterThan(5);
   });
 

@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
 import { TranslationProvider } from '@/src/i18n/TranslationProvider';
-import { DEFAULT_STATUS, type LinkStatus, type SavedLinkEdits } from '@/src/lib/saved-link';
+import type { SavedLinkEdits } from '@/src/lib/saved-link';
 import { addSavedLink } from '@/src/lib/storage';
 import { SavedLinkForm } from './SavedLinkForm';
 
@@ -11,7 +11,7 @@ interface EditableLink {
   title: string;
   category: string | null;
   tags: string[];
-  status: LinkStatus;
+  status: string | null;
   note: string;
 }
 
@@ -20,7 +20,7 @@ function aLink(overrides: Partial<EditableLink> = {}): EditableLink {
     title: 'Jersey fabric',
     category: null,
     tags: [],
-    status: DEFAULT_STATUS,
+    status: null,
     note: '',
     ...overrides,
   };
@@ -233,9 +233,7 @@ describe('adding something new in place', () => {
     addNew('Status', 'Ordered');
     submit();
 
-    expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({ status: { kind: 'custom', label: 'Ordered' } }),
-    );
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ status: 'Ordered' }));
   });
 });
 
@@ -305,7 +303,7 @@ describe('the category', () => {
   });
 
   // A category literally named like one of the option sentinels must survive.
-  it.each(['none', 'new', 'builtin'])('keeps a category named "%s" intact', async (name) => {
+  it.each(['none', 'new'])('keeps a category named "%s" intact', async (name) => {
     const { onSave } = await renderForm(aLink({ category: name }));
 
     submit();
@@ -416,17 +414,15 @@ describe('the tags', () => {
 });
 
 describe('the status', () => {
-  it('offers the built-in status translated', async () => {
+  // Nothing is preselected for a link the user has not filed under a status.
+  it('offers the "no status" entry', async () => {
     await renderForm();
 
-    expect(screen.getByRole('option', { name: 'Saved' })).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'No status' })).toBeTruthy();
   });
 
   it('offers the statuses created before', async () => {
-    await addSavedLink({
-      url: 'https://shop.example/a',
-      status: { kind: 'custom', label: 'Bought' },
-    });
+    await addSavedLink({ url: 'https://shop.example/a', status: 'Bought' });
 
     await renderForm();
 
@@ -434,40 +430,35 @@ describe('the status', () => {
   });
 
   it('offers the status this link carries even when the suggestions lost it', async () => {
-    await renderForm(aLink({ status: { kind: 'custom', label: 'Ordered' } }));
+    await renderForm(aLink({ status: 'Ordered' }));
 
     expect(await screen.findByRole('option', { name: 'Ordered' })).toBeTruthy();
   });
 
-  it('keeps a custom status when nothing is changed', async () => {
-    const { onSave } = await renderForm(aLink({ status: { kind: 'custom', label: 'Bought' } }));
+  it('keeps the status when nothing is changed', async () => {
+    const { onSave } = await renderForm(aLink({ status: 'Bought' }));
 
     submit();
 
-    expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({ status: { kind: 'custom', label: 'Bought' } }),
-    );
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ status: 'Bought' }));
   });
 
-  it('switches back to the built-in status', async () => {
-    const { onSave } = await renderForm(aLink({ status: { kind: 'custom', label: 'Bought' } }));
+  it('can be cleared again', async () => {
+    const { onSave } = await renderForm(aLink({ status: 'Bought' }));
 
-    choose('Status', 'builtin');
+    choose('Status', 'none');
     submit();
 
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ status: DEFAULT_STATUS }));
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ status: null }));
   });
 
-  // A user's own status named like a sentinel must not be mistaken for it
-  // (docs/concept.md §4).
-  it.each(['builtin', 'new', 'none'])('keeps a custom status named "%s" custom', async (name) => {
-    const { onSave } = await renderForm(aLink({ status: { kind: 'custom', label: name } }));
+  // A status literally named like one of the option sentinels must survive.
+  it.each(['none', 'new'])('keeps a status named "%s" intact', async (name) => {
+    const { onSave } = await renderForm(aLink({ status: name }));
 
     submit();
 
-    expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({ status: { kind: 'custom', label: name } }),
-    );
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ status: name }));
   });
 });
 

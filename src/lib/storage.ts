@@ -37,9 +37,9 @@ export const savedLinks = defineList<SavedLink>('local:savedLinks');
  *
  * Categories and status labels are deliberately never pruned: a category the
  * user created stays offered instead of quietly disappearing with the last link
- * that used it, and a custom status nothing is in right now is a stage of the
- * user's workflow rather than a leftover. Both are cleared by hand, from the
- * dialog that lists them.
+ * that used it, and a status nothing is in right now is a stage of the user's
+ * workflow rather than a leftover. Both are cleared by hand, from the dialog
+ * that lists them.
  */
 export const categories = defineList<string>('local:categories');
 /**
@@ -49,8 +49,8 @@ export const categories = defineList<string>('local:categories');
  * the longest of the three and the least worth reading.
  */
 export const tags = defineList<string>('local:tags');
-/** Custom status labels only — the built-in default is always available. */
-export const customStatuses = defineList<string>('local:customStatuses');
+/** Every status label the user has written — there is no other kind. */
+export const statuses = defineList<string>('local:statuses');
 
 type StoredList<T> = ReturnType<typeof defineList<T>>;
 
@@ -144,7 +144,7 @@ export async function mergeImportedData(data: {
   links: SavedLink[];
   categories: string[];
   tags: string[];
-  customStatuses: string[];
+  statuses: string[];
 }): Promise<void> {
   const existing = await getSavedLinks();
   const merged = [...existing, ...data.links].sort(
@@ -156,7 +156,7 @@ export async function mergeImportedData(data: {
   await Promise.all([
     addUnknownValues(categories, data.categories),
     addUnknownValues(tags, data.tags),
-    addUnknownValues(customStatuses, data.customStatuses),
+    addUnknownValues(statuses, data.statuses),
   ]);
 
   // The file's tag list may name tags none of its links carries. They are added
@@ -177,7 +177,7 @@ export async function deleteAllSavedData(): Promise<void> {
     savedLinks.removeValue(),
     categories.removeValue(),
     tags.removeValue(),
-    customStatuses.removeValue(),
+    statuses.removeValue(),
   ]);
 }
 
@@ -198,7 +198,7 @@ export async function getStoredDataPresence(): Promise<StoredDataPresence> {
     getSavedLinks(),
     getCategories(),
     getTags(),
-    getCustomStatuses(),
+    getStatuses(),
   ]);
 
   const hasLinks = links.length > 0;
@@ -220,7 +220,7 @@ export function watchStoredData(onChange: () => void): () => void {
     savedLinks.watch(onChange),
     categories.watch(onChange),
     tags.watch(onChange),
-    customStatuses.watch(onChange),
+    statuses.watch(onChange),
   ];
 
   return () => unwatchers.forEach((unwatch) => unwatch());
@@ -234,8 +234,8 @@ export function getTags(): Promise<string[]> {
   return tags.getValue();
 }
 
-export function getCustomStatuses(): Promise<string[]> {
-  return customStatuses.getValue();
+export function getStatuses(): Promise<string[]> {
+  return statuses.getValue();
 }
 
 /**
@@ -245,7 +245,7 @@ export function getCustomStatuses(): Promise<string[]> {
 const ORGANIZATION_LISTS: Record<OrganizationKind, StoredList<string>> = {
   category: categories,
   tag: tags,
-  status: customStatuses,
+  status: statuses,
 };
 
 /** One remembered value, with what still hangs on it. */
@@ -385,7 +385,7 @@ async function rememberOrganizationValues(link: SavedLink): Promise<void> {
   await Promise.all([
     addUnknownValues(categories, link.category === null ? [] : [link.category]),
     addUnknownValues(tags, link.tags),
-    addUnknownValues(customStatuses, link.status.kind === 'custom' ? [link.status.label] : []),
+    addUnknownValues(statuses, link.status === null ? [] : [link.status]),
   ]);
 }
 

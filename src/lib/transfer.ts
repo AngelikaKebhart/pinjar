@@ -1,11 +1,5 @@
-import { createSavedLink, DEFAULT_STATUS, type LinkStatus, type SavedLink } from './saved-link';
-import {
-  getCategories,
-  getCustomStatuses,
-  getSavedLinks,
-  getTags,
-  mergeImportedData,
-} from './storage';
+import { createSavedLink, type SavedLink } from './saved-link';
+import { getCategories, getStatuses, getSavedLinks, getTags, mergeImportedData } from './storage';
 
 /**
  * Carrying the wishlist out as a file, and reading one back in (§3.6).
@@ -41,16 +35,16 @@ export interface ExportFile {
    */
   categories: string[];
   tags: string[];
-  customStatuses: string[];
+  statuses: string[];
 }
 
 /** Everything the user would lose by deleting, in one object. */
 export async function buildExportFile(): Promise<ExportFile> {
-  const [links, categories, tags, customStatuses] = await Promise.all([
+  const [links, categories, tags, statuses] = await Promise.all([
     getSavedLinks(),
     getCategories(),
     getTags(),
-    getCustomStatuses(),
+    getStatuses(),
   ]);
 
   return {
@@ -60,7 +54,7 @@ export async function buildExportFile(): Promise<ExportFile> {
     links,
     categories,
     tags,
-    customStatuses,
+    statuses,
   };
 }
 
@@ -118,7 +112,7 @@ export async function importFile(contents: string): Promise<ImportOutcome> {
     links: fresh,
     categories: file.categories,
     tags: file.tags,
-    customStatuses: file.customStatuses,
+    statuses: file.statuses,
   });
 
   return {
@@ -134,10 +128,10 @@ interface ParsedFile {
   links: unknown[];
   categories: string[];
   tags: string[];
-  customStatuses: string[];
+  statuses: string[];
 }
 
-const NOTHING = { links: [], categories: [], tags: [], customStatuses: [] };
+const NOTHING = { links: [], categories: [], tags: [], statuses: [] };
 
 function parseExportFile(contents: string): ParsedFile {
   let parsed: unknown;
@@ -165,7 +159,7 @@ function parseExportFile(contents: string): ParsedFile {
     links: Array.isArray(links) ? links : [],
     categories: asStringArray(parsed['categories']),
     tags: asStringArray(parsed['tags']),
-    customStatuses: asStringArray(parsed['customStatuses']),
+    statuses: asStringArray(parsed['statuses']),
   };
 }
 
@@ -191,7 +185,7 @@ function toSavedLink(raw: unknown): SavedLink | null {
     imageUrl: typeof raw['imageUrl'] === 'string' ? raw['imageUrl'] : null,
     category: typeof raw['category'] === 'string' ? raw['category'] : null,
     tags: asStringArray(raw['tags']),
-    status: asStatus(raw['status']),
+    status: typeof raw['status'] === 'string' ? raw['status'] : null,
     note: asString(raw['note']),
   });
 
@@ -220,19 +214,6 @@ function asStringArray(value: unknown): string[] {
   return Array.isArray(value)
     ? value.filter((entry): entry is string => typeof entry === 'string')
     : [];
-}
-
-/** Anything unrecognizable becomes undefined, which the model reads as the default. */
-function asStatus(value: unknown): LinkStatus | undefined {
-  if (!isRecord(value)) {
-    return undefined;
-  }
-
-  if (value['kind'] === 'custom' && typeof value['label'] === 'string') {
-    return { kind: 'custom', label: value['label'] };
-  }
-
-  return value['kind'] === 'builtin' && value['key'] === 'default' ? DEFAULT_STATUS : undefined;
 }
 
 function asDate(value: unknown): string | null {

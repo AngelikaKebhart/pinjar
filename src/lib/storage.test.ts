@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
-import { DEFAULT_STATUS, type SavedLink } from './saved-link';
+import type { SavedLink } from './saved-link';
 import { languagePreference } from './settings';
 import {
   savedLinks,
@@ -10,7 +10,7 @@ import {
   deleteAllSavedData,
   findSavedLinkByUrl,
   getCategories,
-  getCustomStatuses,
+  getStatuses,
   getSavedLinks,
   getSavedLinksForDomain,
   deleteOrganizationValue,
@@ -167,12 +167,12 @@ describe('remembered categories, tags and statuses', () => {
       url: 'https://shop.example/item',
       category: 'Fabrics',
       tags: ['jersey', 'blue'],
-      status: { kind: 'custom', label: 'Bought' },
+      status: 'Bought',
     });
 
     await expect(getCategories()).resolves.toEqual(['Fabrics']);
     await expect(getTags()).resolves.toEqual(['jersey', 'blue']);
-    await expect(getCustomStatuses()).resolves.toEqual(['Bought']);
+    await expect(getStatuses()).resolves.toEqual(['Bought']);
   });
 
   it('remembers what an edit introduces', async () => {
@@ -192,13 +192,12 @@ describe('remembered categories, tags and statuses', () => {
     await expect(getTags()).resolves.toEqual(['jersey', 'blue']);
   });
 
-  // The built-in status is always offered and is stored as a language-neutral
-  // key; putting it in the custom list would offer it twice and, worse, in
-  // whichever language it was saved in.
-  it('does not treat the built-in status as one the user created', async () => {
-    await addSavedLink({ url: 'https://shop.example/item', status: DEFAULT_STATUS });
+  // A link saved without one has no status to remember; an empty entry would
+  // show up as a nameless option in the form and the filter.
+  it('remembers nothing for a link saved without a status', async () => {
+    await addSavedLink({ url: 'https://shop.example/item' });
 
-    await expect(getCustomStatuses()).resolves.toEqual([]);
+    await expect(getStatuses()).resolves.toEqual([]);
   });
 
   // Deleting the last link of a category is not a statement about the category.
@@ -224,7 +223,7 @@ describe('deleting all data', () => {
     await expect(getSavedLinks()).resolves.toEqual([]);
     await expect(getCategories()).resolves.toEqual([]);
     await expect(getTags()).resolves.toEqual([]);
-    await expect(getCustomStatuses()).resolves.toEqual([]);
+    await expect(getStatuses()).resolves.toEqual([]);
   });
 
   // The language is a preference, not data the user asked to get rid of — an
