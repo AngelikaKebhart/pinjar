@@ -1,4 +1,4 @@
-import { DEFAULT_STATUS, type SavedLink } from './saved-link';
+import type { SavedLink } from './saved-link';
 
 /**
  * Renaming and deleting the values links are organized by (docs/concept.md
@@ -8,10 +8,10 @@ import { DEFAULT_STATUS, type SavedLink } from './saved-link';
  * lives in `./storage`, which is also where the remembered lists of values are.
  *
  * The three facets are one module rather than three, because they differ only
- * in how a link carries the value: one field, an array, or a label inside a
- * tagged union. Everything above that — counting what a value is used by,
- * rewriting it everywhere, taking it off every link — is the same work three
- * times over, and three copies of it would drift.
+ * in how a link carries the value: a single optional name, or a set of them.
+ * Everything above that — counting what a value is used by, rewriting it
+ * everywhere, taking it off every link — is the same work three times over,
+ * and three copies of it would drift.
  *
  * A link is stored as a plain string, not by reference, so both operations are
  * a rewrite of every link that carries the value. `updatedAt` deliberately
@@ -29,20 +29,26 @@ interface OrganizationFacet {
   withValueRenamed: (link: SavedLink, from: string, to: string) => SavedLink;
   /**
    * The link without the value. Nothing is deleted along with it: a link
-   * without a category is a link "without a category", and one whose custom
-   * status goes falls back to the built-in one.
+   * without a category is a link "without a category", and the same goes for
+   * one whose status is taken away.
    */
   withValueRemoved: (link: SavedLink, value: string) => SavedLink;
 }
 
+/**
+ * The category and the status are the same facet over a different field: one
+ * optional name that a rename rewrites and a delete sets back to `null`.
+ */
+function optionalNameFacet(field: 'category' | 'status'): OrganizationFacet {
+  return {
+    valuesOf: (link) => (link[field] === null ? [] : [link[field]]),
+    withValueRenamed: (link, from, to) => (link[field] === from ? { ...link, [field]: to } : link),
+    withValueRemoved: (link, value) => (link[field] === value ? { ...link, [field]: null } : link),
+  };
+}
+
 const FACETS: Record<OrganizationKind, OrganizationFacet> = {
-  category: {
-    valuesOf: (link) => (link.category === null ? [] : [link.category]),
-    withValueRenamed: (link, from, to) =>
-      link.category === from ? { ...link, category: to } : link,
-    withValueRemoved: (link, value) =>
-      link.category === value ? { ...link, category: null } : link,
-  },
+  category: optionalNameFacet('category'),
 
   tag: {
     valuesOf: (link) => link.tags,
@@ -59,18 +65,8 @@ const FACETS: Record<OrganizationKind, OrganizationFacet> = {
         : link,
   },
 
-  status: {
-    valuesOf: (link) => (link.status.kind === 'custom' ? [link.status.label] : []),
-    withValueRenamed: (link, from, to) =>
-      carriesCustomStatus(link, from) ? { ...link, status: { kind: 'custom', label: to } } : link,
-    withValueRemoved: (link, value) =>
-      carriesCustomStatus(link, value) ? { ...link, status: DEFAULT_STATUS } : link,
-  },
+  status: optionalNameFacet('status'),
 };
-
-function carriesCustomStatus(link: SavedLink, label: string): boolean {
-  return link.status.kind === 'custom' && link.status.label === label;
-}
 
 /**
  * How many links carry each value of one kind. Values no link uses are absent

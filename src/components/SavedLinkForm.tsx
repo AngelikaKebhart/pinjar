@@ -3,8 +3,8 @@ import type { FormEvent, KeyboardEvent, ReactNode } from 'react';
 import { Button } from '@/src/components/Button';
 import { Select } from '@/src/components/Select';
 import { useTranslation } from '@/src/i18n/context';
-import { DEFAULT_STATUS, type LinkStatus, type SavedLinkEdits } from '@/src/lib/saved-link';
-import { getCategories, getCustomStatuses, getTags } from '@/src/lib/storage';
+import type { SavedLinkEdits } from '@/src/lib/saved-link';
+import { getCategories, getStatuses, getTags } from '@/src/lib/storage';
 
 /**
  * Form for the fields the user owns: title, category, tags, status, note.
@@ -37,7 +37,7 @@ export function SavedLinkForm({
     title: string;
     category: string | null;
     tags: string[];
-    status: LinkStatus;
+    status: string | null;
     note: string;
   };
   onSave: (edits: SavedLinkEdits) => void | Promise<void>;
@@ -50,8 +50,8 @@ export function SavedLinkForm({
   const [title, setTitle] = useState(link.title);
   const [note, setNote] = useState(link.note);
 
-  const [categoryChoice, setCategoryChoice] = useState(() => categoryToChoice(link.category));
-  const [statusChoice, setStatusChoice] = useState(() => statusToChoice(link.status));
+  const [categoryChoice, setCategoryChoice] = useState(() => nameToChoice(link.category));
+  const [statusChoice, setStatusChoice] = useState(() => nameToChoice(link.status));
 
   const [checkedTags, setCheckedTags] = useState<string[]>(link.tags);
   const [newTags, setNewTags] = useState('');
@@ -68,16 +68,10 @@ export function SavedLinkForm({
   );
   const offeredTags = useMemo(() => [...knownTags].sort(compareNames), [knownTags, compareNames]);
 
-  // Sorted by the label, which for the built-in status is its translation (§4):
-  // that is what the user reads, and where the filter puts it too.
-  const offeredStatuses = useMemo(() => {
-    const options = [
-      { value: BUILTIN_CHOICE, label: t('status.default') },
-      ...knownStatuses.map((known) => ({ value: `${KNOWN_PREFIX}${known}`, label: known })),
-    ];
-
-    return options.sort((one, other) => compareNames(one.label, other.label));
-  }, [knownStatuses, compareNames, t]);
+  const offeredStatuses = useMemo(
+    () => [...knownStatuses].sort(compareNames),
+    [knownStatuses, compareNames],
+  );
 
   // Opening the form moves focus into it — a step forward into what just
   // appeared; the button that opened it is still where it was.
@@ -86,13 +80,13 @@ export function SavedLinkForm({
   }, []);
 
   useEffect(() => {
-    void Promise.all([getCategories(), getTags(), getCustomStatuses()]).then(
+    void Promise.all([getCategories(), getTags(), getStatuses()]).then(
       ([categories, tags, statuses]) => {
         // What this link already carries belongs in its list even if the
         // stored suggestions lost it, or editing anything else would drop it.
         setKnownCategories(including(categories, link.category));
         setKnownTags(union(tags, link.tags));
-        setKnownStatuses(including(statuses, customLabelOf(link.status)));
+        setKnownStatuses(including(statuses, link.status));
       },
     );
   }, [link.category, link.tags, link.status]);
@@ -139,11 +133,11 @@ export function SavedLinkForm({
 
     void onSave({
       title,
-      category: choiceToCategory(categoryChoice),
+      category: choiceToName(categoryChoice),
       // Anything still in the field counts: pressing Save right after typing a
       // tag must not throw it away.
       tags: [...checkedTags, ...splitTags(newTags)],
-      status: choiceToStatus(statusChoice),
+      status: choiceToName(statusChoice),
       note,
     });
   };
@@ -247,7 +241,10 @@ export function SavedLinkForm({
         label={t('dashboard.link.status')}
         value={statusChoice}
         onChange={setStatusChoice}
-        options={offeredStatuses}
+        options={[
+          { value: NONE_CHOICE, label: t('editLink.statusNone') },
+          ...offeredStatuses.map((known) => ({ value: `${KNOWN_PREFIX}${known}`, label: known })),
+        ]}
         newOptionLabel={t('editLink.statusNew')}
         onAdd={(label) => {
           setKnownStatuses((known) => including(known, label));
@@ -432,31 +429,19 @@ const INPUT_CLASSES =
 
 /**
  * A `<select>` can only carry a string, so option values are prefixed to keep
- * the meanings apart: otherwise a category named "new" or a status named
- * "builtin" would be read back as the sentinel — the very collision the tagged
- * union in §4 rules out.
+ * the meanings apart: otherwise a category named "none" or a status named "new"
+ * would be read back as the sentinel beside it.
  */
 const NONE_CHOICE = 'none';
-const BUILTIN_CHOICE = 'builtin';
 const KNOWN_PREFIX = 'known:';
 const NEW_CHOICE = 'new';
 
-function categoryToChoice(category: string | null): string {
-  return category === null ? NONE_CHOICE : `${KNOWN_PREFIX}${category}`;
+function nameToChoice(name: string | null): string {
+  return name === null ? NONE_CHOICE : `${KNOWN_PREFIX}${name}`;
 }
 
-function choiceToCategory(choice: string): string | null {
+function choiceToName(choice: string): string | null {
   return choice.startsWith(KNOWN_PREFIX) ? choice.slice(KNOWN_PREFIX.length) : null;
-}
-
-function statusToChoice(status: LinkStatus): string {
-  return status.kind === 'builtin' ? BUILTIN_CHOICE : `${KNOWN_PREFIX}${status.label}`;
-}
-
-function choiceToStatus(choice: string): LinkStatus {
-  return choice.startsWith(KNOWN_PREFIX)
-    ? { kind: 'custom', label: choice.slice(KNOWN_PREFIX.length) }
-    : DEFAULT_STATUS;
 }
 
 /**
@@ -469,10 +454,6 @@ function splitTags(typed: string): string[] {
     .split(',')
     .map((tag) => tag.trim())
     .filter((tag) => tag !== '');
-}
-
-function customLabelOf(status: LinkStatus): string | null {
-  return status.kind === 'custom' ? status.label : null;
 }
 
 /** Adds a value to a list of suggestions unless it is already there. */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { countUsage, countUsageOf, removeValueFromLinks, renameValueInLinks } from './organization';
-import { DEFAULT_STATUS, type LinkStatus, type SavedLink } from './saved-link';
+import type { SavedLink } from './saved-link';
 
 let nextId = 0;
 
@@ -15,15 +15,13 @@ function aLink(overrides: Partial<SavedLink> = {}): SavedLink {
     imageUrl: null,
     category: null,
     tags: [],
-    status: DEFAULT_STATUS,
+    status: null,
     note: '',
     createdAt: '2026-08-01T10:00:00.000Z',
     updatedAt: '2026-08-01T10:00:00.000Z',
     ...overrides,
   };
 }
-
-const custom = (label: string): LinkStatus => ({ kind: 'custom', label });
 
 describe('counting what a value is used by', () => {
   it('counts a category once per link', () => {
@@ -43,10 +41,10 @@ describe('counting what a value is used by', () => {
     );
   });
 
-  // The built-in status is not a value anyone can rename or delete, so it has
-  // no business in a list of the ones they can.
-  it('counts the user’s own statuses and not the built-in one', () => {
-    const links = [aLink({ status: custom('Bought') }), aLink(), aLink()];
+  // A link without a status carries no value to count, exactly as one without
+  // a category does.
+  it('counts the statuses in use and skips the links without one', () => {
+    const links = [aLink({ status: 'Bought' }), aLink(), aLink()];
 
     expect(countUsage(links, 'status')).toEqual(new Map([['Bought', 1]]));
   });
@@ -80,13 +78,13 @@ describe('renaming a value', () => {
     expect(renameValueInLinks(links, 'tag', 'sale', 'Sale')[0]?.tags).toEqual(['Sale']);
   });
 
-  it('rewrites a custom status and leaves the built-in one alone', () => {
-    const links = [aLink({ status: custom('Bougth') }), aLink()];
+  it('rewrites a status and leaves the links without one alone', () => {
+    const links = [aLink({ status: 'Bougth' }), aLink()];
 
     const renamed = renameValueInLinks(links, 'status', 'Bougth', 'Bought');
 
-    expect(renamed[0]?.status).toEqual(custom('Bought'));
-    expect(renamed[1]?.status).toEqual(DEFAULT_STATUS);
+    expect(renamed[0]?.status).toBe('Bought');
+    expect(renamed[1]?.status).toBeNull();
   });
 
   /*
@@ -126,11 +124,11 @@ describe('deleting a value', () => {
     expect(removeValueFromLinks(links, 'tag', 'Sale')[0]?.tags).toEqual(['Wool']);
   });
 
-  // A link has to have a status, so the one it started with is what is left.
-  it('falls back to the built-in status', () => {
-    const links = [aLink({ status: custom('Bought') })];
+  // The link stays; it is simply no longer filed under any status.
+  it('leaves the link without a status', () => {
+    const links = [aLink({ status: 'Bought' })];
 
-    expect(removeValueFromLinks(links, 'status', 'Bought')[0]?.status).toEqual(DEFAULT_STATUS);
+    expect(removeValueFromLinks(links, 'status', 'Bought')[0]?.status).toBeNull();
   });
 
   it('does not count as an edit to the link either', () => {

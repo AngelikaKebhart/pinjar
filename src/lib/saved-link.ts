@@ -7,49 +7,6 @@ import { extractDomain, isSafeImageUrl } from './url';
  * but never read or write anything. Persistence lives in `./storage`.
  */
 
-/**
- * Keys of statuses the extension ships itself. They are stored as keys, never
- * as translated text, so a language switch cannot orphan existing entries.
- */
-export type BuiltinStatusKey = 'default';
-
-/**
- * A status is either one of ours (translatable) or the user's own wording
- * (never translated). A `kind` field rather than a plain string, so a
- * user-created status named "default" cannot collide with the built-in one.
- */
-export type LinkStatus =
-  { kind: 'builtin'; key: BuiltinStatusKey } | { kind: 'custom'; label: string };
-
-/** The status every link starts with, shown as "Gemerkt" / "Saved". */
-export const DEFAULT_STATUS: LinkStatus = { kind: 'builtin', key: 'default' };
-
-/**
- * A stable string identity for a status, which is what the status filter
- * compares: comparing the objects would repeat the `kind` check at every call
- * site, and comparing the displayed text would make a user-created "Saved"
- * indistinguishable from the built-in one. The kind is part of the key, so the
- * two can never collide.
- *
- * In-memory only — nothing persists this, so it is free to change.
- */
-export function statusToKey(status: LinkStatus): string {
-  return status.kind === 'builtin' ? `builtin:${status.key}` : `custom:${status.label}`;
-}
-
-/**
- * The status a key stands for. Anything unrecognized becomes the built-in one
- * rather than an error: a status filter that throws would take the dashboard
- * down over a value that is merely stale.
- */
-export function keyToStatus(key: string): LinkStatus {
-  return key.startsWith(CUSTOM_KEY_PREFIX)
-    ? { kind: 'custom', label: key.slice(CUSTOM_KEY_PREFIX.length) }
-    : DEFAULT_STATUS;
-}
-
-const CUSTOM_KEY_PREFIX = 'custom:';
-
 export interface SavedLink {
   id: string;
   url: string;
@@ -59,7 +16,13 @@ export interface SavedLink {
   imageUrl: string | null;
   category: string | null;
   tags: string[];
-  status: LinkStatus;
+  /**
+   * The user's own wording, never translated, or `null` for a link they have
+   * not filed under one. Optional exactly like the category: how far along
+   * something is only means anything once the user has said so, and a status
+   * the extension invents would be on every link and tell nobody anything.
+   */
+  status: string | null;
   note: string;
   /** ISO 8601, formatted for display through `Intl` in the active language. */
   createdAt: string;
@@ -75,7 +38,7 @@ export interface SavedLinkDraft {
   imageUrl?: string | null;
   category?: string | null;
   tags?: string[];
-  status?: LinkStatus;
+  status?: string | null;
   note?: string;
 }
 
@@ -108,9 +71,9 @@ export function createSavedLink(draft: SavedLinkDraft): SavedLink | null {
     domain,
     title: normalizeTitle(draft.title, domain),
     imageUrl: normalizeImageUrl(draft.imageUrl),
-    category: normalizeCategory(draft.category),
+    category: normalizeOptionalName(draft.category),
     tags: normalizeTags(draft.tags),
-    status: normalizeStatus(draft.status),
+    status: normalizeOptionalName(draft.status),
     note: draft.note?.trim() ?? '',
     createdAt: now,
     updatedAt: now,
@@ -126,9 +89,9 @@ export function applyEdits(link: SavedLink, edits: SavedLinkEdits): SavedLink {
     ...link,
     title: 'title' in edits ? normalizeTitle(edits.title, link.domain) : link.title,
     imageUrl: 'imageUrl' in edits ? normalizeImageUrl(edits.imageUrl) : link.imageUrl,
-    category: 'category' in edits ? normalizeCategory(edits.category) : link.category,
+    category: 'category' in edits ? normalizeOptionalName(edits.category) : link.category,
     tags: 'tags' in edits ? normalizeTags(edits.tags) : link.tags,
-    status: 'status' in edits ? normalizeStatus(edits.status) : link.status,
+    status: 'status' in edits ? normalizeOptionalName(edits.status) : link.status,
     note: 'note' in edits ? (edits.note?.trim() ?? '') : link.note,
     updatedAt: new Date().toISOString(),
   };
@@ -148,25 +111,18 @@ function normalizeImageUrl(imageUrl: string | null | undefined): string | null {
   return isSafeImageUrl(imageUrl) ? imageUrl : null;
 }
 
-function normalizeCategory(category: string | null | undefined): string | null {
-  return category?.trim() || null;
+/**
+ * The category and the status are both a single name the user may leave unset,
+ * and both are blank-or-absent in the same way: a field left empty, a whitespace
+ * entry, or nothing supplied at all. One `null` for all of them, so "no
+ * category" is one value to test for rather than three.
+ */
+function normalizeOptionalName(name: string | null | undefined): string | null {
+  return name?.trim() || null;
 }
 
 /** Drops blank tags and repetitions so the tag filter cannot list a tag twice. */
 function normalizeTags(tags: string[] | undefined): string[] {
   const trimmed = (tags ?? []).map((tag) => tag.trim()).filter((tag) => tag !== '');
   return [...new Set(trimmed)];
-}
-
-/** A custom status without a label carries no meaning, so it falls back. */
-function normalizeStatus(status: LinkStatus | undefined): LinkStatus {
-  if (status === undefined) {
-    return DEFAULT_STATUS;
-  }
-  if (status.kind === 'builtin') {
-    return status;
-  }
-
-  const label = status.label.trim();
-  return label === '' ? DEFAULT_STATUS : { kind: 'custom', label };
 }

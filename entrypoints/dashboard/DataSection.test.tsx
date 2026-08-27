@@ -95,7 +95,7 @@ function anExport(links: unknown[] = []): string {
     links,
     categories: [],
     tags: [],
-    customStatuses: [],
+    statuses: [],
   });
 }
 

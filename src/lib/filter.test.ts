@@ -9,7 +9,7 @@ import {
   NO_FILTER,
   type LinkFilterCriteria,
 } from './filter';
-import { DEFAULT_STATUS, type LinkStatus, type SavedLink } from './saved-link';
+import type { SavedLink } from './saved-link';
 
 let nextId = 0;
 
@@ -24,7 +24,7 @@ function aLink(overrides: Partial<SavedLink> = {}): SavedLink {
     imageUrl: null,
     category: null,
     tags: [],
-    status: DEFAULT_STATUS,
+    status: null,
     note: '',
     createdAt: '2026-08-01T10:00:00.000Z',
     updatedAt: '2026-08-01T10:00:00.000Z',
@@ -35,8 +35,6 @@ function aLink(overrides: Partial<SavedLink> = {}): SavedLink {
 function titlesMatching(links: SavedLink[], criteria: Partial<LinkFilterCriteria>): string[] {
   return filterSavedLinks(links, { ...NO_FILTER, ...criteria }).map((link) => link.title);
 }
-
-const custom = (label: string): LinkStatus => ({ kind: 'custom', label });
 
 describe('with nothing set', () => {
   it('keeps every link, in the order it was given', () => {
@@ -59,7 +57,8 @@ describe('with nothing set', () => {
     ['a category', { category: 'Fabrics' }],
     ['links without a category', { category: '' }],
     ['a tag', { tags: ['jersey'] }],
-    ['a status', { status: 'builtin:default' }],
+    ['a status', { status: 'Bought' }],
+    ['links without a status', { status: '' }],
     ['a domain', { domain: 'shop.example' }],
   ])('reports %s as narrowing things down', (_case, criteria) => {
     expect(isFiltering({ ...NO_FILTER, ...criteria })).toBe(true);
@@ -164,27 +163,19 @@ describe('filtering by tag', () => {
 
 describe('filtering by status', () => {
   const links = [
-    aLink({ title: 'Just saved', status: DEFAULT_STATUS }),
-    aLink({ title: 'Bought', status: custom('Bought') }),
-    aLink({ title: 'Ordered', status: custom('Ordered') }),
+    aLink({ title: 'Nothing yet', status: null }),
+    aLink({ title: 'Bought', status: 'Bought' }),
+    aLink({ title: 'Ordered', status: 'Ordered' }),
   ];
 
-  it('keeps the links with the built-in status', () => {
-    expect(titlesMatching(links, { status: 'builtin:default' })).toEqual(['Just saved']);
+  it('keeps the links with one particular status', () => {
+    expect(titlesMatching(links, { status: 'Bought' })).toEqual(['Bought']);
   });
 
-  it('keeps the links with one particular custom status', () => {
-    expect(titlesMatching(links, { status: 'custom:Bought' })).toEqual(['Bought']);
-  });
-
-  // The kind is part of the key, so these two can never be confused.
-  it('tells a custom status apart from the built-in one of the same name', () => {
-    const withCustomDefault = aLink({ title: 'Custom', status: custom('default') });
-    const withBuiltin = aLink({ title: 'Built-in', status: DEFAULT_STATUS });
-
-    expect(titlesMatching([withCustomDefault, withBuiltin], { status: 'custom:default' })).toEqual([
-      'Custom',
-    ]);
+  // The status is optional, so "without one" is a real thing to look for —
+  // the same as it is for the category.
+  it('keeps only the links without a status', () => {
+    expect(titlesMatching(links, { status: '' })).toEqual(['Nothing yet']);
   });
 });
 
@@ -267,7 +258,7 @@ describe('what each filter is worth offering', () => {
       title: 'Dress pattern',
       category: 'Patterns',
       tags: ['dress'],
-      status: custom('Bought'),
+      status: 'Bought',
       domain: 'patterns.example',
     }),
     aLink({ title: 'Loose end', category: null, tags: [], domain: 'blog.example' }),
@@ -284,8 +275,8 @@ describe('what each filter is worth offering', () => {
     });
 
     it('offers the "without a category" entry only when it would find something', () => {
-      expect(availableCategories(links, criteria()).uncategorised).toBe(true);
-      expect(availableCategories(links, criteria({ tags: ['jersey'] })).uncategorised).toBe(false);
+      expect(availableCategories(links, criteria()).unset).toBe(true);
+      expect(availableCategories(links, criteria({ tags: ['jersey'] })).unset).toBe(false);
     });
 
     it('narrows to the categories the other filters leave', () => {
@@ -308,9 +299,9 @@ describe('what each filter is worth offering', () => {
     });
 
     it('keeps the "without a category" entry while it is picked', () => {
-      expect(
-        availableCategories(links, criteria({ category: '', search: 'jersey' })).uncategorised,
-      ).toBe(true);
+      expect(availableCategories(links, criteria({ category: '', search: 'jersey' })).unset).toBe(
+        true,
+      );
     });
   });
 
@@ -368,26 +359,33 @@ describe('what each filter is worth offering', () => {
   });
 
   describe('statuses', () => {
-    it('offers only the ones actually in use', () => {
-      expect(availableStatuses(links, criteria())).toEqual([DEFAULT_STATUS, custom('Bought')]);
+    it('offers only the ones actually in use, each of them once', () => {
+      expect(availableStatuses(links, criteria()).names).toEqual(['Bought']);
+    });
+
+    it('offers the "without a status" entry only when it would find something', () => {
+      expect(availableStatuses(links, criteria()).unset).toBe(true);
+      expect(availableStatuses(links, criteria({ tags: ['dress'] })).unset).toBe(false);
     });
 
     it('narrows to the statuses the other filters leave', () => {
-      expect(availableStatuses(links, criteria({ category: 'Fabrics' }))).toEqual([DEFAULT_STATUS]);
+      expect(availableStatuses(links, criteria({ category: 'Fabrics' })).names).toEqual([]);
     });
 
     it('ignores the status filter itself', () => {
-      expect(availableStatuses(links, criteria({ status: 'custom:Bought' }))).toHaveLength(2);
+      expect(availableStatuses(links, criteria({ status: 'Bought' })).names).toEqual(['Bought']);
     });
 
     it('keeps the picked status even when nothing else matches', () => {
       expect(
-        availableStatuses(links, criteria({ status: 'custom:Bought', category: 'Fabrics' })),
-      ).toContainEqual(custom('Bought'));
+        availableStatuses(links, criteria({ status: 'Bought', category: 'Fabrics' })).names,
+      ).toContain('Bought');
     });
 
-    it('lists each status once, however many links carry it', () => {
-      expect(availableStatuses(links, criteria())).toHaveLength(2);
+    it('keeps the "without a status" entry while it is picked', () => {
+      expect(availableStatuses(links, criteria({ status: '', category: 'Patterns' })).unset).toBe(
+        true,
+      );
     });
   });
 });

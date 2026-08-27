@@ -2,7 +2,6 @@ import { useId, useState } from 'react';
 import { DeletePanel } from '@/src/components/DeletePanel';
 import { SavedLinkActions } from '@/src/components/SavedLinkActions';
 import { SavedLinkForm } from '@/src/components/SavedLinkForm';
-import { StatusLabel } from '@/src/components/StatusLabel';
 import type { LinkPanels } from '@/src/components/useLinkPanels';
 import { useTranslation } from '@/src/i18n/context';
 import type { SavedLink, SavedLinkEdits } from '@/src/lib/saved-link';
@@ -148,10 +147,12 @@ export function SavedLinkCard({
               </>
             )}
 
-            <dt className="text-ink-muted">{t('dashboard.link.status')}</dt>
-            <dd className="break-words">
-              <StatusLabel status={link.status} />
-            </dd>
+            {link.status !== null && (
+              <>
+                <dt className="text-ink-muted">{t('dashboard.link.status')}</dt>
+                <dd className="break-words">{link.status}</dd>
+              </>
+            )}
 
             {link.tags.length > 0 && (
               <>

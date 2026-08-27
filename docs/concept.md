@@ -31,7 +31,7 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
   - Kategorie (siehe 3.3)
   - Tags (siehe 3.3)
   - Notiz (Freitext)
-  - Status (Default: "Gemerkt")
+  - Status (optional, siehe 3.3)
 
 ### 3.2 Indikator für bereits gemerkte Inhalte (pro Domain)
 - Sobald der Nutzer eine Domain besucht, auf der bereits mindestens ein Link gespeichert wurde, zeigt das Extension-Icon einen **Badge mit der Anzahl** der auf dieser Domain gespeicherten Links (z.B. kleine Zahl auf dem Icon)
@@ -45,18 +45,19 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
 - **Kategorien:** Vom Nutzer frei erstellbar (z.B. "Schnittmuster", "Stoffe", "Rezepte"); jeder Link kann **einer** Kategorie zugeordnet werden
 - **Tags:** Vom Nutzer frei erstellbar, **mehrere Tags pro Link** möglich (z.B. "Damen", "Pullover")
 - **Status:** 
-  - Default-Status beim Speichern: **"Gemerkt"** (englische Oberfläche: "Saved") – das ist der einzige eingebaute Status; gespeichert wird dafür der sprachunabhängige Schlüssel `"default"` (siehe Abschnitt 4)
-  - Nutzer kann eigene, zusätzliche Status-Werte frei definieren (z.B. "Gekauft", "Umgesetzt", eigene Begriffe); diese werden als eingegebener Text gespeichert und nicht übersetzt
-  - Status ist pro Link änderbar
+  - **Optional, wie die Kategorie:** Ein neu gespeicherter Link hat keinen Status. Es gibt keinen eingebauten Default-Status – ein Wert, den die Extension selbst vergibt, stünde auf jedem Link und sagte damit über keinen etwas aus. Wie weit etwas gediehen ist, weiß nur der Nutzer, und er sagt es, wenn er es sagen will
+  - Nutzer kann Status-Werte frei definieren (z.B. "Gekauft", "Umgesetzt", eigene Begriffe); diese werden als eingegebener Text gespeichert und nicht übersetzt
+  - Status ist pro Link änderbar und jederzeit wieder entfernbar
+  - Das Dashboard kann entsprechend auch gezielt nach Links **ohne** Status filtern – genau wie nach Links ohne Kategorie
 - **Notizen:** Freies Textfeld pro Link (z.B. "passt gut zu Schnitt X", "Größe M kaufen")
 - **Löschen:** Links müssen jederzeit vollständig löschbar sein
-- **Werte umbenennen und löschen:** Kategorien, Tags und eigene Status-Werte sind nachträglich änderbar – je Art eine Liste, erreichbar über das Verwalten-Menü im Dashboard (siehe 3.5). Jeder Wert steht dort mit der Zahl der Links, die ihn tragen
+- **Werte umbenennen und löschen:** Kategorien, Tags und Status-Werte sind nachträglich änderbar – je Art eine Liste, erreichbar über das Verwalten-Menü im Dashboard (siehe 3.5). Jeder Wert steht dort mit der Zahl der Links, die ihn tragen
   - **Umbenennen** ändert den Wert auf allen Links, die ihn tragen. Das Änderungsdatum dieser Links bleibt dabei unberührt: Geändert hat sich die Bezeichnung, nicht der gemerkte Link
   - **Umbenennen auf einen bereits vorhandenen Namen** führt die beiden Werte zusammen, statt die Eingabe abzulehnen – das ist fast immer das Gemeinte (ein Tippfehler neben dem richtig geschriebenen Wert). Weil dabei ein Wert verschwindet, fragt die Oberfläche vorher nach
-  - **Löschen** entfernt nie einen Link: Die Kategorie fällt vom Link weg, der Tag kommt ab, ein eigener Status fällt auf den Default "Gemerkt" zurück
+  - **Löschen** entfernt nie einen Link: Die Kategorie fällt vom Link weg, der Tag kommt ab, der Status fällt vom Link weg
 - **Unbenutzte Werte:** Werte, auf denen kein Link mehr liegt, werden je nach Art unterschiedlich behandelt
   - **Tags verschwinden von selbst,** sobald der letzte Link sie nicht mehr trägt. Sie entstehen im Dutzend und sind schnell wieder getippt; die Liste aller je vergebenen Tags wäre die längste der drei und die am wenigsten lesenswerte
-  - **Kategorien und eigene Status-Werte bleiben** dagegen erhalten: Eine angelegte Kategorie soll nicht mit dem letzten Link stillschweigend verschwinden, und ein Status, in dem gerade nichts steht, ist eine Stufe des eigenen Arbeitsablaufs und kein Überbleibsel. Aufgeräumt werden sie von Hand – die Liste nennt, wie viele davon unbenutzt sind, und räumt sie auf Nachfrage in einem Schritt weg
+  - **Kategorien und Status-Werte bleiben** dagegen erhalten: Eine angelegte Kategorie soll nicht mit dem letzten Link stillschweigend verschwinden, und ein Status, in dem gerade nichts steht, ist eine Stufe des eigenen Arbeitsablaufs und kein Überbleibsel. Aufgeräumt werden sie von Hand – die Liste nennt, wie viele davon unbenutzt sind, und räumt sie auf Nachfrage in einem Schritt weg
 
 ### 3.4 Popup (Schnellzugriff)
 - Öffnet sich bei Klick auf das Extension-Icon
@@ -77,7 +78,7 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
   - Volltextsuche (durchsucht Titel und Notiz)
   - Filter kombinierbar
 - Möglichkeit, Links direkt im Dashboard zu bearbeiten (Kategorie, Tags, Status, Notiz, Titel) und zu löschen
-- **Verwalten-Menü** im Kopf des Dashboards: führt zu den drei Wertelisten – Kategorien, Tags, eigene Status – und zu Export, Import und "Alles löschen" (siehe 3.6). Jeder Eintrag öffnet einen eigenen Dialog; die Wertelisten stehen vor der Datei-Verwaltung, weil sie das sind, was regelmäßig aufgeräumt wird. Sprache und Erscheinungsbild stehen bewusst **nicht** in diesem Menü, sondern bleiben eigene Schalter im Kopf – sie werden am häufigsten gebraucht
+- **Verwalten-Menü** im Kopf des Dashboards: führt zu den drei Wertelisten – Kategorien, Tags, Status – und zu Export, Import und "Alles löschen" (siehe 3.6). Jeder Eintrag öffnet einen eigenen Dialog; die Wertelisten stehen vor der Datei-Verwaltung, weil sie das sind, was regelmäßig aufgeräumt wird. Sprache und Erscheinungsbild stehen bewusst **nicht** in diesem Menü, sondern bleiben eigene Schalter im Kopf – sie werden am häufigsten gebraucht
 
 ### 3.6 Export / Import
 - Export aller gespeicherten Daten als Datei (z.B. JSON)
@@ -89,8 +90,7 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
 - **Startsprache:** automatisch anhand der Browsersprache – bei einer deutschen Browsersprache (`de`, `de-DE`, `de-AT`, …) startet die Extension auf Deutsch, in allen anderen Fällen auf Englisch
 - **Manueller Wechsel:** Der Nutzer kann die Sprache jederzeit umstellen – im Dashboard wie im Popup, beide tragen denselben Umschalter im Kopf; die Wahl wird lokal gespeichert und überschreibt ab dann die automatische Erkennung
 - Übersetzt werden **alle** vom Nutzer wahrnehmbaren Texte – auch solche, die nicht sichtbar sind: Alternativtexte von Bildern, ARIA-Labels, Fehler- und Bestätigungsmeldungen sowie Datums- und Zahlenformate
-- **Nicht** übersetzt werden vom Nutzer selbst eingegebene Inhalte (Kategorien, Tags, eigene Status-Werte, Notizen) und von Webseiten übernommene Daten (Titel) – diese bleiben in der Sprache, in der sie erfasst wurden
-- Der Default-Status ist ein Sonderfall: Angezeigt wird er übersetzt ("Gemerkt" / "Saved"), gespeichert wird er als sprachunabhängiger Schlüssel `"default"`, damit ein Sprachwechsel bestehende Einträge nicht unbrauchbar macht (Details in Abschnitt 4)
+- **Nicht** übersetzt werden vom Nutzer selbst eingegebene Inhalte (Kategorien, Tags, Status-Werte, Notizen) und von Webseiten übernommene Daten (Titel) – diese bleiben in der Sprache, in der sie erfasst wurden
 - Auch **Name und Beschreibung der Extension** (Manifest, und damit der Store-Eintrag) werden übersetzt
 
 ## 4. Datenmodell (Vorschlag)
@@ -104,34 +104,25 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
   "imageUrl": "string | null",
   "category": "string | null",
   "tags": ["string"],
-  "status": "Status (siehe unten, Default: { \"kind\": \"builtin\", \"key\": \"default\" })",
+  "status": "string | null",
   "note": "string",
   "createdAt": "ISO-Datum",
   "updatedAt": "ISO-Datum"
 }
 ```
 
-Der Status ist kein einfacher String, sondern unterscheidet zwei Fälle:
-
-```json
-{ "kind": "builtin", "key": "default" }
-```
-```json
-{ "kind": "custom", "label": "Gekauft" }
-```
-
 Zusätzlich getrennt gespeichert (damit sie z.B. im Dashboard als Auswahl vorgeschlagen werden können):
 - Liste bereits verwendeter Kategorien – bleibt bestehen, auch wenn gerade kein Link sie nutzt, und wird nur von Hand aufgeräumt (siehe 3.3)
 - Liste der Tags – wird automatisch mitgeführt: Jeder gespeicherte Tag liegt auf mindestens einem Link. Nach jedem Bearbeiten, Löschen und Import fallen die unbenutzten heraus (siehe 3.3)
-- Liste bereits verwendeter, selbst angelegter Status-Werte (der eingebaute Default gehört nicht dazu, er ist immer verfügbar) – bleibt wie die Kategorien bestehen und wird nur von Hand aufgeräumt
+- Liste bereits verwendeter Status-Werte – bleibt wie die Kategorien bestehen und wird nur von Hand aufgeräumt
 - Einstellungen, u.a. die gewählte Oberflächensprache (`"de"`, `"en"` oder `"auto"` für "der Browsersprache folgen")
 
-**Warum diese Unterscheidung:** Der eingebaute Default-Status ist übersetzbar, selbst angelegte Status-Werte sind es nicht. Ein einfacher String könnte beide Fälle nicht auseinanderhalten – und ein Nutzer, der zufällig einen eigenen Status "default" anlegt, würde mit dem eingebauten kollidieren. Über `kind` ist das technisch ausgeschlossen, und die Anzeige muss nicht raten, ob sie übersetzen soll.
+**Warum der Status ein einfacher String ist:** Er war ursprünglich eine getaggte Union (`{ kind: "builtin", key: "default" }` neben `{ kind: "custom", label: "Gekauft" }`), weil es einen eingebauten, übersetzbaren Default-Status gab, den ein einzelner String nicht von einem gleichnamigen selbst angelegten hätte unterscheiden können. Mit dem Wegfall dieses Defaults (siehe 3.3) fällt auch die Unterscheidung weg: Es gibt nur noch **einen** Fall – den vom Nutzer eingegebenen Text.
 
-Im Einzelnen:
-- **`kind: "builtin"`** – gespeichert wird ausschließlich der sprachunabhängige Schlüssel `"default"`, niemals der übersetzte Text. Angezeigt wird er je nach Oberflächensprache als "Gemerkt" bzw. "Saved". Würde man den übersetzten Text speichern, trügen bestehende Einträge nach einem Sprachwechsel einen Status in der alten Sprache, und der Statusfilter zerfiele in zwei Gruppen
-- **`kind: "custom"`** – der vom Nutzer eingegebene Text wird unverändert gespeichert und unverändert angezeigt, in jeder Oberflächensprache. Er wird nie übersetzt
-- Der Schlüssel `"default"` benennt die Rolle, nicht die Bedeutung. Sollten später weitere eingebaute Status hinzukommen, bekommen diese sprechende Schlüssel (z.B. `"bought"`); `"default"` bleibt aus Kompatibilitätsgründen unverändert, da der Wert bereits in gespeicherten Daten und Export-Dateien steckt
+Damit gilt für den Status genau das, was auch für die Kategorie gilt:
+- Der eingegebene Text wird unverändert gespeichert und unverändert angezeigt, in jeder Oberflächensprache. Er wird nie übersetzt – ein Sprachwechsel kann bestehende Einträge also gar nicht erst unbrauchbar machen
+- `null` heißt "kein Status", und zwar als einziger Wert dafür: Leerstring und reiner Leerraum werden beim Speichern zu `null` normalisiert, damit "ohne Status" ein einziger Fall bleibt statt dreier
+- Ein sprachunabhängiger Schlüssel wird nirgends mehr gespeichert; die Kompatibilitätsrücksicht auf `"default"` entfällt ersatzlos
 
 ## 5. Design & UX
 
