@@ -1,10 +1,6 @@
 import { useId, useRef, useState, type Ref } from 'react';
 import { DataIcon } from '@/src/components/icons';
-import {
-  POPOVER_HEADING,
-  POPOVER_ROW,
-  PopoverButton,
-} from '@/src/components/PopoverButton';
+import { POPOVER_HEADING, POPOVER_ROW, PopoverButton } from '@/src/components/PopoverButton';
 import { useTranslation } from '@/src/i18n/context';
 import type { OrganizationKind } from '@/src/lib/organization';
 import { DataDialog } from './DataDialog';
@@ -13,8 +9,8 @@ import { OrganizationDialog } from './OrganizationDialog';
 /** What the menu can have open. `null` is the menu itself doing nothing. */
 type Destination = OrganizationKind | 'data';
 
-/** The three lists of values, in the order the link form offers them. */
-const ORGANIZATION_ENTRIES: OrganizationKind[] = ['category', 'tag', 'status'];
+/** The three lists of values, in the order a saved link shows them. */
+const ORGANIZATION_ENTRIES: OrganizationKind[] = ['category', 'status', 'tag'];
 
 /**
  * The cog in the dashboard header, and the list of what it leads to.
@@ -29,10 +25,12 @@ const ORGANIZATION_ENTRIES: OrganizationKind[] = ['category', 'tag', 'status'];
  * they stay outside as their own buttons because they are what gets reached for
  * most. What is in here are tasks that open a workspace.
  *
- * The three lists of values come before the data file, in the order the form
- * offers them. They are what gets tidied every so often; export, import and
- * delete-all are rare, and the last of them is the one entry nobody should
- * reach for by mistake.
+ * The three lists of values come before the data file, in the order a saved
+ * link shows them — the same three words in the same sequence as on a card, so
+ * that whichever surface the user came from, the entry is where they left it.
+ * They are what gets tidied every so often; export, import and delete-all are
+ * rare, and the last of them is the one entry nobody should reach for by
+ * mistake.
  *
  * Entries carry no trailing ellipsis. The convention distinguishes an entry
  * that acts at once from one that asks first, and here there is nothing to
