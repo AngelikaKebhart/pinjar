@@ -21,9 +21,12 @@ a single click and nothing else. The Popup lists what you saved on the site you 
 link there carries an Edit button that opens category, tags, status and note right in the Popup. The
 Dashboard manages everything: search, filters for category, tags, status and domain, and the same
 editing. Both surfaces share one header, one size smaller in the Popup. It carries the interface
-language and light-or-dark in both; the Dashboard adds a third button, a dialog holding export,
-import and deleting all your data at once. Language and appearance both offer a third answer,
-"automatic", which follows the browser and is what they start on.
+language and light-or-dark in both; the Dashboard adds a third button, a Manage menu. Behind it
+are the three lists of values links are filed under — categories, tags and your own status labels —
+where each value can be renamed across every link carrying it, or deleted without any link going
+with it, and a dialog holding export, import and deleting all your data at once. Language and
+appearance both offer a third answer, "automatic", which follows the browser and is what they
+start on.
 
 See [`docs/concept.md`](docs/concept.md) for the full product concept, feature list, and data model
 (written in German).

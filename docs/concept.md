@@ -50,6 +50,13 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
   - Status ist pro Link änderbar
 - **Notizen:** Freies Textfeld pro Link (z.B. "passt gut zu Schnitt X", "Größe M kaufen")
 - **Löschen:** Links müssen jederzeit vollständig löschbar sein
+- **Werte umbenennen und löschen:** Kategorien, Tags und eigene Status-Werte sind nachträglich änderbar – je Art eine Liste, erreichbar über das Verwalten-Menü im Dashboard (siehe 3.5). Jeder Wert steht dort mit der Zahl der Links, die ihn tragen
+  - **Umbenennen** ändert den Wert auf allen Links, die ihn tragen. Das Änderungsdatum dieser Links bleibt dabei unberührt: Geändert hat sich die Bezeichnung, nicht der gemerkte Link
+  - **Umbenennen auf einen bereits vorhandenen Namen** führt die beiden Werte zusammen, statt die Eingabe abzulehnen – das ist fast immer das Gemeinte (ein Tippfehler neben dem richtig geschriebenen Wert). Weil dabei ein Wert verschwindet, fragt die Oberfläche vorher nach
+  - **Löschen** entfernt nie einen Link: Die Kategorie fällt vom Link weg, der Tag kommt ab, ein eigener Status fällt auf den Default "Gemerkt" zurück
+- **Unbenutzte Werte:** Werte, auf denen kein Link mehr liegt, werden je nach Art unterschiedlich behandelt
+  - **Tags verschwinden von selbst,** sobald der letzte Link sie nicht mehr trägt. Sie entstehen im Dutzend und sind schnell wieder getippt; die Liste aller je vergebenen Tags wäre die längste der drei und die am wenigsten lesenswerte
+  - **Kategorien und eigene Status-Werte bleiben** dagegen erhalten: Eine angelegte Kategorie soll nicht mit dem letzten Link stillschweigend verschwinden, und ein Status, in dem gerade nichts steht, ist eine Stufe des eigenen Arbeitsablaufs und kein Überbleibsel. Aufgeräumt werden sie von Hand – die Liste nennt, wie viele davon unbenutzt sind, und räumt sie auf Nachfrage in einem Schritt weg
 
 ### 3.4 Popup (Schnellzugriff)
 - Öffnet sich bei Klick auf das Extension-Icon
@@ -70,6 +77,7 @@ Beim Stöbern im Internet (z.B. nach Stoffen oder Schnittmustern für Nähprojek
   - Volltextsuche (durchsucht Titel und Notiz)
   - Filter kombinierbar
 - Möglichkeit, Links direkt im Dashboard zu bearbeiten (Kategorie, Tags, Status, Notiz, Titel) und zu löschen
+- **Verwalten-Menü** im Kopf des Dashboards: führt zu den drei Wertelisten – Kategorien, Tags, eigene Status – und zu Export, Import und "Alles löschen" (siehe 3.6). Jeder Eintrag öffnet einen eigenen Dialog; die Wertelisten stehen vor der Datei-Verwaltung, weil sie das sind, was regelmäßig aufgeräumt wird. Sprache und Erscheinungsbild stehen bewusst **nicht** in diesem Menü, sondern bleiben eigene Schalter im Kopf – sie werden am häufigsten gebraucht
 
 ### 3.6 Export / Import
 - Export aller gespeicherten Daten als Datei (z.B. JSON)
@@ -113,9 +121,9 @@ Der Status ist kein einfacher String, sondern unterscheidet zwei Fälle:
 ```
 
 Zusätzlich getrennt gespeichert (damit sie z.B. im Dashboard als Auswahl vorgeschlagen werden können):
-- Liste bereits verwendeter Kategorien
-- Liste bereits verwendeter Tags
-- Liste bereits verwendeter, selbst angelegter Status-Werte (der eingebaute Default gehört nicht dazu, er ist immer verfügbar)
+- Liste bereits verwendeter Kategorien – bleibt bestehen, auch wenn gerade kein Link sie nutzt, und wird nur von Hand aufgeräumt (siehe 3.3)
+- Liste der Tags – wird automatisch mitgeführt: Jeder gespeicherte Tag liegt auf mindestens einem Link. Nach jedem Bearbeiten, Löschen und Import fallen die unbenutzten heraus (siehe 3.3)
+- Liste bereits verwendeter, selbst angelegter Status-Werte (der eingebaute Default gehört nicht dazu, er ist immer verfügbar) – bleibt wie die Kategorien bestehen und wird nur von Hand aufgeräumt
 - Einstellungen, u.a. die gewählte Oberflächensprache (`"de"`, `"en"` oder `"auto"` für "der Browsersprache folgen")
 
 **Warum diese Unterscheidung:** Der eingebaute Default-Status ist übersetzbar, selbst angelegte Status-Werte sind es nicht. Ein einfacher String könnte beide Fälle nicht auseinanderhalten – und ein Nutzer, der zufällig einen eigenen Status "default" anlegt, würde mit dem eingebauten kollidieren. Über `kind` ist das technisch ausgeschlossen, und die Anzeige muss nicht raten, ob sie übersetzen soll.

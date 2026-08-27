@@ -116,7 +116,8 @@ The download is a blob and a synthetic link click. Firefox ignores a click on a 
 in the document, and cancels a download whose blob URL is revoked in the same turn — both are
 handled in `downloadJson`, and Firefox is the only browser that would notice if that regressed.
 
-**Do:** dashboard → the cog in the header (**Deine Daten**) → **Export as a file**.
+**Do:** dashboard → the cog in the header (**Verwalten**) → **Daten & Sicherung** → **Export as a
+file**.
 
 **Expect:** Firefox offers or saves `pinjar-YYYY-MM-DD.json`. Open it: valid JSON,
 every saved link present, umlauts intact (`Prüfschritte`, not `PrÃ¼fschritte`).
@@ -129,7 +130,8 @@ made it into the document.
 The picker is a hidden `<input type="file">` opened by a script. Firefox is stricter than Chrome
 about which gestures may open one.
 
-**Do:** dashboard → **Deine Daten** → **Import a file** → pick the file from check 6.
+**Do:** dashboard → **Verwalten** → **Daten & Sicherung** → **Import a file** → pick the file from
+check 6.
 
 **Expect:** the file dialog opens, and afterwards the message names how many links were added and
 how many were already on the list. Picking the **same file a second time** must produce a second
@@ -155,12 +157,13 @@ The three data actions sit in a native `<dialog>` opened with `showModal()`, whi
 supplies the focus trap, Escape and the backdrop. jsdom implements none of those, so the unit
 tests cannot see them — this check is the only place they are verified.
 
-**Do:** dashboard → **Deine Daten**. Then press Tab several times, press Escape, and open it again
-and click the darkened area outside it.
+**Do:** dashboard → **Verwalten** → **Daten & Sicherung**. Then press Tab several times, press
+Escape, and open it again and click the darkened area outside it.
 
 **Expect:** Tab cycles only through the controls inside the dialog and never reaches the page
-behind it; Escape closes it and puts focus back on the button that opened it; the click outside
-also closes it. The page behind is dimmed and cannot be scrolled or clicked.
+behind it; Escape closes it and puts focus back on the cog — not on the menu entry, which went
+away with the menu; the click outside also closes it. The page behind is dimmed and cannot be
+scrolled or clicked.
 
 **If it fails:** Firefox has supported `showModal()` since 98, so a failure here means the dialog
 was opened by setting the `open` attribute instead — that shows the element without any of the
