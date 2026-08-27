@@ -99,10 +99,14 @@ export function SavedLinkCard({
            * two unrelated words. The auto column keeps the longer German labels
            * from squeezing the values, stacked while narrow and side by side
            * once the label column can have its width.
+           *
+           * The row gap has to stay clear of the leading inside a row: a long
+           * note wraps, and at a tighter gap than this its second line reads as
+           * a new entry rather than the rest of the note.
            */
-          <dl className="grid grid-cols-1 gap-x-3 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
+          <dl className="grid grid-cols-1 gap-x-3 gap-y-2 text-sm sm:grid-cols-[auto_1fr]">
             <dt className="text-ink-muted">{t('dashboard.link.status')}</dt>
-            <dd>
+            <dd className="break-words">
               <StatusLabel status={link.status} />
             </dd>
 
@@ -117,11 +121,22 @@ export function SavedLinkCard({
               <>
                 <dt className="text-ink-muted">{t('dashboard.link.tags')}</dt>
                 <dd>
+                  {/*
+                    The only text in the extension set below the body size, and
+                    the only pills left now that the status is plain text. Both
+                    facts are the same decision: a pill is here to draw the
+                    boundary between one tag and the next, which is a job for a
+                    small marker beside the text rather than a second voice
+                    competing with it.
+
+                    They are not controls — nothing here is clickable — so the
+                    24px floor for pointer targets (WCAG 2.5.8) does not apply.
+                  */}
                   <ul className="flex flex-wrap gap-1">
                     {link.tags.map((tag) => (
                       <li
                         key={tag}
-                        className="rounded-full bg-pill px-3 py-1 text-xs font-bold break-words text-pill-ink"
+                        className="rounded-full bg-pill px-3 py-0.5 text-xs font-bold break-words text-pill-ink"
                       >
                         {tag}
                       </li>

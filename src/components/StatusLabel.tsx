@@ -12,12 +12,12 @@ export function StatusLabel({ status }: { status: LinkStatus }) {
   const { t } = useTranslation();
   const label = status.kind === 'builtin' ? t(`status.${status.key}`) : status.label;
 
-  return (
-    // The status is carried by its text, never by color alone (WCAG 1.4.1) —
-    // which is also why it shares the one pill tone with the tags rather than
-    // having a shade of its own.
-    <span className="inline-block rounded-full bg-pill px-3 py-1 text-xs font-bold text-pill-ink">
-      {label}
-    </span>
-  );
+  /*
+   * Plain text, styled like the category beside it. A status is one value, the
+   * way a category is one value — the pill it used to wear belongs to the tags,
+   * which are a set and need their boundaries drawn. Carrying no styling of its
+   * own also settles WCAG 1.4.1 outright: there is no color left to mistake for
+   * the meaning.
+   */
+  return label;
 }
