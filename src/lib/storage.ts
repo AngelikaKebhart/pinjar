@@ -32,12 +32,22 @@ import {
 export const savedLinks = defineList<SavedLink>('local:savedLinks');
 
 /**
- * Values the user has used before, kept so the dashboard can offer them. Stored
- * separately from the links (docs/concept.md §4) and deliberately never pruned:
- * a category the user created stays offered instead of quietly disappearing
- * with the last link that used it.
+ * Values the user has used before, kept so the dashboard can offer them, stored
+ * separately from the links (docs/concept.md §4).
+ *
+ * Categories and status labels are deliberately never pruned: a category the
+ * user created stays offered instead of quietly disappearing with the last link
+ * that used it, and a custom status nothing is in right now is a stage of the
+ * user's workflow rather than a leftover. Both are cleared by hand, from the
+ * dialog that lists them.
  */
 export const categories = defineList<string>('local:categories');
+/**
+ * Tags are the exception, and `forgetUnusedTags` keeps them so: every
+ * remembered tag is on at least one saved link. They are invented by the dozen
+ * and cost nothing to type again, so the list of every one ever used would be
+ * the longest of the three and the least worth reading.
+ */
 export const tags = defineList<string>('local:tags');
 /** Custom status labels only — the built-in default is always available. */
 export const customStatuses = defineList<string>('local:customStatuses');
@@ -103,15 +113,21 @@ export async function updateSavedLink(
   }
 
   const updated = applyEdits(existing, edits);
-  await savedLinks.setValue(links.map((link) => (link.id === id ? updated : link)));
+  const remaining = links.map((link) => (link.id === id ? updated : link));
+
+  await savedLinks.setValue(remaining);
   await rememberOrganizationValues(updated);
+  await forgetUnusedTags(remaining);
 
   return updated;
 }
 
 export async function removeSavedLink(id: string): Promise<void> {
   const links = await getSavedLinks();
-  await savedLinks.setValue(links.filter((link) => link.id !== id));
+  const remaining = links.filter((link) => link.id !== id);
+
+  await savedLinks.setValue(remaining);
+  await forgetUnusedTags(remaining);
 }
 
 /**
@@ -142,6 +158,11 @@ export async function mergeImportedData(data: {
     addUnknownValues(tags, data.tags),
     addUnknownValues(customStatuses, data.customStatuses),
   ]);
+
+  // The file's tag list may name tags none of its links carries. They are added
+  // above and dropped here rather than filtered beforehand, so that the rule
+  // stays in one place: a remembered tag is a tag some link has.
+  await forgetUnusedTags(merged);
 }
 
 /**
@@ -318,6 +339,45 @@ export async function deleteOrganizationValue(
   }
 
   return affected;
+}
+
+/**
+ * Drops every tag no saved link carries any more — see `tags` above for why
+ * only tags. Called after each write that can take a tag's last use away, which
+ * is an edit, a deletion, and the import that brings a list of its own.
+ */
+async function forgetUnusedTags(links: SavedLink[]): Promise<void> {
+  const known = await tags.getValue();
+  const inUse = countUsage(links, 'tag');
+  const remaining = known.filter((tag) => inUse.has(tag));
+
+  if (remaining.length !== known.length) {
+    await tags.setValue(remaining);
+  }
+}
+
+/**
+ * Forgets every remembered value of one kind that no link carries, and says how
+ * many those were — the "remove unused" the dialog offers for the two kinds
+ * that accumulate them.
+ *
+ * Takes any kind rather than only those two: `forgetUnusedTags` leaves tags
+ * with nothing to find, and a function that answers zero is easier to live with
+ * than a parameter type that has to explain which kinds are allowed.
+ */
+export async function deleteUnusedOrganizationValues(kind: OrganizationKind): Promise<number> {
+  const list = ORGANIZATION_LISTS[kind];
+  const [known, links] = await Promise.all([list.getValue(), getSavedLinks()]);
+  const usage = countUsage(links, kind);
+  const used = known.filter((value) => usage.has(value));
+
+  if (used.length === known.length) {
+    return 0;
+  }
+
+  await list.setValue(used);
+
+  return known.length - used.length;
 }
 
 /** Keeps the suggestion lists up to date with what a link actually uses. */

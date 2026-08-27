@@ -1,16 +1,19 @@
 import { useTranslation } from '@/src/i18n/context';
 import type { MessageParams } from '@/src/i18n/format';
-import type { MessageKey } from '@/src/i18n/messages';
+import type { MessageKey, PluralMessageKey } from '@/src/i18n/messages';
 
 /**
  * What just happened to a saved link, kept as a key rather than as a sentence
  * so that switching language re-reads it instead of leaving the last message
  * behind in the old one.
+ *
+ * A message that says how many carries the number instead of the finished
+ * sentence, for the same reason: which of a language's plural forms that is
+ * cannot be decided until the language is known.
  */
-export interface FeedbackMessage {
-  key: MessageKey;
-  params?: MessageParams;
-}
+export type FeedbackMessage =
+  | { key: MessageKey; count?: undefined; params?: MessageParams }
+  | { key: PluralMessageKey; count: number; params?: MessageParams };
 
 /**
  * The one line that says an action went through.
@@ -24,11 +27,15 @@ export interface FeedbackMessage {
  * message does not push the page down.
  */
 export function ActionFeedback({ message }: { message: FeedbackMessage | null }) {
-  const { t } = useTranslation();
+  const { t, plural } = useTranslation();
 
   return (
     <p aria-live="polite" className="min-h-5 text-sm text-ink-muted">
-      {message === null ? '' : t(message.key, message.params)}
+      {message === null
+        ? ''
+        : message.count === undefined
+          ? t(message.key, message.params)
+          : plural(message.key, message.count, message.params)}
     </p>
   );
 }

@@ -10,6 +10,7 @@ import { useTranslation } from '@/src/i18n/context';
 import type { OrganizationKind } from '@/src/lib/organization';
 import {
   deleteOrganizationValue,
+  deleteUnusedOrganizationValues,
   getOrganizationValues,
   renameOrganizationValue,
   watchStoredData,
@@ -48,11 +49,19 @@ export function OrganizationDialog({
   );
 }
 
-/** Which row has a panel open, and which of the two it is. */
+/** Which panel is open, and on which row. */
 interface OpenPanel {
+  /** The value it belongs to, or `WHOLE_LIST` for the one over all of them. */
   value: string;
-  mode: 'rename' | 'delete';
+  mode: 'rename' | 'delete' | 'unused';
 }
+
+/**
+ * Stands in for a row where the panel belongs to no single value. Safe as a
+ * marker because no remembered value is the empty string: every one of them was
+ * typed into a field that trims and rejects blanks.
+ */
+const WHOLE_LIST = '';
 
 function OrganizationList({ kind }: { kind: OrganizationKind }) {
   const { t, plural, compareNames } = useTranslation();
@@ -71,6 +80,8 @@ function OrganizationList({ kind }: { kind: OrganizationKind }) {
 
   const [renameButtons, rememberRenameButton] = useButtonRegistry();
   const [deleteButtons, rememberDeleteButton] = useButtonRegistry();
+  const unusedButton = useRef<HTMLButtonElement>(null);
+  const unusedPanelId = useId();
 
   /*
    * Watched as well as read: the popup can save a link while this dialog is
@@ -105,21 +116,28 @@ function OrganizationList({ kind }: { kind: OrganizationKind }) {
     // through the hook that hands it over.
   }, [values, renameButtons]);
 
+  /** The button a panel was opened from, whether it belongs to a row or not. */
+  const buttonFor = (value: string, mode: OpenPanel['mode']) => {
+    if (mode === 'unused') {
+      return unusedButton.current;
+    }
+
+    return (mode === 'rename' ? renameButtons : deleteButtons).current.get(value);
+  };
+
   const togglePanel = (value: string, mode: OpenPanel['mode']) => {
     const isClosing = openPanel?.value === value && openPanel.mode === mode;
 
     setOpenPanel(isClosing ? null : { value, mode });
 
     /*
-     * Neither button leaves when its panel closes — which is why both stay on
-     * screen while it is open — so focus can go back straight away. The panel
-     * cannot do this itself: it is where focus currently is, and it knows
-     * nothing about the button that opened it.
+     * No button leaves when its panel closes — which is why they stay on screen
+     * while it is open — so focus can go back straight away. The panel cannot
+     * do this itself: it is where focus currently is, and it knows nothing
+     * about the button that opened it.
      */
     if (isClosing) {
-      const buttons = mode === 'rename' ? renameButtons : deleteButtons;
-
-      buttons.current.get(value)?.focus();
+      buttonFor(value, mode)?.focus();
     }
   };
 
@@ -165,6 +183,22 @@ function OrganizationList({ kind }: { kind: OrganizationKind }) {
       // that now says so.
     }, neighbour ?? '');
 
+  /**
+   * Forgets everything on no saved link at all. Nothing on a link changes, so
+   * unlike the deletion above this needs no word about what survives it — the
+   * question's hint says that, and the count line says the rest.
+   */
+  const handleRemoveUnused = () =>
+    applyChange(
+      async () => ({
+        key: `organization.feedback.unusedRemoved.${kind}` as const,
+        count: await deleteUnusedOrganizationValues(kind),
+      }),
+      // The button asking the question goes with the last unused value, so
+      // focus falls to the line that now says how many are left.
+      WHOLE_LIST,
+    );
+
   // Nothing can be said about the list before it is known, and a count that
   // flicked from nothing to twenty-seven would be read out twice.
   if (values === null) {
@@ -173,6 +207,7 @@ function OrganizationList({ kind }: { kind: OrganizationKind }) {
 
   const shown = [...values].sort((one, other) => compareNames(one.value, other.value));
   const unused = shown.filter((value) => value.usage === 0).length;
+  const isRemovingUnused = openPanel?.mode === 'unused';
 
   return (
     <div className="flex flex-col gap-4">
@@ -189,6 +224,36 @@ function OrganizationList({ kind }: { kind: OrganizationKind }) {
               ...(unused > 0 ? [plural('organization.unused', unused)] : []),
             ].join(' ')}
       </p>
+
+      {/*
+        Offered only while there is something to remove, and named after what
+        that is: "Remove unused" alone would be one more thing to work out in a
+        dialog that already asks the user to keep three kinds apart (2.4.6).
+      */}
+      {unused > 0 && (
+        <Button
+          ref={unusedButton}
+          variant="outline"
+          className="self-start"
+          expanded={isRemovingUnused}
+          controls={unusedPanelId}
+          onClick={() => togglePanel(WHOLE_LIST, 'unused')}
+        >
+          {t(`organization.unused.action.${kind}`)}
+        </Button>
+      )}
+
+      {isRemovingUnused && (
+        <ConfirmPanel
+          id={unusedPanelId}
+          question={t(`organization.unused.question.${kind}`)}
+          hint={t('organization.unused.hint')}
+          confirm={t('organization.unused.confirm')}
+          cancel={t('organization.unused.cancel')}
+          onConfirm={handleRemoveUnused}
+          onCancel={() => togglePanel(WHOLE_LIST, 'unused')}
+        />
+      )}
 
       <ActionFeedback message={feedback} />
 

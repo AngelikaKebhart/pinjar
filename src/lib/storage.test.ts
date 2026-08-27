@@ -14,6 +14,7 @@ import {
   getSavedLinks,
   getSavedLinksForDomain,
   deleteOrganizationValue,
+  deleteUnusedOrganizationValues,
   getOrganizationValues,
   getTags,
   removeSavedLink,
@@ -254,11 +255,13 @@ describe('editing the values links are organized by', () => {
   });
 
   it('lists a value nothing carries any more', async () => {
-    const link = await save('https://shop.example/one', { tags: ['Sale'] });
+    const link = await save('https://shop.example/one', { category: 'Fabrics' });
 
     await removeSavedLink(link.id);
 
-    await expect(getOrganizationValues('tag')).resolves.toEqual([{ value: 'Sale', usage: 0 }]);
+    await expect(getOrganizationValues('category')).resolves.toEqual([
+      { value: 'Fabrics', usage: 0 },
+    ]);
   });
 
   // Otherwise it could be neither renamed nor deleted, and would sit on the
@@ -270,6 +273,62 @@ describe('editing the values links are organized by', () => {
     await expect(getOrganizationValues('category')).resolves.toEqual([
       { value: 'Fabrics', usage: 1 },
     ]);
+  });
+
+  /*
+   * Tags are the one kind kept to what the links carry: they are invented by
+   * the dozen and cost nothing to type again (docs/concept.md §3.3). The other
+   * two outlive their last link on purpose, which the test above covers.
+   */
+  it('forgets a tag once the last link carrying it is gone', async () => {
+    const link = await save('https://shop.example/one', { tags: ['Sale'] });
+
+    await removeSavedLink(link.id);
+
+    await expect(getTags()).resolves.toEqual([]);
+  });
+
+  it('forgets a tag the user has just taken off the last link', async () => {
+    const link = await save('https://shop.example/one', { tags: ['Sale'] });
+
+    await updateSavedLink(link.id, { tags: [] });
+
+    await expect(getTags()).resolves.toEqual([]);
+  });
+
+  it('keeps a tag another link still carries', async () => {
+    const link = await save('https://shop.example/one', { tags: ['Sale'] });
+    await save('https://shop.example/two', { tags: ['Sale'] });
+
+    await removeSavedLink(link.id);
+
+    await expect(getTags()).resolves.toEqual(['Sale']);
+  });
+
+  it('removes every value of one kind that no link carries', async () => {
+    const link = await save('https://shop.example/one', { category: 'Fabrics' });
+    await save('https://shop.example/two', { category: 'Recipes' });
+    await removeSavedLink(link.id);
+
+    await expect(deleteUnusedOrganizationValues('category')).resolves.toBe(1);
+    await expect(getCategories()).resolves.toEqual(['Recipes']);
+  });
+
+  // The links themselves are none of its business — it only stops offering a
+  // name, and no link was using it anyway.
+  it('leaves the links alone when the unused values go', async () => {
+    await save('https://shop.example/one', { category: 'Fabrics' });
+    await categories.setValue(['Fabrics', 'Recipes']);
+
+    await expect(deleteUnusedOrganizationValues('category')).resolves.toBe(1);
+    await expect(getSavedLinks()).resolves.toMatchObject([{ category: 'Fabrics' }]);
+  });
+
+  it('finds nothing to remove when every value is in use', async () => {
+    await save('https://shop.example/one', { category: 'Fabrics' });
+
+    await expect(deleteUnusedOrganizationValues('category')).resolves.toBe(0);
+    await expect(getCategories()).resolves.toEqual(['Fabrics']);
   });
 
   it('renames a value on the links and in what is remembered', async () => {
