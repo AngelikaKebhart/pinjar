@@ -168,7 +168,9 @@ function App() {
 }
 
 /**
- * The popup's fixed frame: its width, its padding, and the header on top.
+ * The popup's fixed frame: its padding, and the header on top. The width is
+ * not here — it is set on the document in `assets/tailwind.css`, which is the
+ * only place Chrome reads it from when it sizes the bubble.
  *
  * The header sits outside whatever the popup can show yet, so it is there while
  * storage is still being read. Drawn only once the links arrived, it would
@@ -179,7 +181,7 @@ function PopupFrame({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
 
   return (
-    <div className="flex w-96 flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 p-4">
       <AppHeader title={t('popup.title')} size="compact" />
       {children}
     </div>

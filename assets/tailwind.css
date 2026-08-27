@@ -320,3 +320,22 @@
 body {
   font-family: var(--font-sans);
 }
+
+/*
+ * The popup's width, declared on the document rather than on the frame inside
+ * it, because Chrome sizes the bubble to what the document *could* be as wide
+ * as — not to what it is.
+ *
+ * The settings panels are absolutely positioned and overlay the content, so
+ * they take up no room; their width is counted all the same. Opening one grew
+ * the bubble by up to 150px, and since the content kept its own width it sat
+ * in the corner of a window suddenly too big for it. With the document pinned
+ * there is nothing left to measure.
+ *
+ * Both elements: <body> alone leaves <html> free to be measured, which is the
+ * one Chrome asks. The dashboard is a normal tab and is not addressed here.
+ */
+html.popup,
+html.popup body {
+  width: 24rem;
+}
