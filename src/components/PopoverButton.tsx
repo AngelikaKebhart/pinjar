@@ -2,6 +2,29 @@ import { useEffect, useId, useState, useRef, type ReactNode, type RefObject } fr
 import { IconButton } from '@/src/components/IconButton';
 
 /**
+ * How a panel heads itself. The panels differ in the element they need — a
+ * `legend` for a set of choices in a fieldset, a heading for a list of places
+ * to go — so this cannot move into the component: a `legend` has to be the
+ * first child of its own fieldset and can never be passed in from outside.
+ * What they share is only the look, and that is what lives here.
+ */
+export const POPOVER_HEADING = 'mb-2 font-serif text-base font-semibold';
+
+/**
+ * One row inside a panel — a menu entry or a setting's option.
+ *
+ * The rows carry no gap between them on purpose: each has its own hover
+ * background, and separating them cuts that into stripes rather than the one
+ * continuous surface a menu is read as. The padding here is what sets the
+ * rhythm, and it is the only place to change it — every panel in the extension
+ * hangs off the same header and they are read as one kind of thing.
+ *
+ * Callers add what is theirs alone: the layout an option needs for its radio,
+ * the full width a button does not get for free.
+ */
+export const POPOVER_ROW = 'rounded-field px-3 py-1.5 text-sm hover:bg-surface-hover';
+
+/**
  * An icon button that reveals a small panel anchored under it.
  *
  * A disclosure, not a dialog: `aria-expanded` says whether the panel is

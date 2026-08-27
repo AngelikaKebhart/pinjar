@@ -1,6 +1,10 @@
 import { useId, useRef, useState, type Ref } from 'react';
 import { DataIcon } from '@/src/components/icons';
-import { PopoverButton } from '@/src/components/PopoverButton';
+import {
+  POPOVER_HEADING,
+  POPOVER_ROW,
+  PopoverButton,
+} from '@/src/components/PopoverButton';
 import { useTranslation } from '@/src/i18n/context';
 import type { OrganizationKind } from '@/src/lib/organization';
 import { DataDialog } from './DataDialog';
@@ -65,11 +69,12 @@ export function ManageMenu() {
               those are a set of choices in a fieldset, this is a list of
               places to go, and a heading is what a screen reader can jump to.
             */}
-            <h2 id={headingId} className="mb-2 font-serif text-base font-semibold">
+            <h2 id={headingId} className={POPOVER_HEADING}>
               {t('manage.heading')}
             </h2>
 
-            <ul aria-labelledby={headingId} className="flex flex-col gap-1">
+            {/* No gap: the rows sit flush, see `POPOVER_ROW`. */}
+            <ul aria-labelledby={headingId} className="flex flex-col">
               {ORGANIZATION_ENTRIES.map((kind, position) => (
                 <li key={kind}>
                   <MenuEntry
@@ -129,7 +134,7 @@ function MenuEntry({
       type="button"
       onClick={onClick}
       aria-haspopup="dialog"
-      className="w-full rounded-field px-3 py-2 text-left text-sm hover:bg-surface-hover"
+      className={`w-full text-left ${POPOVER_ROW}`}
     >
       {children}
     </button>
