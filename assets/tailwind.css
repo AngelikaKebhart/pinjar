@@ -76,6 +76,30 @@
   --font-sans: 'Nunito', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
   --font-serif: 'Lora', Georgia, 'Times New Roman', serif;
 
+  /*
+   * The size the interface is set in. Tailwind calls it "sm", but here it is
+   * the body size and not a small one: most of the sizing classes in the
+   * project are `text-sm`, so this token is what the extension reads at.
+   *
+   * 15px rather than Tailwind's 14px. Overridden in the one place instead of
+   * swapped at every call site, so the next adjustment is this line again.
+   *
+   * The line height stays Tailwind's: it is a ratio rather than a length, and
+   * follows the size on its own.
+   */
+  --text-sm: 0.9375rem;
+
+  /*
+   * The one size below the body size, and it has exactly one user: the tag
+   * pills on a saved link.
+   *
+   * A single pixel under it, which is barely a size difference at all — and
+   * deliberately so. What sets a tag apart is its tinted ground and its bold
+   * weight; the size only keeps it from standing as tall as the text beside
+   * it. Tailwind's own 12px read as a footnote once the body size went to 15.
+   */
+  --text-xs: 0.875rem;
+
   /* Page background, and the panels sitting on it. */
   --color-canvas: light-dark(#ffffff, #1b0f17);
   --color-surface: light-dark(#ffffff, #261520);
