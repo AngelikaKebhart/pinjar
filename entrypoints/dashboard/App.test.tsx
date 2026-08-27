@@ -775,11 +775,21 @@ describe('searching and filtering', () => {
     expect(listedTitles()).toHaveLength(3);
   });
 
-  // A button that does nothing is one the user has to think about every time.
-  it('offers no reset while nothing is filtered', async () => {
+  // It keeps its place rather than appearing and disappearing with the
+  // filters, and says for itself that there is nothing to undo.
+  it('keeps the reset disabled while nothing is filtered', async () => {
     await givenLinks();
 
-    expect(within(filters()).queryByRole('button', { name: 'Reset filters' })).toBeNull();
+    const reset = within(filters()).getByRole('button', { name: 'Reset filters' });
+
+    expect(reset).toHaveProperty('disabled', true);
+
+    search('poplin');
+
+    expect(within(filters()).getByRole('button', { name: 'Reset filters' })).toHaveProperty(
+      'disabled',
+      false,
+    );
   });
 
   // A category the user calls "all" or "none" must not be read as one of the

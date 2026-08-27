@@ -59,9 +59,10 @@ there and say why.
   landed — a failed edit reports itself.
 - **Edit rather than rewrite.** An edit emits the changed hunk; rewriting a file emits the
   whole file as output. Rewrite only when most of the file genuinely changes.
-- **Verify once, at the end.** Run `pnpm check` — lint, typecheck and tests in one command —
-  when the change is complete, not after every step. While chasing a single failure re-run
-  that one test file, and the full gate once it passes.
+- **Verify once, at the end.** Run `pnpm check` — lint, typecheck, tests and formatting, the
+  same four gates CI runs, in one command — when the change is complete, not after every
+  step. While chasing a single failure re-run that one test file, and the full gate once it
+  passes.
 - **Do what was asked.** No neighbouring refactors, no extra tests, no summary documents
   nobody requested. Raise the idea in a sentence and let Angelika decide.
 - **Hand over briefly.** A few lines on what changed, what was verified, and what nothing has

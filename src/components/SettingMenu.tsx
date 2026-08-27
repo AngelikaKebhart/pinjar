@@ -1,5 +1,5 @@
 import { useId, useRef, type ReactNode } from 'react';
-import { PopoverButton } from '@/src/components/PopoverButton';
+import { POPOVER_HEADING, POPOVER_ROW, PopoverButton } from '@/src/components/PopoverButton';
 
 /** One answer the setting can take. */
 export type SettingOption<Value extends string> = {
@@ -57,13 +57,15 @@ export function SettingMenu<Value extends string>({
 
   return (
     <PopoverButton label={label} icon={icon} initialFocusRef={chosenRef}>
+      {/* No gap: the rows sit flush, see `POPOVER_ROW`. */}
       {(close) => (
-        <fieldset className="flex flex-col gap-1">
+        <fieldset className="flex flex-col">
           {/*
             The panel repeats the setting's name, which the button carries only
-            as a label a sighted user never sees. Serif, like every heading.
+            as a label a sighted user never sees. Headed like every other
+            panel — see `POPOVER_HEADING`.
           */}
-          <legend className="mb-2 font-serif text-base font-semibold">{label}</legend>
+          <legend className={POPOVER_HEADING}>{label}</legend>
 
           {options.map((option) => (
             // The whole row is the label, so the words answer to a click as
@@ -71,7 +73,7 @@ export function SettingMenu<Value extends string>({
             // the 24px minimum (WCAG 2.2 AA, 2.5.8).
             <label
               key={option.value}
-              className="flex items-center gap-3 rounded-field px-3 py-2 text-sm hover:bg-surface-hover"
+              className={`flex items-center gap-3 ${POPOVER_ROW}`}
               onPointerDown={() => {
                 pickedByPointer.current = true;
               }}

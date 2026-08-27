@@ -57,7 +57,14 @@ export function SavedLinkCard({
           (1.4.10).
         */}
         <div className="flex flex-wrap items-start gap-2">
-          <h3 className="min-w-40 flex-1 text-base font-medium">
+          {/*
+            The card's own heading, and the one thing on it read first, so it
+            is set two steps above the body. `text-base` gave it a single pixel
+            over a 15px body and `text-lg` three — at either distance the title
+            and the line under it read as one block of equal weight, which is
+            what a heading may not do.
+          */}
+          <h3 className="min-w-40 flex-1 text-xl font-semibold">
             {/* A new tab, so the dashboard the user is working in stays put. */}
             <a
               href={link.url}
@@ -78,8 +85,31 @@ export function SavedLinkCard({
           />
         </div>
 
+        {/*
+          Where it came from, then when it was saved — the two set apart rather
+          than run together at one weight.
+
+          The domain looked smaller than the date beside it at the same size,
+          and it was not an illusion to argue with: Nunito ships lining figures
+          only — the subset in `public/fonts` carries no `onum` feature — so
+          every digit stands at cap height while "www.snaply.de" is mostly
+          x-height, some 30% shorter.
+
+          So the date is taken down until the two read as one size, and the
+          domain is left exactly as the line sets it. It has to be the size
+          that gives, not the weight or the colour: both of those were tried
+          and both were seen as a colour difference rather than as the
+          correction they were meant to be — bolder grey against the same grey
+          simply reads darker.
+
+          `em`, so it stays tied to whatever this line is set in. And the 15px
+          floor the rest of the extension keeps does not reach here: this is an
+          optical correction inside one line, bringing digits that stand too
+          tall back to the size they already look like — not a step down the
+          type scale, which is why it is a loose number and not a token.
+        */}
         <p className="text-sm text-ink-muted">
-          {link.domain} · {formatDate(link.createdAt)}
+          {link.domain} · <span className="text-[0.9em]">{formatDate(link.createdAt)}</span>
         </p>
 
         {isEditing ? (
@@ -99,13 +129,18 @@ export function SavedLinkCard({
            * two unrelated words. The auto column keeps the longer German labels
            * from squeezing the values, stacked while narrow and side by side
            * once the label column can have its width.
+           *
+           * The row gap has to stay clear of the leading inside a row: a long
+           * note wraps, and at a tighter gap than this its second line reads as
+           * a new entry rather than the rest of the note.
            */
-          <dl className="grid grid-cols-1 gap-x-3 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
-            <dt className="text-ink-muted">{t('dashboard.link.status')}</dt>
-            <dd>
-              <StatusLabel status={link.status} />
-            </dd>
-
+          <dl className="grid grid-cols-1 gap-x-3 gap-y-2 text-sm sm:grid-cols-[auto_1fr]">
+            {/*
+              Category, status, tags, note — widest first, then narrowing:
+              which shelf the link is on, how far along it is, what it is about,
+              and last whatever the user wrote themselves. `ManageMenu` lists
+              the same three in the same order.
+            */}
             {link.category !== null && (
               <>
                 <dt className="text-ink-muted">{t('dashboard.link.category')}</dt>
@@ -113,15 +148,31 @@ export function SavedLinkCard({
               </>
             )}
 
+            <dt className="text-ink-muted">{t('dashboard.link.status')}</dt>
+            <dd className="break-words">
+              <StatusLabel status={link.status} />
+            </dd>
+
             {link.tags.length > 0 && (
               <>
                 <dt className="text-ink-muted">{t('dashboard.link.tags')}</dt>
                 <dd>
+                  {/*
+                    The only text in the extension set below the body size, and
+                    the only pills left now that the status is plain text. Both
+                    facts are the same decision: a pill is here to draw the
+                    boundary between one tag and the next, which is a job for a
+                    small marker beside the text rather than a second voice
+                    competing with it.
+
+                    They are not controls — nothing here is clickable — so the
+                    24px floor for pointer targets (WCAG 2.5.8) does not apply.
+                  */}
                   <ul className="flex flex-wrap gap-1">
                     {link.tags.map((tag) => (
                       <li
                         key={tag}
-                        className="rounded-full bg-pill px-3 py-1 text-xs font-bold break-words text-pill-ink"
+                        className="rounded-full bg-pill px-3 py-0.5 text-xs font-bold break-words text-pill-ink"
                       >
                         {tag}
                       </li>
