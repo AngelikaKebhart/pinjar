@@ -85,6 +85,15 @@
 
   "organization.unused_one": "{count} davon hängt an keinem gemerkten Link.",
   "organization.unused_other": "{count} davon hängen an keinem gemerkten Link.",
+  "organization.unused.action.category": "Unbenutzte Kategorien entfernen",
+  "organization.unused.action.tag": "Unbenutzte Schlagwörter entfernen",
+  "organization.unused.action.status": "Unbenutzte Status entfernen",
+  "organization.unused.question.category": "Alle Kategorien entfernen, die an keinem gemerkten Link hängen?",
+  "organization.unused.question.tag": "Alle Schlagwörter entfernen, die an keinem gemerkten Link hängen?",
+  "organization.unused.question.status": "Alle Status entfernen, die an keinem gemerkten Link hängen?",
+  "organization.unused.hint": "Deine gemerkten Links bleiben genau so, wie sie sind — keiner von ihnen benutzt diese Namen. Du kannst sie jederzeit wieder eintippen.",
+  "organization.unused.confirm": "Ja, entfernen",
+  "organization.unused.cancel": "Abbrechen",
 
   "organization.category.empty": "Du hast noch keine Kategorie vergeben.",
   "organization.tag.empty": "Du hast noch kein Schlagwort vergeben.",
@@ -117,6 +126,12 @@
   "organization.feedback.merged": "„{from}“ wurde mit „{to}“ zusammengeführt.",
   "organization.feedback.deleted": "„{value}“ wurde gelöscht.",
   "organization.feedback.deletedInUse": "„{value}“ wurde gelöscht. Die gemerkten Links dazu gibt es weiterhin.",
+  "organization.feedback.unusedRemoved.category_one": "{count} unbenutzte Kategorie wurde entfernt.",
+  "organization.feedback.unusedRemoved.category_other": "{count} unbenutzte Kategorien wurden entfernt.",
+  "organization.feedback.unusedRemoved.tag_one": "{count} unbenutztes Schlagwort wurde entfernt.",
+  "organization.feedback.unusedRemoved.tag_other": "{count} unbenutzte Schlagwörter wurden entfernt.",
+  "organization.feedback.unusedRemoved.status_one": "{count} unbenutzter Status wurde entfernt.",
+  "organization.feedback.unusedRemoved.status_other": "{count} unbenutzte Status wurden entfernt.",
 
   "data.heading": "Daten & Sicherung",
   "data.export.heading": "Alle Links exportieren",

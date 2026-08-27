@@ -21,6 +21,10 @@ import type { ReactNode } from 'react';
  *
  * Forwards its ref, because some callers move focus to a button themselves
  * (returning it after a cancelled confirmation, WCAG 2.2 AA 2.4.3).
+ *
+ * `expanded`/`controls` are for the ones that open something underneath them,
+ * the same disclosure contract `IconButton` carries — a text button needs it
+ * wherever the icon-only one would (4.1.2).
  */
 type ButtonVariant = 'primary' | 'danger' | 'outline' | 'outline-strong';
 
@@ -45,6 +49,10 @@ export const Button = forwardRef<
     className?: string;
     title?: string;
     'aria-label'?: string;
+    /** Set on a button that reveals something, to say whether it is showing. */
+    expanded?: boolean;
+    /** The id of what `expanded` refers to. */
+    controls?: string;
   }
 >(function Button(
   {
@@ -56,6 +64,8 @@ export const Button = forwardRef<
     className = '',
     title,
     'aria-label': ariaLabel,
+    expanded,
+    controls,
   },
   ref,
 ) {
@@ -67,6 +77,8 @@ export const Button = forwardRef<
       onClick={() => void onClick?.()}
       title={title}
       aria-label={ariaLabel}
+      aria-expanded={expanded}
+      aria-controls={controls}
       className={`rounded-control px-4 py-2 text-sm font-bold ${VARIANT_CLASSES[variant]} ${className}`.trim()}
     >
       {children}

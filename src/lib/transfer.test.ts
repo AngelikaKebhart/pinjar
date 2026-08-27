@@ -189,12 +189,27 @@ describe('reading a file back in', () => {
 
   it('carries the suggestion lists over', async () => {
     await importFile(
-      anExport([], { categories: ['Fabrics'], tags: ['Cotton'], customStatuses: ['Bought'] }),
+      anExport([aStoredLink('https://shop.example/jersey', { tags: ['Cotton'] })], {
+        categories: ['Fabrics'],
+        tags: ['Cotton'],
+        customStatuses: ['Bought'],
+      }),
     );
 
     await expect(getCategories()).resolves.toEqual(['Fabrics']);
     await expect(getTags()).resolves.toEqual(['Cotton']);
     await expect(getCustomStatuses()).resolves.toEqual(['Bought']);
+  });
+
+  /*
+   * Tags are kept to what the links carry, unlike the other two lists, so a
+   * file naming one none of its links uses — an older version wrote it, or the
+   * link using it was already here — brings nothing with it.
+   */
+  it('drops an imported tag no link carries', async () => {
+    await importFile(anExport([], { tags: ['Cotton'] }));
+
+    await expect(getTags()).resolves.toEqual([]);
   });
 
   it('does not end up offering a suggestion twice', async () => {

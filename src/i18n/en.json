@@ -85,6 +85,15 @@
 
   "organization.unused_one": "{count} of them is on no saved link.",
   "organization.unused_other": "{count} of them are on no saved link.",
+  "organization.unused.action.category": "Remove unused categories",
+  "organization.unused.action.tag": "Remove unused tags",
+  "organization.unused.action.status": "Remove unused status labels",
+  "organization.unused.question.category": "Remove every category that is on no saved link?",
+  "organization.unused.question.tag": "Remove every tag that is on no saved link?",
+  "organization.unused.question.status": "Remove every status label that is on no saved link?",
+  "organization.unused.hint": "Your saved links stay exactly as they are — none of them uses these names. You can type any of them again at any time.",
+  "organization.unused.confirm": "Yes, remove",
+  "organization.unused.cancel": "Cancel",
 
   "organization.category.empty": "You have not used a category yet.",
   "organization.tag.empty": "You have not used a tag yet.",
@@ -117,6 +126,12 @@
   "organization.feedback.merged": "“{from}” was merged into “{to}”.",
   "organization.feedback.deleted": "“{value}” was deleted.",
   "organization.feedback.deletedInUse": "“{value}” was deleted. The saved links that carried it are still there.",
+  "organization.feedback.unusedRemoved.category_one": "{count} unused category was removed.",
+  "organization.feedback.unusedRemoved.category_other": "{count} unused categories were removed.",
+  "organization.feedback.unusedRemoved.tag_one": "{count} unused tag was removed.",
+  "organization.feedback.unusedRemoved.tag_other": "{count} unused tags were removed.",
+  "organization.feedback.unusedRemoved.status_one": "{count} unused status label was removed.",
+  "organization.feedback.unusedRemoved.status_other": "{count} unused status labels were removed.",
 
   "data.heading": "Data & backup",
   "data.export.heading": "Export all links",

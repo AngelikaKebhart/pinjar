@@ -5,7 +5,7 @@ import { fakeBrowser } from 'wxt/testing/fake-browser';
 import { CATALOGS } from '@/src/i18n/messages';
 import { TranslationProvider } from '@/src/i18n/TranslationProvider';
 import type { OrganizationKind } from '@/src/lib/organization';
-import { addSavedLink, getOrganizationValues, getSavedLinks } from '@/src/lib/storage';
+import { addSavedLink, categories, getOrganizationValues, getSavedLinks } from '@/src/lib/storage';
 import { OrganizationDialog } from './OrganizationDialog';
 
 const en = CATALOGS.en;
@@ -78,12 +78,52 @@ describe('OrganizationDialog', () => {
    * of an action the feedback line already announces (WCAG 2.2 AA, 4.1.3).
    */
   it('counts the values and how many of them are unused', async () => {
-    await saveLink('https://shop.example/one', { tags: ['linen', 'blue'] });
-    await addSavedLink({ url: 'https://shop.example/two', title: 'Two', tags: ['linen'] });
+    await saveLink('https://shop.example/one', { category: 'Fabrics' });
+    await categories.setValue(['Fabrics', 'Recipes']);
 
-    await renderDialog('tag');
+    await renderDialog('category');
 
-    expect(await screen.findByText('2 tags.')).toBeTruthy();
+    expect(await screen.findByText('2 categories. 1 of them is on no saved link.')).toBeTruthy();
+  });
+
+  /*
+   * A category and a custom status outlive their last link on purpose, so
+   * clearing them out is the user's decision and not the extension's. Tags are
+   * the ones that go by themselves, which is why nothing here is ever offered
+   * for them — see storage.test.ts.
+   */
+  it('offers to remove the unused values, and asks before it does', async () => {
+    await saveLink('https://shop.example/one', { category: 'Fabrics' });
+    await categories.setValue(['Fabrics', 'Recipes']);
+
+    await renderDialog('category');
+    await screen.findByText('Recipes');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove unused categories' }));
+    expect(
+      screen.getByText(
+        'Your saved links stay exactly as they are — none of them uses these names. You can type any of them again at any time.',
+      ),
+    ).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, remove' }));
+
+    await waitFor(async () => {
+      expect(await getOrganizationValues('category')).toEqual([{ value: 'Fabrics', usage: 1 }]);
+    });
+
+    expect(screen.getByText('1 unused category was removed.')).toBeTruthy();
+    expect(await getSavedLinks()).toMatchObject([{ category: 'Fabrics' }]);
+  });
+
+  // A button that would do nothing is a button to read past every time.
+  it('does not offer the removal while every value is in use', async () => {
+    await saveLink('https://shop.example/one', { category: 'Fabrics' });
+
+    await renderDialog('category');
+    await screen.findByText('Fabrics');
+
+    expect(screen.queryByRole('button', { name: 'Remove unused categories' })).toBeNull();
   });
 
   it('says so when nothing has been used yet', async () => {
