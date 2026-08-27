@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { JarMark } from '@/src/components/JarMark';
 import { LanguageSwitcher } from '@/src/components/LanguageSwitcher';
+import { POPOVER_ANCHOR } from '@/src/components/PopoverButton';
 import { ThemeSwitcher } from '@/src/components/ThemeSwitcher';
 
 /**
@@ -83,8 +84,12 @@ export function AppHeader({
           <h1 className={`truncate font-semibold text-brand ${sizes.title}`}>{title}</h1>
         </div>
 
-        {/* Ordered as they are reached for: often, rarely, hardly ever. */}
-        <div className={`flex shrink-0 items-center gap-2 ${sizes.controls}`}>
+        {/*
+          Ordered as they are reached for: often, rarely, hardly ever. The row
+          is also what the panels behind these buttons hang off — see
+          `POPOVER_ANCHOR`.
+        */}
+        <div className={`flex shrink-0 items-center gap-2 ${POPOVER_ANCHOR} ${sizes.controls}`}>
           <LanguageSwitcher />
           <ThemeSwitcher />
           {children}

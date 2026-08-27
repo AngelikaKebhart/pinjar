@@ -66,7 +66,8 @@ export function SettingMenu<Value extends string>({
         <fieldset className="flex flex-col">
           {/*
             The panel repeats the setting's name, which the button carries only
-            as a label a sighted user never sees. Serif, like every heading.
+            as a label a sighted user never sees. Headed like every other
+            panel — see `POPOVER_HEADING`.
           */}
           <legend className={POPOVER_HEADING}>{label}</legend>
 
