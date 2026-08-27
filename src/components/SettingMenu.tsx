@@ -1,9 +1,5 @@
 import { useId, useRef, type ReactNode } from 'react';
-import {
-  POPOVER_HEADING,
-  POPOVER_ROW,
-  PopoverButton,
-} from '@/src/components/PopoverButton';
+import { POPOVER_HEADING, POPOVER_ROW, PopoverButton } from '@/src/components/PopoverButton';
 
 /** One answer the setting can take. */
 export type SettingOption<Value extends string> = {
