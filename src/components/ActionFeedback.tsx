@@ -23,14 +23,24 @@ export type FeedbackMessage =
  * news. Polite, so it waits for a pause rather than cutting in.
  *
  * It stays until the next action rather than fading on a timer nobody can
- * outrun (WCAG 2.2 AA, 2.2.1), and keeps its height while empty so the first
- * message does not push the page down.
+ * outrun (WCAG 2.2 AA, 2.2.1).
+ *
+ * While it has nothing to say it takes itself out of the flow (`empty:absolute`)
+ * instead of merely being empty: an empty line is still an item of the layout
+ * around it and would keep a gap on either side of itself, which is what made
+ * the popup's content sit lower under the save button than above the one below
+ * it. Out of flow it costs nothing, and the surrounding gaps close.
+ *
+ * What it does not do is disappear: the element stays in the page rather than
+ * being rendered only once there is a message, because a live region has to be
+ * there before the text arrives — appearing together with it, it goes
+ * unannounced.
  */
 export function ActionFeedback({ message }: { message: FeedbackMessage | null }) {
   const { t, plural } = useTranslation();
 
   return (
-    <p aria-live="polite" className="min-h-5 text-sm text-ink-muted">
+    <p aria-live="polite" className="text-sm text-ink-muted empty:absolute">
       {message === null
         ? ''
         : message.count === undefined
