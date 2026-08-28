@@ -116,7 +116,7 @@ function App() {
       <DashboardHeader />
 
       <section className="mt-8" aria-labelledby={filtersHeadingId}>
-        <h2 id={filtersHeadingId} className="mb-3 text-lg font-medium">
+        <h2 id={filtersHeadingId} className="mb-3 text-2xl font-semibold">
           {t('filters.heading')}
         </h2>
         <LinkFilters links={links ?? []} criteria={criteria} onChange={setCriteria} />
@@ -127,7 +127,7 @@ function App() {
           id={savedLinksHeadingId}
           ref={savedLinksHeadingRef}
           tabIndex={-1}
-          className="text-lg font-medium"
+          className="text-2xl font-semibold"
         >
           {t('dashboard.savedLinks.heading')}
           {headingCountText !== '' && ` ${headingCountText}`}
