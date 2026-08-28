@@ -141,7 +141,7 @@ describe('saving the current page', () => {
     await renderPopup();
 
     fireEvent.click(saveButton());
-    // The button reads "Saving…" until the first save is through, so waiting
+    // The button reads "Pinning…" until the first save is through, so waiting
     // for the confirmation is also what makes it findable again.
     expect(await screen.findByText(en['popup.status.saved'] ?? '')).toBeTruthy();
 
@@ -301,7 +301,7 @@ describe('the links of this site', () => {
 
     await renderPopup();
 
-    expect(screen.getByRole('heading', { name: 'Saved on shop.example' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Pinned on shop.example' })).toBeTruthy();
   });
 
   it('says so when there is nothing yet', async () => {
@@ -425,7 +425,7 @@ describe('accessibility', () => {
 
     await waitFor(() =>
       expect(document.activeElement).toBe(
-        screen.getByRole('heading', { name: 'Saved on shop.example' }),
+        screen.getByRole('heading', { name: 'Pinned on shop.example' }),
       ),
     );
   });
@@ -436,7 +436,7 @@ describe('accessibility', () => {
 
     await renderPopup();
 
-    expect(screen.getByRole('button', { name: 'Diese Seite merken' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Pin setzen' })).toBeTruthy();
   });
 });
 

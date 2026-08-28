@@ -20,19 +20,20 @@ async function renderDashboard(): Promise<void> {
     </ThemeProvider>,
   );
 
-  // The heading is there immediately, the list only once storage has answered,
-  // and the visible count is the first thing that shows it has.
+  // The heading text itself is there immediately; the count in parentheses is
+  // appended only once storage has answered, so its presence is what the list
+  // being ready looks like.
   //
   // Deliberately not the announced count: an effect sets that a render later,
   // so waiting for it would wait past the render this helper is after.
   await waitFor(() => {
-    expect(shownCount()).toBeTruthy();
+    expect(headingCount()).toContain('(');
   });
 }
 
-/** The count as shown on screen, which updates on every keystroke. */
-function shownCount(): string {
-  return document.querySelector('main p[aria-hidden="true"]')?.textContent ?? '';
+/** The count as shown in the heading, which updates on every keystroke. */
+function headingCount(): string {
+  return document.querySelector('main h2')?.textContent ?? '';
 }
 
 /** The count as announced to assistive technology, which lags behind on purpose. */
@@ -110,7 +111,7 @@ describe('the list', () => {
 
     await renderDashboard();
 
-    expect(shownCount()).toBe('2 saved links');
+    expect(headingCount()).toBe('Your pins (2)');
   });
 
   it('shows the newest first', async () => {
@@ -336,7 +337,9 @@ describe('deleting', () => {
 
     await waitFor(() =>
       expect(document.activeElement).toBe(
-        screen.getByRole('heading', { name: en['dashboard.savedLinks.heading'] ?? '' }),
+        screen.getByRole('heading', {
+          name: new RegExp(`^${en['dashboard.savedLinks.heading'] ?? ''}`),
+        }),
       ),
     );
   });
@@ -348,7 +351,7 @@ describe('accessibility', () => {
 
     await renderDashboard();
 
-    await waitFor(() => expect(announcedCount()).toBe('1 saved link'));
+    await waitFor(() => expect(announcedCount()).toBe('1 pin'));
   });
 
   // Read out once, not twice: the visible line says the same thing and is
@@ -361,9 +364,7 @@ describe('accessibility', () => {
     // The one match left after ignoring the visible line is the live region,
     // which fills a render after the count itself.
     await waitFor(() =>
-      expect(screen.getAllByText('1 saved link', { ignore: '[aria-hidden="true"]' })).toHaveLength(
-        1,
-      ),
+      expect(screen.getAllByText('1 pin', { ignore: '[aria-hidden="true"]' })).toHaveLength(1),
     );
   });
 
@@ -758,7 +759,7 @@ describe('searching and filtering', () => {
 
     search('jersey');
 
-    expect(shownCount()).toBe('1 of 3 shown');
+    expect(headingCount()).toBe('Your pins (1 of 3)');
   });
 
   // "Nothing saved yet" would be wrong and unhelpful here.

@@ -3,8 +3,8 @@ import { useTranslation } from '@/src/i18n/context';
 import { ManageMenu } from './ManageMenu';
 
 /**
- * The dashboard's take on the shared header: the full-size lockup, a line of
- * subtitle, and one control the popup does not get.
+ * The dashboard's take on the shared header: the full-size lockup and one
+ * control the popup does not get.
  *
  * Language, appearance and everything the manage menu leads to are settings and
  * chores rather than content, so they sit up here instead of in sections at the
@@ -16,7 +16,7 @@ export function DashboardHeader() {
   const { t } = useTranslation();
 
   return (
-    <AppHeader title={t('dashboard.title')} description={t('dashboard.subtitle')}>
+    <AppHeader title={t('dashboard.title')}>
       <ManageMenu />
     </AppHeader>
   );

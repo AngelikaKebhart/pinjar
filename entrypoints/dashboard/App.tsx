@@ -71,6 +71,18 @@ function App() {
         ? t('dashboard.savedLinks.filtered', { count: shown.length, total: links.length })
         : plural('dashboard.savedLinks.count', shown.length);
 
+  // Short form for the heading itself — just the number in parentheses, since
+  // "Deine Pins" already says what is being counted.
+  const headingCountText =
+    links === null
+      ? ''
+      : isFiltering(criteria)
+        ? t('dashboard.savedLinks.headingCountFiltered', {
+            count: shown.length,
+            total: links.length,
+          })
+        : t('dashboard.savedLinks.headingCount', { count: shown.length });
+
   /**
    * The same text, announced a moment later: typing changes the count on every
    * keystroke, and a live region reading each one out would talk over the
@@ -118,20 +130,13 @@ function App() {
           className="text-lg font-medium"
         >
           {t('dashboard.savedLinks.heading')}
+          {headingCountText !== '' && ` ${headingCountText}`}
         </h2>
 
         {/*
-          Two elements for one sentence: this one updates on every keystroke and
-          is hidden from assistive technology, while the spoken one below waits
-          for a pause. Left to both, the count would be read out twice.
-        */}
-        <p aria-hidden="true" className="mt-2 text-sm">
-          {countText}
-        </p>
-
-        {/*
-          Carries the count for anyone who cannot see it, and announces every
-          change to it.
+          Carries the fuller sentence for anyone who cannot see it, and
+          announces every change to it — the heading above updates immediately
+          and silently, this one waits for a pause so typing is not talked over.
         */}
         <p aria-live="polite" className="sr-only">
           {announcement}

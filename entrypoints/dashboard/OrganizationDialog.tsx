@@ -235,15 +235,21 @@ function OrganizationList({
    * question names what goes and its hint says the rest.
    */
   const handleRemoveUnused = () =>
-    applyChange(
-      async () => ({
+    applyChange(async () => {
+      // Tags are forgotten automatically the moment no link carries them any
+      // more (see `forgetUnusedTags` in storage.ts), so this button is never
+      // offered for them — only category and status accumulate unused values.
+      if (kind === 'tag') {
+        throw new Error('unused tags are never offered for removal');
+      }
+
+      return {
         key: `organization.feedback.unusedRemoved.${kind}` as const,
         count: await deleteUnusedOrganizationValues(kind),
-      }),
+      };
       // The button asking the question goes with the last unused value, so
       // focus falls to the line that now says how many are left.
-      WHOLE_LIST,
-    );
+    }, WHOLE_LIST);
 
   // Nothing can be said about the list before it is known, and a count that
   // flicked from nothing to twenty-seven would be read out twice.
@@ -270,11 +276,14 @@ function OrganizationList({
       </p>
 
       {/*
-        Offered only while there is something to remove, and named after what
-        that is: "Remove unused" alone would be one more thing to work out in a
-        dialog that already asks the user to keep three kinds apart (2.4.6).
+        Offered only for category and status, and only while there is
+        something to remove: a tag is forgotten automatically the moment
+        nothing carries it any more (see `forgetUnusedTags` in storage.ts), so
+        it never reaches this state. Named after what removing does: "Remove
+        unused" alone would be one more thing to work out in a dialog that
+        already asks the user to keep three kinds apart (2.4.6).
       */}
-      {unused.length > 0 && (
+      {kind !== 'tag' && unused.length > 0 && (
         <Button
           ref={unusedButton}
           variant="outline"
@@ -287,7 +296,7 @@ function OrganizationList({
         </Button>
       )}
 
-      {isRemovingUnused && (
+      {kind !== 'tag' && isRemovingUnused && (
         <ConfirmPanel
           id={unusedPanelId}
           question={plural(`organization.unused.question.${kind}`, unused.length)}
@@ -307,7 +316,7 @@ function OrganizationList({
               </ul>
             </>
           }
-          hint={t('organization.unused.hint')}
+          hint={plural(`organization.unused.hint.${kind}`, unused.length)}
           confirm={t('organization.unused.confirm')}
           cancel={t('organization.unused.cancel')}
           onConfirm={handleRemoveUnused}

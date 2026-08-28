@@ -233,7 +233,7 @@ describe('importing', () => {
 
     chooseFile(anExport([aStoredLink('https://shop.example/jersey', 'Jersey fabric')]));
 
-    await waitFor(() => expect(noticeNear(importButton())).toContain('1 link added.'));
+    await waitFor(() => expect(noticeNear(importButton())).toContain('1 pin added.'));
     await expect(getSavedLinks()).resolves.toMatchObject([{ title: 'Jersey fabric' }]);
   });
 
@@ -243,9 +243,7 @@ describe('importing', () => {
 
     chooseFile(anExport([aStoredLink('https://shop.example/jersey', 'Theirs')]));
 
-    await waitFor(() =>
-      expect(noticeNear(importButton())).toContain('1 was already on your list.'),
-    );
+    await waitFor(() => expect(noticeNear(importButton())).toContain('1 was already pinned.'));
   });
 
   it('mentions the entries it could not read', async () => {
@@ -278,12 +276,10 @@ describe('importing', () => {
     const file = anExport([aStoredLink('https://shop.example/jersey', 'Jersey fabric')]);
 
     chooseFile(file);
-    await waitFor(() => expect(noticeNear(importButton())).toContain('1 link added.'));
+    await waitFor(() => expect(noticeNear(importButton())).toContain('1 pin added.'));
     chooseFile(file);
 
-    await waitFor(() =>
-      expect(noticeNear(importButton())).toContain('1 was already on your list.'),
-    );
+    await waitFor(() => expect(noticeNear(importButton())).toContain('1 was already pinned.'));
   });
 
   it('leaves the export possible once a file has brought links in', async () => {
@@ -299,7 +295,7 @@ describe('importing', () => {
 
     chooseFile(anExport([aStoredLink('https://shop.example/jersey', 'Jersey fabric')]));
 
-    await waitFor(() => expect(noticeNear(importButton())).toContain('1 Link hinzugefügt.'));
+    await waitFor(() => expect(noticeNear(importButton())).toContain('1 Pin hinzugefügt.'));
   });
 });
 
@@ -409,7 +405,7 @@ describe('the messages', () => {
 
     fireEvent.click(exportButton());
 
-    await waitFor(() => expect(noticeNear(exportButton())).toContain('your browser is saving'));
+    await waitFor(() => expect(noticeNear(exportButton())).toContain('Your browser is saving'));
     expect(noticeNear(importButton())).toBe('');
     expect(noticeNear(deleteButton())).toBe('');
   });
@@ -433,13 +429,13 @@ describe('the messages', () => {
 
     fireEvent.click(exportButton());
     await waitFor(() =>
-      expect(noticeNear(exportButton())).toContain('dein Browser speichert die Datei'),
+      expect(noticeNear(exportButton())).toContain('Dein Browser speichert die Datei'),
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'switch to English' }));
 
     await waitFor(() =>
-      expect(noticeNear(exportButton())).toContain('your browser is saving the file'),
+      expect(noticeNear(exportButton())).toContain('Your browser is saving the file'),
     );
   });
 
