@@ -100,58 +100,64 @@ function App() {
   return (
     <PopupFrame>
       <main className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <Button
-            type="button"
-            variant="primary"
-            onClick={() => void handleSave()}
-            disabled={!canSave || isSaving}
-          >
-            {isSaving ? t('popup.saving') : t('popup.savePage')}
-          </Button>
-
-          {/*
-          Saving, editing and deleting all report here: the only feedback saving
-          gives, and after a deletion the only thing left to notice — the row
-          that could have said so is gone.
-        */}
-          <ActionFeedback message={feedback} />
-        </div>
+        <Button
+          type="button"
+          variant="primary"
+          onClick={() => void handleSave()}
+          disabled={!canSave || isSaving}
+        >
+          {isSaving ? t('popup.saving') : t('popup.savePage')}
+        </Button>
 
         {/*
-        Only where there is a site to list links for. On a browser page the
-        heading would name a domain that does not exist, and the list would say
-        nothing is saved here yet — of a page that can never hold anything.
-      */}
-        {canSave && (
-          <section aria-labelledby={savedLinksHeadingId} className="flex flex-col gap-2">
-            <h2
-              id={savedLinksHeadingId}
-              ref={savedLinksHeadingRef}
-              tabIndex={-1}
-              className="sr-only"
-            >
-              {t('popup.savedLinks.heading', { domain: currentDomain })}
-            </h2>
+          Everything the popup has to say sits in one block between the two
+          buttons, so that it keeps the same distance to the button above it as
+          to the one below, however much or little there is to show.
+        */}
+        <div className="flex flex-col gap-2">
+          {/*
+            Saving, editing and deleting all report here: the only feedback
+            saving gives, and after a deletion the only thing left to notice —
+            the row that could have said so is gone.
+          */}
+          <ActionFeedback message={feedback} />
 
-            {links.length === 0 ? (
-              <p className="text-sm text-ink-muted">{t('popup.savedLinks.empty')}</p>
-            ) : (
-              <ul className="flex flex-col gap-2">
-                {links.map((link) => (
-                  <li key={link.id}>
-                    <SavedLinkRow
-                      link={link}
-                      panels={panels}
-                      onDelete={() => handleRemove(link)}
-                      onEdit={(edits) => handleEdit(link, edits)}
-                    />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        )}
+          {/*
+            Only where there is a site to list links for. On a browser page the
+            heading would name a domain that does not exist, and the list would
+            say nothing is saved here yet — of a page that can never hold
+            anything.
+          */}
+          {canSave && (
+            <section aria-labelledby={savedLinksHeadingId} className="flex flex-col gap-2">
+              <h2
+                id={savedLinksHeadingId}
+                ref={savedLinksHeadingRef}
+                tabIndex={-1}
+                className="sr-only"
+              >
+                {t('popup.savedLinks.heading', { domain: currentDomain })}
+              </h2>
+
+              {links.length === 0 ? (
+                <p className="text-sm text-ink-muted">{t('popup.savedLinks.empty')}</p>
+              ) : (
+                <ul className="flex flex-col gap-2">
+                  {links.map((link) => (
+                    <li key={link.id}>
+                      <SavedLinkRow
+                        link={link}
+                        panels={panels}
+                        onDelete={() => handleRemove(link)}
+                        onEdit={(edits) => handleEdit(link, edits)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
+        </div>
 
         <Button
           type="button"
