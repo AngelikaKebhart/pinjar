@@ -60,14 +60,11 @@ const SIZES: Record<
  */
 export function AppHeader({
   title,
-  description,
   size = 'full',
   children,
 }: {
   /** The wordmark. Translated, though both catalogs say "PinJar". */
   title: string;
-  /** One line under the divider, where the surface needs introducing. */
-  description?: string;
   size?: AppHeaderSize;
   /** Extra controls, placed after language and appearance. */
   children?: ReactNode;
@@ -95,8 +92,6 @@ export function AppHeader({
           {children}
         </div>
       </div>
-
-      {description !== undefined && <p className="mt-3 text-sm text-ink-muted">{description}</p>}
     </header>
   );
 }

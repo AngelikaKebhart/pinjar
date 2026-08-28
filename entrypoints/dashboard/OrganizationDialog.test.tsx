@@ -124,7 +124,7 @@ describe('OrganizationDialog', () => {
     expect(within(question).queryByText('Fabrics')).toBeNull();
     expect(
       within(question).getByText(
-        'Your saved links stay exactly as they are — none of them uses these names. You can type any of them again at any time.',
+        'Your pins stay exactly as they are. None of them uses this category. You can create it again at any time.',
       ),
     ).toBeTruthy();
 
@@ -227,7 +227,7 @@ describe('OrganizationDialog', () => {
 
     fireEvent.click(deleteButton('Fabrics'));
     expect(
-      screen.getByText('Your saved links stay, they just no longer have this category.'),
+      screen.getByText('Your pins stay, they just no longer have this category.'),
     ).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'Yes, delete “Fabrics”' }));
@@ -240,7 +240,7 @@ describe('OrganizationDialog', () => {
     expect(links).toHaveLength(1);
     expect(links[0]?.category).toBeNull();
     expect(
-      screen.getByText('“Fabrics” was deleted. The saved links that carried it are still there.'),
+      screen.getByText('“Fabrics” was deleted. The pins that carried it are still there.'),
     ).toBeTruthy();
   });
 

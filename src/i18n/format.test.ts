@@ -85,10 +85,10 @@ describe('translatePlural with the shipped catalogs', () => {
   // German and English both use the plural form for it — a detail easy to get
   // wrong by hand, which is why the actual strings are pinned here.
   it('produces the right form for none and for one', () => {
-    expect(translatePlural(CATALOGS.en, 'en', key, 0)).toBe('0 saved links');
-    expect(translatePlural(CATALOGS.en, 'en', key, 1)).toBe('1 saved link');
-    expect(translatePlural(CATALOGS.de, 'de', key, 0)).toBe('0 gemerkte Links');
-    expect(translatePlural(CATALOGS.de, 'de', key, 1)).toBe('1 gemerkter Link');
+    expect(translatePlural(CATALOGS.en, 'en', key, 0)).toBe('0 pins');
+    expect(translatePlural(CATALOGS.en, 'en', key, 1)).toBe('1 pin');
+    expect(translatePlural(CATALOGS.de, 'de', key, 0)).toBe('0 Pins');
+    expect(translatePlural(CATALOGS.de, 'de', key, 1)).toBe('1 Pin');
   });
 });
 

@@ -129,7 +129,7 @@ function App() {
               id={savedLinksHeadingId}
               ref={savedLinksHeadingRef}
               tabIndex={-1}
-              className="text-sm font-medium"
+              className="sr-only"
             >
               {t('popup.savedLinks.heading', { domain: currentDomain })}
             </h2>
