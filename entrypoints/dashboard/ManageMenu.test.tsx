@@ -60,9 +60,20 @@ describe('ManageMenu', () => {
       en['organization.tag.heading'],
       en['organization.status.heading'],
       en['data.heading'],
+      en['contact.heading'],
     ]) {
       expect(screen.getByRole('button', { name: destination })).toBeTruthy();
     }
+  });
+
+  /*
+   * The rule is read back, not merely drawn: it is what says the three lists
+   * of values are one group and the rest another (WCAG 2.2 AA, 1.3.1).
+   */
+  it('separates the lists of values from the rest', async () => {
+    await openMenu();
+
+    expect(screen.getByRole('separator')).toBeTruthy();
   });
 
   // The three lists share one component, and telling it which kind it is

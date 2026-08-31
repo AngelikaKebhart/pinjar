@@ -75,10 +75,31 @@ async function updateBadge(tab: BadgedTab, language: Language): Promise<void> {
 
   const count = await countLinksForAddress(tab.url);
 
-  await Promise.all([
-    toolbarAction.setBadgeText({ tabId: tab.id, text: formatBadgeText(count) }),
-    toolbarAction.setTitle({ tabId: tab.id, title: describeCount(language, count) }),
-  ]);
+  /*
+   * A tab can close between being named here and being addressed, and the
+   * reading of the count above — a trip to storage — is long enough for that
+   * to happen in ordinary use. The browser then rejects with "No tab with
+   * id: …", which is not a fault: the badge was for a tab that has gone, and
+   * there is nothing left to set it on.
+   *
+   * Swallowed here rather than at the caller, and swallowed whole. Which
+   * browser says what about a missing tab differs ("No tab with id" in
+   * Chrome, "Invalid tab ID" in Firefox), so telling this failure from any
+   * other would mean matching on message text — and the others are just as
+   * unactionable, since nothing about a badge can be retried or repaired.
+   *
+   * Letting one through would also cost more than the message: the two
+   * callers hold a `Promise.all` over every open tab, and one closed tab
+   * would leave all the others with a stale badge.
+   */
+  try {
+    await Promise.all([
+      toolbarAction.setBadgeText({ tabId: tab.id, text: formatBadgeText(count) }),
+      toolbarAction.setTitle({ tabId: tab.id, title: describeCount(language, count) }),
+    ]);
+  } catch {
+    // The tab is gone, and so is the badge that was to go on it.
+  }
 }
 
 /**

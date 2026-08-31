@@ -3,11 +3,12 @@ import { DataIcon } from '@/src/components/icons';
 import { POPOVER_HEADING, POPOVER_ROW, PopoverButton } from '@/src/components/PopoverButton';
 import { useTranslation } from '@/src/i18n/context';
 import type { OrganizationKind } from '@/src/lib/organization';
+import { ContactDialog } from './ContactDialog';
 import { DataDialog } from './DataDialog';
 import { OrganizationDialog } from './OrganizationDialog';
 
 /** What the menu can have open. `null` is the menu itself doing nothing. */
-type Destination = OrganizationKind | 'data';
+type Destination = OrganizationKind | 'data' | 'contact';
 
 /** The three lists of values, in the order a saved link shows them. */
 const ORGANIZATION_ENTRIES: OrganizationKind[] = ['category', 'status', 'tag'];
@@ -25,8 +26,8 @@ const ORGANIZATION_ENTRIES: OrganizationKind[] = ['category', 'status', 'tag'];
  * they stay outside as their own buttons because they are what gets reached for
  * most. What is in here are tasks that open a workspace.
  *
- * The three lists of values come before the data file, in the order a saved
- * link shows them — the same three words in the same sequence as on a card, so
+ * The three lists of values come first, kept apart from the rest by a rule, in
+ * the order a saved link shows them — the same three words in the same sequence as on a card, so
  * that whichever surface the user came from, the entry is where they left it.
  * They are what gets tidied every so often; export, import and delete-all are
  * rare, and the last of them is the one entry nobody should reach for by
@@ -84,8 +85,32 @@ export function ManageMenu() {
                 </li>
               ))}
 
+              {/*
+                One rule, between the lists of values and everything else. At
+                five entries the panel had become a wall of equally weighted
+                words; the line says which three belong together without any of
+                them needing a group name.
+
+                An `hr` rather than a border on the row below it: HTML allows
+                one between the items of a list, and it is the only element a
+                screen reader reads back as a separator — a border would draw
+                the grouping for sighted readers alone (WCAG 2.2 AA, 1.3.1).
+
+                One rule and not two: 3 + 2 reads as two groups, 3 + 1 + 1 as a
+                list that has been cut up.
+              */}
+              <hr className="my-2 border-line" />
+
               <li>
                 <MenuEntry onClick={() => go(close, 'data')}>{t('data.heading')}</MenuEntry>
+              </li>
+
+              {/*
+                Last, because it is the only entry that leads out of the
+                extension rather than into a part of it.
+              */}
+              <li>
+                <MenuEntry onClick={() => go(close, 'contact')}>{t('contact.heading')}</MenuEntry>
               </li>
             </ul>
           </>
@@ -107,6 +132,11 @@ export function ManageMenu() {
       ))}
 
       <DataDialog isOpen={openDestination === 'data'} onClose={() => setOpenDestination(null)} />
+
+      <ContactDialog
+        isOpen={openDestination === 'contact'}
+        onClose={() => setOpenDestination(null)}
+      />
     </>
   );
 }
