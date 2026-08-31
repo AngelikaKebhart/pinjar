@@ -49,6 +49,8 @@ export const Button = forwardRef<
     className?: string;
     title?: string;
     'aria-label'?: string;
+    /** The id of a sentence explaining the button — why it is greyed out, say. */
+    'aria-describedby'?: string;
     /** Set on a button that reveals something, to say whether it is showing. */
     expanded?: boolean;
     /** The id of what `expanded` refers to. */
@@ -64,6 +66,7 @@ export const Button = forwardRef<
     className = '',
     title,
     'aria-label': ariaLabel,
+    'aria-describedby': ariaDescribedBy,
     expanded,
     controls,
   },
@@ -77,6 +80,7 @@ export const Button = forwardRef<
       onClick={() => void onClick?.()}
       title={title}
       aria-label={ariaLabel}
+      aria-describedby={ariaDescribedBy}
       aria-expanded={expanded}
       aria-controls={controls}
       className={`rounded-control px-4 py-2 text-sm font-bold ${VARIANT_CLASSES[variant]} ${className}`.trim()}

@@ -66,6 +66,9 @@ const UI_PAIRS = [
   ['accent', 'surface'],
   ['accent', 'canvas'],
   ['danger', 'surface'],
+  // The tick and the warning triangle on a feedback line, which is drawn on
+  // the popup's ground as well as inside the data dialog.
+  ['danger', 'canvas'],
 ] as const;
 
 /**

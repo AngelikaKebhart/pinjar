@@ -62,6 +62,11 @@ function noticeNear(button: HTMLElement): string {
   return button.parentElement?.querySelector('[aria-live="polite"]')?.textContent ?? '';
 }
 
+/** The glyph in front of a notice: a tick, or a warning triangle. */
+function markerNear(button: HTMLElement): SVGElement | null | undefined {
+  return button.parentElement?.querySelector('[aria-live="polite"] svg');
+}
+
 /** Puts a file into the picker the way choosing one would. */
 function chooseFile(contents: string): void {
   const input = filePicker();
@@ -439,16 +444,23 @@ describe('the messages', () => {
     );
   });
 
-  // Its border says how it went in color alone, which not everyone can see;
-  // the glyph in front of it says the same thing in shape.
+  /*
+   * The tone is carried by the shape of the glyph as well as by its color, so
+   * how it went does not rest on seeing the difference between two reds
+   * (WCAG 2.2 AA, 1.4.1) — and it is hidden from assistive technology, which
+   * is already being read the sentence itself.
+   */
   it('carry a marker that is seen but not read out', async () => {
     await saveOneLink();
     await renderSection();
 
     fireEvent.click(exportButton());
 
-    await waitFor(() => expect(noticeNear(exportButton())).toContain('✓'));
-    expect(screen.getByText('✓').getAttribute('aria-hidden')).toBe('true');
+    await waitFor(() => expect(noticeNear(exportButton())).toContain('Export created'));
+
+    const marker = markerNear(exportButton());
+    expect(marker?.getAttribute('aria-hidden')).toBe('true');
+    expect(marker?.parentElement?.className).toContain('text-accent');
   });
 
   it('mark a refused file apart from a successful action', async () => {
@@ -459,8 +471,7 @@ describe('the messages', () => {
     await waitFor(() =>
       expect(noticeNear(importButton())).toContain('That file could not be read'),
     );
-    expect(screen.getByText('!').getAttribute('aria-hidden')).toBe('true');
-    expect(screen.queryByText('✓')).toBeNull();
+    expect(markerNear(importButton())?.parentElement?.className).toContain('text-danger');
   });
 });
 

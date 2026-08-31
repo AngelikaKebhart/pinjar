@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { FeedbackLine } from '@/src/components/ActionFeedback';
 import { Button } from '@/src/components/Button';
 import { ConfirmPanel } from '@/src/components/ConfirmPanel';
 import { useTranslation } from '@/src/i18n/context';
@@ -166,30 +167,25 @@ type Notice =
  */
 function NoticeSlot({ notice, shownFor }: { notice: Notice | null; shownFor: Notice['kind'] }) {
   return (
-    <div aria-live="polite">{notice?.kind === shownFor && <NoticePanel notice={notice} />}</div>
+    <div aria-live="polite">{notice?.kind === shownFor && <NoticeLine notice={notice} />}</div>
   );
 }
 
 /**
- * The sentence for a notice, built in the language active right now. Marked by
- * a glyph as well as by its border colour, so how it went is never carried by
- * colour alone (WCAG 2.2 AA, 1.4.1).
+ * The sentence for a notice, built in the language active right now, in the
+ * shape every other piece of feedback in the extension has: an import result
+ * and a saved edit are the same kind of news, and used to look like two.
+ *
+ * The composed sentence goes into `FeedbackLine` as text rather than as a key,
+ * because an import reports up to three things at once and only one language
+ * at a time can say which plural forms those are — but it is composed here at
+ * render, from the outcome, so a switch still re-reads it.
  */
-function NoticePanel({ notice }: { notice: Notice }) {
+function NoticeLine({ notice }: { notice: Notice }) {
   const { t, plural } = useTranslation();
   const { text, wentWrong } = describeNotice(notice, t, plural);
 
-  return (
-    <p
-      className={
-        'mt-1 flex w-fit items-center gap-2 rounded-control border bg-surface px-3 py-2 text-sm font-medium ' +
-        (wentWrong ? 'border-danger' : 'border-accent')
-      }
-    >
-      <span aria-hidden="true">{wentWrong ? '!' : '✓'}</span>
-      {text}
-    </p>
-  );
+  return <FeedbackLine tone={wentWrong ? 'problem' : 'done'}>{text}</FeedbackLine>;
 }
 
 type Translate = ReturnType<typeof useTranslation>['t'];

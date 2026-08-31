@@ -27,6 +27,7 @@ function App() {
   // The one line of feedback under the button; null while nothing happened.
   const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
   const savedLinksHeadingId = useId();
+  const unsupportedHintId = useId();
 
   // Where focus lands when the last link is deleted — no neighbouring button
   // is left to take it.
@@ -41,13 +42,6 @@ function App() {
     void getCurrentPage().then(async (current) => {
       setPage(current);
 
-      // A page that cannot be saved leaves the button greyed out, and a
-      // disabled button giving no reason is a dead end — so the reason is said
-      // here rather than on a click the button no longer allows.
-      if ((current?.domain ?? null) === null) {
-        setFeedback({ key: 'popup.status.unsupportedPage' });
-      }
-
       await loadLinks(current?.domain ?? null);
     });
   }, [loadLinks]);
@@ -61,7 +55,10 @@ function App() {
     const outcome = await saveCurrentPage(page);
     setIsSaving(false);
 
-    setFeedback({ key: `popup.status.${outcome.status}` });
+    setFeedback({
+      key: `popup.status.${outcome.status}`,
+      tone: outcome.status === 'failed' ? 'problem' : 'done',
+    });
     await loadLinks(page.domain);
   };
 
@@ -105,6 +102,13 @@ function App() {
           variant="primary"
           onClick={() => void handleSave()}
           disabled={!canSave || isSaving}
+          /*
+            A disabled button giving no reason is a dead end, so the sentence
+            below is tied to it rather than left to be found — a disabled
+            control is skipped in Chrome's tab order, but is still reached by a
+            screen reader browsing the page, and arrives with its reason.
+          */
+          aria-describedby={canSave ? undefined : unsupportedHintId}
         >
           {isSaving ? t('popup.saving') : t('popup.savePage')}
         </Button>
@@ -115,6 +119,19 @@ function App() {
           to the one below, however much or little there is to show.
         */}
         <div className="flex flex-col gap-2">
+          {/*
+            Why the button above cannot be pressed. Deliberately not routed
+            through the feedback line: nothing happened here, the page simply
+            is what it is — so it reads as a hint, in the same grey as every
+            other explanatory sentence in the extension, rather than as the
+            report of an action that failed.
+          */}
+          {!canSave && (
+            <p id={unsupportedHintId} className="text-sm text-ink-muted">
+              {t('popup.status.unsupportedPage')}
+            </p>
+          )}
+
           {/*
             Saving, editing and deleting all report here: the only feedback
             saving gives, and after a deletion the only thing left to notice —
