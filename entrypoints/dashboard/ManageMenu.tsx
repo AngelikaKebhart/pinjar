@@ -26,8 +26,8 @@ const ORGANIZATION_ENTRIES: OrganizationKind[] = ['category', 'status', 'tag'];
  * they stay outside as their own buttons because they are what gets reached for
  * most. What is in here are tasks that open a workspace.
  *
- * The three lists of values come before the data file, in the order a saved
- * link shows them — the same three words in the same sequence as on a card, so
+ * The three lists of values come first, kept apart from the rest by a rule, in
+ * the order a saved link shows them — the same three words in the same sequence as on a card, so
  * that whichever surface the user came from, the entry is where they left it.
  * They are what gets tidied every so often; export, import and delete-all are
  * rare, and the last of them is the one entry nobody should reach for by
@@ -84,6 +84,22 @@ export function ManageMenu() {
                   </MenuEntry>
                 </li>
               ))}
+
+              {/*
+                One rule, between the lists of values and everything else. At
+                five entries the panel had become a wall of equally weighted
+                words; the line says which three belong together without any of
+                them needing a group name.
+
+                An `hr` rather than a border on the row below it: HTML allows
+                one between the items of a list, and it is the only element a
+                screen reader reads back as a separator — a border would draw
+                the grouping for sighted readers alone (WCAG 2.2 AA, 1.3.1).
+
+                One rule and not two: 3 + 2 reads as two groups, 3 + 1 + 1 as a
+                list that has been cut up.
+              */}
+              <hr className="my-2 border-line" />
 
               <li>
                 <MenuEntry onClick={() => go(close, 'data')}>{t('data.heading')}</MenuEntry>
