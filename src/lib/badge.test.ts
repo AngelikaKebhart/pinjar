@@ -30,6 +30,8 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  // Spies on the fake browser outlive the test that set them otherwise.
+  vi.restoreAllMocks();
 });
 
 describe('the badge of a single tab', () => {
@@ -174,5 +176,38 @@ describe('badge appearance', () => {
     await expect(fakeBrowser.action.getBadgeBackgroundColor({})).resolves.toEqual([
       86, 22, 67, 255,
     ]);
+  });
+});
+
+/*
+ * Closing a tab while the badges are being brought up to date used to reach
+ * the user as "Uncaught (in promise) Error: No tab with id: …" in the
+ * extension's error list — and, worse than the message, it abandoned the
+ * badges of every tab still open.
+ */
+describe('a tab that closes while its badge is being set', () => {
+  const gone = (tabId: number | undefined) => Promise.reject(new Error(`No tab with id: ${tabId}`));
+
+  it('is not reported as a failure', async () => {
+    vi.spyOn(fakeBrowser.action, 'setBadgeText').mockImplementation(() => gone(TAB_ID));
+
+    await expect(
+      refreshBadgeForTab({ id: TAB_ID, url: 'https://shop.example/item' }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('leaves the tabs that are still open with a correct badge', async () => {
+    await saveLinks('https://shop.example/first');
+    const closing = await fakeBrowser.tabs.create({ url: 'https://other.example/item' });
+    const staying = await fakeBrowser.tabs.create({ url: 'https://shop.example/second' });
+
+    const setBadgeText = fakeBrowser.action.setBadgeText.bind(fakeBrowser.action);
+    vi.spyOn(fakeBrowser.action, 'setBadgeText').mockImplementation((details) =>
+      details.tabId === closing.id ? gone(closing.id) : setBadgeText(details),
+    );
+
+    await refreshAllBadges();
+
+    await expect(badgeTextOf(staying.id)).resolves.toBe('1');
   });
 });
