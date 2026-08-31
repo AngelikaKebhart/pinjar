@@ -160,14 +160,23 @@ describe('saving the current page', () => {
     expect(saveButton()).toHaveProperty('disabled', true);
   });
 
-  // A greyed-out button that gives no reason leaves the user guessing whether
-  // the extension is broken.
+  /*
+   * A greyed-out button that gives no reason leaves the user guessing whether
+   * the extension is broken — and the reason has to reach someone who arrives
+   * at the button rather than reading down the page, so it is tied to it
+   * rather than merely printed underneath.
+   *
+   * Not routed through the feedback line: nothing happened here, so it stays a
+   * hint rather than being marked up as the outcome of an action.
+   */
   it('says why a browser page cannot be saved', async () => {
     await givenTabOn('chrome://extensions');
 
     await renderPopup();
 
-    expect(screen.getByText(en['popup.status.unsupportedPage'] ?? '')).toBeTruthy();
+    const hint = screen.getByText(en['popup.status.unsupportedPage'] ?? '');
+
+    expect(saveButton().getAttribute('aria-describedby')).toBe(hint.id);
   });
 });
 
@@ -363,7 +372,7 @@ describe('accessibility', () => {
     fireEvent.click(saveButton());
 
     const status = await screen.findByText(en['popup.status.saved'] ?? '');
-    expect(status.getAttribute('aria-live')).toBe('polite');
+    expect(status.closest('[aria-live]')?.getAttribute('aria-live')).toBe('polite');
   });
 
   // With several links listed, "Delete" alone would not say which one.

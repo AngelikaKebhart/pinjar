@@ -114,3 +114,23 @@ export function ChevronIcon() {
     </svg>
   );
 }
+
+/** Tick, for a feedback line reporting that something went through. */
+export function CheckIcon() {
+  return (
+    <Icon>
+      <path d="M5 13l4.5 4.5L19 7" />
+    </Icon>
+  );
+}
+
+/** Warning triangle, for a feedback line reporting that something did not. */
+export function AlertIcon() {
+  return (
+    <Icon>
+      <path d="M12 4.5 2.5 20h19L12 4.5Z" />
+      <path d="M12 10v4.5" />
+      <path d="M12 17.2v.1" />
+    </Icon>
+  );
+}
