@@ -8,7 +8,7 @@ import { useTranslation } from '@/src/i18n/context';
  * has to be identical in two files is a string that will one day differ in two
  * files.
  */
-const CONTACT_EMAIL = 'angelika@kebhart.net';
+const CONTACT_EMAIL = 'pinjar@kebhart.net';
 
 /**
  * How to report a problem, ask something, or suggest an improvement.

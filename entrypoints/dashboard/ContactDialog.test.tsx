@@ -44,9 +44,9 @@ describe('ContactDialog', () => {
 
     const link = await screen.findByRole('link');
 
-    expect(link.textContent).toBe('angelika@kebhart.net');
+    expect(link.textContent).toBe('pinjar@kebhart.net');
     expect(link.getAttribute('href')).toBe(
-      `mailto:angelika@kebhart.net?subject=${encodeURIComponent(en('contact.mailSubject'))}`,
+      `mailto:pinjar@kebhart.net?subject=${encodeURIComponent(en('contact.mailSubject'))}`,
     );
   });
 });
