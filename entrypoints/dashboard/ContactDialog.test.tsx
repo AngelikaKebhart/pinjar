@@ -29,11 +29,10 @@ describe('ContactDialog', () => {
 
   afterEach(cleanup);
 
-  it('invites a message and says what happens to it', async () => {
+  it('invites a message', async () => {
     renderDialog();
 
     expect(await screen.findByText(en('contact.intro'))).toBeTruthy();
-    expect(screen.getByText(en('contact.privacy'))).toBeTruthy();
   });
 
   /*

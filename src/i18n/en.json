@@ -169,9 +169,8 @@
   "data.deleteAll.cancel": "Cancel",
   "data.deleteAll.done": "All data deleted.",
   "contact.heading": "Help & feedback",
-  "contact.intro": "Glad you are using PinJar. If something is broken, something is unclear, or you have an idea for it, do write — short messages are just as welcome as long ones, and every one of them gets read.",
+  "contact.intro": "Glad you are using PinJar. Found a bug, got an idea for an improvement, or just some feedback for me? Do send me an email at:",
   "contact.mailSubject": "PinJar feedback",
-  "contact.privacy": "Nothing is sent along automatically. Only what you write in the email yourself reaches me.",
 
   "settings.language.label": "Interface language",
   "settings.language.auto": "Automatic (browser language)",

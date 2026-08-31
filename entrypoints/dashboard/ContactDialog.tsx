@@ -33,13 +33,17 @@ export function ContactDialog({ isOpen, onClose }: { isOpen: boolean; onClose: (
       <div className="flex flex-col gap-4 text-sm">
         <p>{t('contact.intro')}</p>
 
+        {/*
+          On a line of its own rather than running on from the sentence above:
+          the address is what the reader came for and what they may want to
+          copy, and a link that ends a paragraph is harder to hit than one
+          standing alone.
+        */}
         <p>
           <a href={mailto} className="break-words text-link underline hover:text-link-strong">
             {CONTACT_EMAIL}
           </a>
         </p>
-
-        <p className="text-ink-muted">{t('contact.privacy')}</p>
       </div>
     </Dialog>
   );
