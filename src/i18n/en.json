@@ -169,7 +169,7 @@
   "data.deleteAll.cancel": "Cancel",
   "data.deleteAll.done": "All data deleted.",
   "contact.heading": "Help & feedback",
-  "contact.intro": "Glad you are using PinJar. Found a bug, got an idea for an improvement, or just some feedback for me? Do send me a message at:",
+  "contact.intro": "Thanks for using PinJar! Found a bug, got an idea for something that could work better, or just want to share your thoughts? Drop me a line at:",
   "contact.mailSubject": "PinJar feedback",
 
   "settings.language.label": "Interface language",
