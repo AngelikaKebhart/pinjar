@@ -3,11 +3,12 @@ import { DataIcon } from '@/src/components/icons';
 import { POPOVER_HEADING, POPOVER_ROW, PopoverButton } from '@/src/components/PopoverButton';
 import { useTranslation } from '@/src/i18n/context';
 import type { OrganizationKind } from '@/src/lib/organization';
+import { ContactDialog } from './ContactDialog';
 import { DataDialog } from './DataDialog';
 import { OrganizationDialog } from './OrganizationDialog';
 
 /** What the menu can have open. `null` is the menu itself doing nothing. */
-type Destination = OrganizationKind | 'data';
+type Destination = OrganizationKind | 'data' | 'contact';
 
 /** The three lists of values, in the order a saved link shows them. */
 const ORGANIZATION_ENTRIES: OrganizationKind[] = ['category', 'status', 'tag'];
@@ -87,6 +88,14 @@ export function ManageMenu() {
               <li>
                 <MenuEntry onClick={() => go(close, 'data')}>{t('data.heading')}</MenuEntry>
               </li>
+
+              {/*
+                Last, because it is the only entry that leads out of the
+                extension rather than into a part of it.
+              */}
+              <li>
+                <MenuEntry onClick={() => go(close, 'contact')}>{t('contact.heading')}</MenuEntry>
+              </li>
             </ul>
           </>
         )}
@@ -107,6 +116,11 @@ export function ManageMenu() {
       ))}
 
       <DataDialog isOpen={openDestination === 'data'} onClose={() => setOpenDestination(null)} />
+
+      <ContactDialog
+        isOpen={openDestination === 'contact'}
+        onClose={() => setOpenDestination(null)}
+      />
     </>
   );
 }

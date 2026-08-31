@@ -60,6 +60,7 @@ describe('ManageMenu', () => {
       en['organization.tag.heading'],
       en['organization.status.heading'],
       en['data.heading'],
+      en['contact.heading'],
     ]) {
       expect(screen.getByRole('button', { name: destination })).toBeTruthy();
     }

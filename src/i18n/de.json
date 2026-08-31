@@ -168,6 +168,11 @@
   "data.deleteAll.confirm": "Ja, alles löschen",
   "data.deleteAll.cancel": "Abbrechen",
   "data.deleteAll.done": "Alle Daten gelöscht.",
+  "contact.heading": "Hilfe & Feedback",
+  "contact.intro": "Schön, dass du PinJar nutzt. Wenn etwas hakt, etwas unklar ist oder dir eine Idee dazu kommt: Schreib mir gern — kurze Nachrichten sind genauso willkommen wie lange, und ich lese jede davon.",
+  "contact.mailSubject": "PinJar-Feedback",
+  "contact.privacy": "Es wird nichts automatisch mitgeschickt. Bei mir kommt nur an, was du selbst in die E-Mail schreibst.",
+
   "settings.language.label": "Sprache der Oberfläche",
   "settings.language.auto": "Automatisch (Browsersprache)",
 
