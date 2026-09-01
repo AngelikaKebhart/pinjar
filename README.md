@@ -97,16 +97,18 @@ Two mechanisms, because they answer different questions:
 ## Privacy
 
 All data is stored locally and never transmitted to a server. Only what the features need is
-kept: page URL, title, preview image, your own input, and your interface preferences. No tracking,
-no analytics, no cookies. Translations ship in the bundle — no translation service is contacted.
+kept: page URL, title, preview image, your own input, and your interface preferences. No account,
+no tracking, no analytics, no cookies. Translations ship in the bundle — no translation service is
+contacted.
 
 **One exception worth knowing about:** preview images are stored as URLs rather than as image
-data, so the dashboard loads them from the sites they came from. Those sites therefore learn your
-IP address and when you looked at your list. No stored data is sent, requests only go to sites you
-deliberately saved, and they are made without a referrer and only for images scrolled into view.
-It is the only point at which this extension talks to the network at all.
+data, so the dashboard loads them from the sites they came from, which is the only point at which
+this extension talks to the network at all. Nothing PinJar stores is ever sent.
 
-Exported files are plain, unencrypted JSON and may contain personal notes — handle accordingly.
+Full details, including what is kept, for how long, and your rights under the GDPR:
+**[Privacy Policy](docs/privacy-policy.md)**
+
+**[Datenschutzerklärung](docs/privacy-policy.de.md)**
 
 ### Permissions
 
@@ -120,8 +122,8 @@ Exported files are plain, unencrypted JSON and may contain personal notes — ha
 There is **no host permission**, so the extension never gains access to the content of the pages
 you visit. `tabs` is the one with a visible cost: browsers present it at install as _"read your
 browsing history"_, because it lets the extension see the addresses of your open tabs. It is what
-makes the badge possible — those addresses are compared against your locally saved domains to
-produce a number, and are never stored, logged, or sent anywhere.
+makes the badge possible — those addresses are compared in memory against your locally saved
+domains to produce a number, and are never stored, logged, or sent anywhere.
 
 ## How this was built
 
