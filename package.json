@@ -2,6 +2,7 @@
   "name": "pinjar",
   "description": "Universal, shop-independent wishlist: save any page with one click and organize saved links with categories, tags, status and notes.",
   "private": true,
+  "license": "MIT",
   "version": "0.1.0",
   "type": "module",
   "packageManager": "pnpm@11.21.0",
