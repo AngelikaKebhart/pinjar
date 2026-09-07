@@ -1,8 +1,29 @@
 {
   "name": "pinjar",
   "description": "Universal, shop-independent wishlist: save any page with one click and organize saved links with categories, tags, status and notes.",
-  "private": true,
+  "keywords": [
+    "browser-extension",
+    "chrome-extension",
+    "firefox-addon",
+    "edge-extension",
+    "wxt",
+    "manifest-v3",
+    "wishlist",
+    "bookmarks",
+    "react",
+    "typescript"
+  ],
+  "homepage": "https://github.com/AngelikaKebhart/pinjar#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AngelikaKebhart/pinjar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AngelikaKebhart/pinjar/issues"
+  },
+  "author": "Angelika Kebhart",
   "license": "MIT",
+  "private": true,
   "version": "0.1.0",
   "type": "module",
   "packageManager": "pnpm@11.21.0",

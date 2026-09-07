@@ -147,7 +147,17 @@ together.
 Commits carry a `Co-Authored-By` trailer where an agent wrote them. Every change went through the
 same review, CI and manual-testing gates it would have without one.
 
-## Contributing
+## Feedback
+
+Bug reports, ideas and remarks are genuinely welcome —
+[open an issue](https://github.com/AngelikaKebhart/pinjar/issues). Something that looks like a
+security problem goes through [`SECURITY.md`](SECURITY.md) instead, not into a public issue.
+
+Code contributions are not being sought, though. This is a personal project and stays one, so an
+unannounced pull request will most likely be declined — please raise an issue first rather than
+spending your time on a patch.
+
+The conventions the code is held to, for anyone reading it:
 
 - `main` is stable; work happens on feature branches merged via pull request. A `pre-push` hook in
   [`.githooks/`](.githooks/) rejects direct pushes to `main` and is activated by `pnpm install`.

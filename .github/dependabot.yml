@@ -1,0 +1,39 @@
+# Dependabot keeps the dependency updates coming as pull requests. The security
+# side of it (alerts and automatic security updates) is switched on in the
+# repository settings, not here — this file only governs the routine updates.
+version: 2
+
+updates:
+  # "npm" is the ecosystem name for the whole JavaScript world; Dependabot reads
+  # the pnpm lockfile fine. Nothing in here ships to users: React and the WXT
+  # toolchain are bundled at build time, the rest is tooling.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+    # Without grouping, a quiet week still produces a handful of separate pull
+    # requests, each of which has to run the full CI. Two groups keep that to
+    # two runs, and separate the updates that can break the extension from the
+    # ones that can only break the build.
+    groups:
+      production:
+        dependency-type: production
+      development:
+        dependency-type: development
+
+  # The workflow pins actions by major tag (actions/checkout@v4), so a new major
+  # is the one thing that needs a deliberate update.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: chore
+    groups:
+      actions:
+        patterns:
+          - '*'
