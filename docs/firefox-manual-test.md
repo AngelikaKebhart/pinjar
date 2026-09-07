@@ -61,8 +61,8 @@ later than in Chrome and behaves differently under MV2. When injection fails, sa
 which is exactly what makes the failure quiet: the entry is simply poorer than it should be.
 
 **Do:** open a page whose `<title>` differs from its `og:title`, or at least one that carries an
-`og:image` — `https://justament-consulting.at/accessibility` does. Click the toolbar icon, then
-**Save this page**. Open the dashboard.
+`og:image` — `https://en.wikipedia.org/wiki/Capybara` carries one. Click the toolbar icon, then **Save this page**. Open
+the dashboard.
 
 **Expect:** the entry carries a **preview image**, and its title is the page's own, not a
 truncated tab label.

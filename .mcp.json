@@ -11,7 +11,7 @@
         "--no-usage-statistics",
         "--categoryExtensions=true",
         "--allowedUrlPattern",
-        "https://justament-consulting.at",
+        "https://en.wikipedia.org",
         "--allowedUrlPattern",
         "chrome-extension://aikkllojgkagohgejkpkgliikmbpjppg/*"
       ],
