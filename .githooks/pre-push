@@ -2,12 +2,18 @@
 #
 # Blocks direct pushes to the protected branch.
 #
-# GitHub does not enforce branch protection on private repositories in the free
-# plan, so this hook enforces the trunk-based workflow locally instead: work
-# happens on feature branches and reaches main through a pull request.
+# A ruleset on GitHub is what actually protects main: it rejects the push at the
+# remote, for everyone, and no local setting can talk it out of that. This hook
+# is the earlier and friendlier half of the same rule — it stops the push before
+# it leaves the machine, names the workflow, and spells out the two commands to
+# do it properly, which a rejection from the server does not.
+#
+# So it is a reminder, not the enforcement. Removing it would cost nothing but
+# the better error message.
 #
 # Enabled via `git config core.hooksPath .githooks` (done by the "prepare"
-# script in package.json). Bypass in an emergency with `git push --no-verify`.
+# script in package.json). `git push --no-verify` skips this hook — the ruleset
+# on the remote does not care, and rejects the push anyway.
 
 protected_branch='main'
 
