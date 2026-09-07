@@ -1,6 +1,11 @@
 # Dependabot keeps the dependency updates coming as pull requests. The security
 # side of it (alerts and automatic security updates) is switched on in the
 # repository settings, not here — this file only governs the routine updates.
+#
+# Grouping rule throughout: minor and patch updates travel together, majors
+# always arrive on their own. A grouped pull request that goes red does not say
+# which of its updates broke the build, and that is precisely the question a
+# major raises. One major per pull request keeps the answer obvious.
 version: 2
 
 updates:
@@ -12,21 +17,28 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 5
+    # Room for the grouped pull request plus a handful of separate majors in a
+    # week where several land at once. The default of 5 is too tight for that.
+    open-pull-requests-limit: 8
     commit-message:
       prefix: chore
-    # Without grouping, a quiet week still produces a handful of separate pull
-    # requests, each of which has to run the full CI. Two groups keep that to
-    # two runs, and separate the updates that can break the extension from the
-    # ones that can only break the build.
+    # Two groups rather than one, so an update that can break the extension is
+    # never bundled with one that can only break the build.
     groups:
       production:
         dependency-type: production
+        update-types:
+          - minor
+          - patch
       development:
         dependency-type: development
+        update-types:
+          - minor
+          - patch
 
-  # The workflow pins actions by major tag (actions/checkout@v4), so a new major
-  # is the one thing that needs a deliberate update.
+  # The workflow pins actions by major tag (actions/checkout@v7), so a new major
+  # is the one thing that needs a deliberate look — and gets its own pull
+  # request for it.
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -37,3 +49,6 @@ updates:
       actions:
         patterns:
           - '*'
+        update-types:
+          - minor
+          - patch
