@@ -18,3 +18,12 @@ auditConfig:
   ignoreGhsas:
     - GHSA-w3rx-r6r6-pgpr # ICNS parser, infinite loop
     - GHSA-5p2g-fcmc-qvqq # JXL and HEIF parsers, infinite loops
+
+overrides:
+  # ajv (via web-ext > addons-linter) still resolves fast-uri 3.1.5, which four
+  # high-severity advisories cover — host confusion and SSRF through faulty URI
+  # normalization. ajv's own range is ^3.0.1, so the patched line satisfies it
+  # and nothing needs to wait for an addons-linter release.
+  #
+  # REMOVE as soon as the dependency chain resolves fast-uri >= 3.1.6 on its own.
+  fast-uri: '^3.1.6'
