@@ -9,7 +9,16 @@ wishlist. Save any page with one click, then find it again — no account, no si
 Everything stays **local to your browser** (`storage.local`). Come back to a site you already
 saved something on and the toolbar icon shows how many links you have there.
 
-<!-- Screenshots go here: popup and dashboard, ideally one of each in light and dark. -->
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/popup-light.png" alt="PinJar popup in light appearance, German interface: the save button above two saved links, each with an edit and a delete button, and a button opening the pinboard."></td>
+    <td width="50%"><img src="docs/screenshots/popup-dark.png" alt="The same popup in dark appearance, English interface."></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/dashboard-light.png" alt="PinJar dashboard in light appearance, German interface: search and filters by category, status, domain and tags, above the list of saved links with preview image, category, status, tags and note."></td>
+    <td><img src="docs/screenshots/dashboard-dark.png" alt="The same dashboard in dark appearance, English interface."></td>
+  </tr>
+</table>
 
 ## Features
 
