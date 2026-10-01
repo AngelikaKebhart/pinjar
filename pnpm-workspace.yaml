@@ -27,3 +27,14 @@ overrides:
   #
   # REMOVE as soon as the dependency chain resolves fast-uri >= 3.1.6 on its own.
   fast-uri: '^3.1.6'
+
+  # eslint's older dependencies (@eslint/eslintrc, @eslint/config-array) and
+  # web-ext > multimatch still pull minimatch 3.x, which resolves the 1.x line
+  # of brace-expansion. Three advisories cover it — two high-severity stack
+  # exhaustions and one quadratic-time expansion, all denial of service.
+  # minimatch 3.x asks for ^1.1.7, so the patched 1.1.21 satisfies it; the
+  # selector keeps the override off the 5.x line that newer minimatch uses.
+  #
+  # REMOVE as soon as the dependency chain resolves brace-expansion >= 1.1.21
+  # on its own, or drops minimatch 3.x entirely.
+  brace-expansion@1: '^1.1.21'
