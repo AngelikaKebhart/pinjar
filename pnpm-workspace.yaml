@@ -1,6 +1,24 @@
 # pnpm settings. Since pnpm 10 these live here rather than in the "pnpm" field
 # of package.json.
 
+auditConfig:
+  # Advisories deliberately accepted for now, so that `pnpm audit` stays useful
+  # and a genuinely new finding is not lost in known noise.
+  #
+  # RSA PKCS#1 v1.5 signature verification in node-forge, reached only through
+  # web-ext > @devicefarmer/adbkit. Accepted because:
+  #   - web-ext is a devDependency and is never part of the built extension,
+  #   - adbkit serves only Firefox-for-Android debugging over ADB, which this
+  #     project does not use, so the signature check is never reached,
+  #   - the advisory names no published patched release (node-forge 1.4.0 is
+  #     the latest), so there is currently no version to override to.
+  #
+  # REMOVE as soon as node-forge >= 1.4.1 is released — then override to it
+  # if web-ext does not pick it up, and `pnpm audit` must pass without
+  # exceptions again.
+  ignoreGhsas:
+    - GHSA-86w9-cpqp-85rv # node-forge, extra nested DigestAlgorithm accepted
+
 overrides:
   # ajv (via web-ext > addons-linter) still resolves fast-uri 3.1.5, which four
   # high-severity advisories cover — host confusion and SSRF through faulty URI
@@ -20,3 +38,12 @@ overrides:
   # REMOVE as soon as the dependency chain resolves brace-expansion >= 1.1.21
   # on its own, or drops minimatch 3.x entirely.
   brace-expansion@1: '^1.1.21'
+
+  # web-ext > fx-runner pins shell-quote to exactly 1.10.0, which a critical
+  # advisory covers — command injection through quote() when a token after a
+  # `{ comment }` token contains a line terminator. The patched 1.11.0 line is
+  # API-compatible, so overriding the pin is safe.
+  #
+  # REMOVE as soon as fx-runner (or web-ext) resolves shell-quote >= 1.11.0 on
+  # its own.
+  shell-quote: '^1.11.0'
