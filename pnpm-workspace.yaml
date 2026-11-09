@@ -5,19 +5,20 @@ auditConfig:
   # Advisories deliberately accepted for now, so that `pnpm audit` stays useful
   # and a genuinely new finding is not lost in known noise.
   #
-  # RSA PKCS#1 v1.5 signature verification in node-forge, reached only through
-  # web-ext > @devicefarmer/adbkit. Accepted because:
+  # Prototype poisoning in deepmerge's mergeObject(), reached only through
+  # web-ext > addons-linter, which pins deepmerge to exactly 4.3.1. Accepted
+  # because:
   #   - web-ext is a devDependency and is never part of the built extension,
-  #   - adbkit serves only Firefox-for-Android debugging over ADB, which this
-  #     project does not use, so the signature check is never reached,
-  #   - the advisory names no published patched release (node-forge 1.4.0 is
-  #     the latest), so there is currently no version to override to.
+  #   - addons-linter runs only locally, against this project's own build
+  #     output, so it never merges objects an outsider controls,
+  #   - the advisory names 4.3.2 as patched, but no such release exists on npm
+  #     (4.3.1 is the latest), so there is currently no version to override to.
   #
-  # REMOVE as soon as node-forge >= 1.4.1 is released — then override to it
-  # if web-ext does not pick it up, and `pnpm audit` must pass without
+  # REMOVE as soon as deepmerge >= 4.3.2 is released — then override to it if
+  # addons-linter does not pick it up, and `pnpm audit` must pass without
   # exceptions again.
   ignoreGhsas:
-    - GHSA-86w9-cpqp-85rv # node-forge, extra nested DigestAlgorithm accepted
+    - GHSA-gcqx-w48m-w2h4 # deepmerge, prototype poisoning via addons-linter
 
 overrides:
   # ajv (via web-ext > addons-linter) still resolves fast-uri 3.1.5, which four
@@ -47,3 +48,21 @@ overrides:
   # REMOVE as soon as fx-runner (or web-ext) resolves shell-quote >= 1.11.0 on
   # its own.
   shell-quote: '^1.11.0'
+
+  # wxt, vitest and @tailwindcss/vite all accept any vite 8 release, but pnpm
+  # keeps the shared, peer-resolved vite at 8.2.1. Six advisories cover
+  # 8.2.0–8.2.3, the dev server among them; 8.2.4 fixes all of them within
+  # the same major line.
+  #
+  # REMOVE as soon as the dependency chain resolves vite >= 8.2.4 on its own.
+  vite: '^8.2.4'
+
+  # @typescript-eslint/typescript-estree asks for minimatch ^10.2.2, and the
+  # moderate-severity advisory on it (denial of service through globparts
+  # amplification) is fixed only in 11.0.1 — there is no patched 10.x release.
+  # The override crosses a major version, so it is scoped to the 10.x line and
+  # covered by `pnpm lint`, which runs the type-aware parser that uses it.
+  #
+  # REMOVE as soon as typescript-eslint resolves minimatch >= 11.0.1 on its
+  # own.
+  minimatch@10: '^11.0.1'
